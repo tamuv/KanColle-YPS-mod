@@ -1,5 +1,5 @@
 # 艦これ余所見プレイ支援 KanColleYPS
-* v1.3 Apr.2016: 2016/4/1メンテ対応、permission不足対応.
+* v1.4 May.2016: 2016/5春イベント対応【暫定】.
 * 開発サイト: https://github.com/hkuno9000/KanColle-YPS
 * 公開サイト: http://hkuno9000.github.io/KanColle-YPS
 * リリース履歴: https://github.com/hkuno9000/KanColle-YPS/releases
