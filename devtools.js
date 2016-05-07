@@ -1972,6 +1972,11 @@ function on_battle(json, battle_api_name) {
 		var t0 = d.api_flare_pos[0]; if (t0 != -1) result.detail.push({ty:'照明弾(夜戦)', at: nowhps_c ? t0+20 : t0});
 		var t1 = d.api_flare_pos[1]; if (t1 != -1) result.detail.push({ty:'敵照明弾(夜戦)', at:t1+6});
 	}
+	if (d.api_air_base_attack) {
+		d.api_air_base_attack.forEach(function(kouku) {
+			calc_kouku_damage(result, nowhps, kouku, nowhps_c);　// 2016.5 基地航空隊支援.
+		});
+	}
 	calc_kouku_damage(result, nowhps, d.api_kouku, nowhps_c); // 航空戦.
 	calc_kouku_damage(result, nowhps, d.api_kouku2, nowhps_c); // 航空戦第二波.
 	var ds = d.api_support_info;
@@ -2012,6 +2017,7 @@ function on_battle(json, battle_api_name) {
 			+ '/' + match_name(d.api_formation[2])
 			+ '/敵' + formation_name(d.api_formation[1]);
 		if (d.api_support_flag) fmt += '+' + support_name(d.api_support_flag);
+		if (d.api_air_base_attack) fmt += '+基地航空隊';
 		$battle_info = fmt;
 		$enemy_formation = formation_name(d.api_formation[1]);
 	}
