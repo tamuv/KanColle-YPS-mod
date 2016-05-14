@@ -1899,10 +1899,10 @@ function guess_win_rank(nowhps, maxhps, beginhps, nowhps_c, maxhps_c, beginhps_c
 			|| (f_damage_percent > 41) // C/D閾値検証.
 			;
 		if (f_damage_total == 0) return '完S'; // 確定.
-		if (f_damage_percent < 10) return 'A'; // 要検証!!! 自ダメージ 0.4%～9%　で A判定を確認済み.
+		if (f_damage_percent < 10) return 'A'; // 確定. 自ダメージ 0.4%～9%　で A判定を確認済み.
 		if (f_damage_percent < 20) return 'B'; // 要検証!!! 自ダメージ 10%～19%　で B判定を確認済み.
 		if (f_damage_percent < 50) return 'C'; // 要検証!!! 自ダメージ 22%～41%　で C判定を確認済み.
-		if (f_lost_count < f_count/2) return 'D'; // 要検証!!!
+		if (f_damage_percent < 80) return 'D'; // 要検証!!! 自ダメージ 76.1% で D判定を確認済み.
 		return 'E';
 	}
 	if (e_count == e_lost_count && f_lost_count == 0) {
