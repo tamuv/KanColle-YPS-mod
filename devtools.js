@@ -2454,7 +2454,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		};
 	}
 	else if (api_name == '/api_get_member/ship3') {
-		// 装備換装、艦娘改造.
+		// ストック装備換装、艦娘改造.
 		func = function(json) { // 保有艦、艦隊一覧を更新してcond表示する.
 			if (decode_postdata_params(request.request.postData.params).api_shipid)
 				delta_update_ship_list(json.api_data.api_ship_data); // 装備解除時は差分のみ.
@@ -2462,6 +2462,18 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 				update_ship_list(json.api_data.api_ship_data);
 			update_fdeck_list(json.api_data.api_deck_data);
 			print_port();
+		};
+	}
+	else if (api_name == '/api_req_kaisou/slot_deprive') { // 2016.6.1メンテ更新で追加された、
+		// 他艦娘装備中換装.
+		func = function(json) { // 保有艦、艦隊一覧を更新してcond表示する.
+			if (json.api_data && json.api_data.api_ship_data) {
+				delta_update_ship_list([
+					json.api_data.api_ship_data.api_set_ship,
+					json.api_data.api_ship_data.api_unset_ship
+				]);
+				print_port();
+			}
 		};
 	}
 	else if (api_name == '/api_get_member/mission') {
