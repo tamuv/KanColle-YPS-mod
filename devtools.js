@@ -1343,17 +1343,19 @@ function push_quests(req) {
 			var quest = $quest_list[id];
 			var q_type = '';
 			switch (quest.api_type) {
-			case 2:	// デイリー.
-			case 4:	// 敵空母3隻.
-			case 5:	// 敵輸送船.
+			case 1:	// デイリー.
 				if (quest.api_state > 1) p_count.daily++;
 				q_count.daily++; q_type = '(毎日)'; break;
-			case 3:	// ウィークリー.
+			case 2:	// ウィークリー.
 				if (quest.api_state > 1) p_count.weekly++;
 				q_count.weekly++; q_type = '(毎週)'; break;
-			case 6:	// マンスリー.
+			case 3:	// マンスリー.
 				if (quest.api_state > 1) p_count.monthly++;
-				q_count.monthly++; q_type = '(毎月)';  break;
+				q_count.monthly++; q_type = '(毎月)'; break;
+			case 4:	// 単発.
+				q_type = '(単)'; break;
+			case 5:	// 他.
+				q_type = '(他)'; break;
 			}
 			if (quest.api_state > 1) {
 				var progress = (quest.api_state == 3) ? '* 達成!!'
