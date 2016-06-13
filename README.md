@@ -1,5 +1,5 @@
 # 艦これ余所見プレイ支援 KanColleYPS
-* v1.4.2 June.2016: 2016/6 メンテ他艦娘装備中換装.
+* v1.4.3 June.2016: 2016/6 メンテ他艦娘装備中換装.
 * 開発サイト: https://github.com/hkuno9000/KanColle-YPS
 * 公開サイト: http://hkuno9000.github.io/KanColle-YPS
 * リリース履歴: https://github.com/hkuno9000/KanColle-YPS/releases
