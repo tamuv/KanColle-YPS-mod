@@ -1452,7 +1452,7 @@ function on_mission_check(category) {
 function on_next_cell(json) {
 	var d = json.api_data;
 	var g = json.api_data.api_itemget;
-	if (!g) g = json.api_data.api_itemget_eo_comment; // EO 1-6 海域ゴールの取得資源.
+	if (d.api_itemget_eo_comment) g = [d.api_itemget_eo_comment]; // EO 1-6 海域ゴールの取得資源.
 	var h = json.api_data.api_happening;
 	var area = d.api_maparea_id + '-' + d.api_mapinfo_no + '-' + d.api_no;
 	$next_mapinfo = $mst_mapinfo[d.api_maparea_id * 10 + d.api_mapinfo_no];
