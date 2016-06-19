@@ -170,14 +170,28 @@ Ship.prototype.slot_names = function() {
 	var slot = this.slot;
 	var onslot = this.onslot;
 	var maxslot = $mst_ship[this.ship_id].api_maxeq;
+	var slotnum = $mst_ship[this.ship_id].api_slot_num; // 通常スロット数.
 	var a = [];
 	for (var i = 0; i < slot.length; ++i) {
 		var value = $slotitem_list[slot[i]];
 		if (value) {
 			a.push(slotitem_name(value.item_id, value.level, value.alv, value.p_alv, onslot[i], maxslot[i]));
 		}
+		else if (slot[i] == -1 && i < slotnum) {
+			a.push('空');
+		}
 	}
 	return a.join(', ');
+};
+
+Ship.prototype.blank_slot_num = function() {	///< 通常スロットの空き数を返す(補強スロットは対象外とする)
+	var num = 0;
+	var slot = this.slot;
+	var slotnum = $mst_ship[this.ship_id].api_slot_num;
+	for (var i = 0; i < slot.length; ++i) {
+		if (slot[i] == -1 && i < slotnum) ++num;
+	}
+	return num;
 };
 
 Ship.prototype.next_level = function () {
@@ -800,6 +814,7 @@ function fleet_brief_status(deck, deck2) {
 	var drumcan = {ships:0, sum:0};
 	var daihatu = {ships:0, sum:0};
 	var akashi = '';
+	var blank_slot_num = 0;
 	var list = deck.api_ship;
 	if (deck2) list = list.concat(deck2.api_ship);
 	for (var i in list) {
@@ -827,6 +842,7 @@ function fleet_brief_status(deck, deck2) {
 				daihatu.ships++;
 				daihatu.sum += d;
 			}
+			blank_slot_num += ship.blank_slot_num();
 			// 明石検出.
 			var name = ship.name_lv();
 			if (/明石/.test(name)) {
@@ -846,6 +862,7 @@ function fleet_brief_status(deck, deck2) {
 		+ (unlock ? ' 未ロック' + unlock : '')
 		+ (drumcan.sum ? ' ドラム缶' + drumcan.sum + '個' + drumcan.ships + '隻' : '')
 		+ (daihatu.sum ? ' 大発' + daihatu.sum + '個' : '')
+		+ (blank_slot_num ? ' 空スロット' + blank_slot_num : '')
 		+ akashi
 		;
 }
