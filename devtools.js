@@ -1998,6 +1998,7 @@ function on_battle(json, battle_api_name) {
 		if (d.api_support_flag == 2) calc_damage(result, nowhps, ds.api_support_hourai); // 2:支援射撃
 		if (d.api_support_flag == 3) calc_damage(result, nowhps, ds.api_support_hourai); // 3:支援長距離雷撃.
 	}
+	calc_damage(result, nowhps, d.api_opening_taisen, nowhps_c);	// 対潜先制爆雷攻撃.　2016-06-30メンテ明けから追加.
 	calc_damage(result, nowhps, d.api_opening_atack, nowhps_c);	// 開幕雷撃.
 	calc_damage(result, nowhps, d.api_hougeki, nowhps_c);	// midnight
 	switch (nowhps_c ? $combined_flag : 0) {
