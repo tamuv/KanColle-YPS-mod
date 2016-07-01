@@ -19,7 +19,6 @@ var $fdeck_list = {};
 var $ship_fdeck = {};
 var $ship_escape = {};	// 護衛退避したshipidのマップ.
 var $mapinfo_rank = {};	// 海域難易度 undefined:なし, 1:丙, 2:乙, 3:甲.
-var $uncleared_mapinfo = []; // 未クリアの海域情報.
 var $next_mapinfo = null;
 var $next_enemy = null;
 var $is_boss = false;
@@ -1315,9 +1314,6 @@ function print_port() {
 		msg.push('---');
 	}
 	//
-	// 未攻略海域を一覧表示する.
-	push_uncleared(req);
-	//
 	// 遂行中任務を一覧表示する.
 	push_quests(req);
 	//
@@ -1339,18 +1335,23 @@ function print_next(title, msg) {
 }
 
 //------------------------------------------------------------------------
-function push_uncleared(req) {
-	if ($uncleared_mapinfo.length) {
+// 海域選択画面表示.
+//
+function print_mapinfo(uncleared) {
+	var req = ["# 海域選択"];
+	if (uncleared.length > 0) {
 		var msg = ['YPS_uncleared_mapinfo'];
-		$uncleared_mapinfo.forEach(function(data) {
-			msg.push('* ' + data.api_maparea_id + '-' + data.api_no + ': ' + data.api_name);
-		});
+		msg = msg.concat(uncleared);
 		req.push('未クリア海域');
 		req.push(msg);
 		msg.push('---');
 	}
+	push_quests(req);
+	push_all_fleets(req);
+	chrome.runtime.sendMessage(req);
 }
 
+//------------------------------------------------------------------------
 function push_quests(req) {
 	var quests = Object.keys($quest_list).length;
 	if (quests > 0) {
@@ -2550,13 +2551,19 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		// 海域選択メニュー.
 		func = function(json) { // 海域情報を記録する.
 			$mapinfo_rank = {};
-			$uncleared_mapinfo = [];
+			var uncleared = [];
 			json.api_data.forEach(function(data) {
 				if (data.api_eventmap)
 					$mapinfo_rank[data.api_id] = data.api_eventmap.api_selected_rank;
-				if (!data.api_cleared)
-					$uncleared_mapinfo.push($mst_mapinfo[data.api_id]);
+				if (!data.api_cleared) {
+					var mst = $mst_mapinfo[data.api_id];
+					var now = data.api_eventmap ? data.api_eventmap.api_now_maphp : data.api_defeat_count;
+					var max = data.api_eventmap ? data.api_eventmap.api_max_maphp : mst.api_required_defeat_count;
+					var prompt = data.api_eventmap ? '海域HP' : '';
+					uncleared.push('* ' + mst.api_maparea_id + '-' + mst.api_no + ': ' + mst.api_name + ' ' + prompt + fraction_percent_name(now, max));
+				}
 			});
+			print_mapinfo(uncleared);
 		};
 	}
 	else if (api_name == '/api_req_map/select_eventmap_rank') {
