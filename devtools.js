@@ -1598,6 +1598,8 @@ function on_battle_result(json) {
 			if (rank == 'S' && $f_damage == 0) rank = '完S';
 		}
 		msg += ':' + rank;
+		$guess_info_str += ', f_lost:' + count_if(lost, 1); // 自轟沈数.
+		$guess_info_str += ', e_lost:' + (d.api_destsf ? 'x' : '') + d.api_dests; // 敵撃沈数.
 		$guess_info_str += ', rank:' + rank;
 		if (rank != $guess_win_rank) {
 			$guess_info_str += '/' + $guess_win_rank + ' MISS!!';
