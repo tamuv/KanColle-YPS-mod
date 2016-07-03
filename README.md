@@ -1,5 +1,5 @@
 # 艦これ余所見プレイ支援 KanColleYPS
-* v1.4.4 June.2016: 2016-06-30 メンテ明け「対潜先制爆雷攻撃」対応.
+* v1.4.5 July.2016: 2016-07-03 海域選択画面を追加.
 * 開発サイト: https://github.com/hkuno9000/KanColle-YPS
 * 公開サイト: http://hkuno9000.github.io/KanColle-YPS
 * リリース履歴: https://github.com/hkuno9000/KanColle-YPS/releases

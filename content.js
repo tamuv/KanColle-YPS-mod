@@ -260,7 +260,7 @@ function history_buttons() {
 }
 
 function version_banner() {
-	var ver_name = 'v1.4.4 June.2016';	// copy from manifest.json
+	var ver_name = 'v1.4.5 July.2016';	// copy from manifest.json
 	return ' <a href="http://hkuno9000.github.io/KanColle-YPS/" target="KanColle-YPS-website">KanColle-YPS ' + ver_name + '</a>';
 }
 
