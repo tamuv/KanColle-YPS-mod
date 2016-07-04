@@ -7,6 +7,7 @@ div.style.position = 'absolute';
 div.style.top = '75px'; // NaviBar 39px + margin 20px + spacer 16px
 div.style.left = '850px';
 div.innerHTML = "<h2>艦これ余所見プレイ支援</h2>"
+	+ version_banner()
 	+ "<h3>ロード中...</h3>"
 	+ "ゲームスタート後に「ロード完了」が表示されない場合は[デベロッパー ツール]を起動し、画面をリロードしてゲームスタートからやり直してください\n"
 	+ "※ デベロッパーツールは、Opt+Cmd+I(Mac), Ctrl+Shift+I, F12 キーで起動できます\n"
@@ -260,7 +261,7 @@ function history_buttons() {
 }
 
 function version_banner() {
-	var ver_name = 'v1.4.5 July.2016';	// copy from manifest.json
+	var ver_name = chrome.runtime.getManifest().version_name;
 	return ' <a href="http://hkuno9000.github.io/KanColle-YPS/" target="KanColle-YPS-website">KanColle-YPS ' + ver_name + '</a>';
 }
 
