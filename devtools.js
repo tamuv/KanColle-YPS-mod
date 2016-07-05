@@ -1329,6 +1329,8 @@ function print_next(title, msg) {
 	var req = [request_date_time()];
 	req.push('# ' + $next_mapinfo.api_name + ' ' + title);
 	req = req.concat(msg); // msg は string or Array.
+	req.push('---');
+	push_quests(req);
 	push_all_fleets(req);
 	if (req.damage_H_alart) { req.splice(1, 0, '# @!!【大破進撃警告】!!@ ダメコン未装備なら、ブラウザを閉じて進撃中止を勧告します.'); } // 大破進撃の警告を2行目に挿入する.
 	chrome.runtime.sendMessage(req);
