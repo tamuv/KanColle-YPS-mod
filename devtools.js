@@ -48,6 +48,7 @@ var $ndock_list = {};
 var $do_print_port_on_ndock = false;
 var $do_print_port_on_slot_item = false;
 var $kdock_list = {};
+var $battle_api_data = null;
 var $battle_deck_id = -1;
 var $battle_log = [];
 var $last_mission = {};
@@ -1564,6 +1565,24 @@ function add_ship_escape(idx) {
 		$ship_escape[$fdeck_list[1].api_ship[idx-1]] = 1; // 第一艦隊から退避.
 }
 
+/// 艦隊番号とLv付き艦名を生成する. idx = 1..6:第一艦隊, 7..12:敵艦隊, 21..26:第二艦隊.
+function ship_name_lv(idx) {
+	if (idx > 20) {
+		var fdeck = $fdeck_list[2];
+		return $ship_list[fdeck.api_ship[idx-21]].fleet_name_lv(); // 連合第二艦隊.
+	}
+	else if (idx > 6) {
+		var d = $battle_api_data;
+		idx -= 6; return '@!!(敵' + idx + ')!!@' + ship_name(d.api_ship_ke[idx]) + 'Lv' + d.api_ship_lv[idx]; // 敵艦隊.
+	}
+	else if (idx >= 1) {
+		var fdeck = $fdeck_list[$battle_api_data.api_deck_id];
+		return $ship_list[fdeck.api_ship[idx-1]].fleet_name_lv(); // 味方艦隊.
+	}
+	else // NaN, undefined, null
+		return '';
+}
+
 /// 護衛退避実行. 退避可能リストから１艦、護衛可能リストから１艦、合計2艦のみ退避できる.
 function on_goback_port() {
 	if (!$escape_info) return;
@@ -1953,7 +1972,7 @@ function guess_win_rank(nowhps, maxhps, beginhps, nowhps_c, maxhps_c, beginhps_c
 }
 
 function on_battle(json, battle_api_name) {
-	var d = json.api_data;
+	var d = $battle_api_data = json.api_data;
 	if (!d.api_maxhps || !d.api_nowhps) return;
 	var maxhps = d.api_maxhps;				// 出撃艦隊[1..6] 敵艦隊[7..12]
 	var nowhps = d.api_nowhps;				// 出撃艦隊[1..6] 敵艦隊[7..12]
@@ -2067,19 +2086,6 @@ function on_battle(json, battle_api_name) {
 	req.push('戦闘被害:' + $guess_info_str);
 	req.push('勝敗推定:' + $guess_win_rank);
 
-	function ship_name_lv(idx) {
-		if (idx > 20) {
-			idx -= 20; return $ship_list[$fdeck_list[2].api_ship[idx-1]].fleet_name_lv(); // 連合第二艦隊.
-		}
-		else if (idx > 6) {
-			idx -= 6; return '@!!(敵' + idx + ')!!@' + ship_name(d.api_ship_ke[idx]) + 'Lv' + d.api_ship_lv[idx]; // 敵艦隊.
-		}
-		else if (idx >= 1) {
-			return $ship_list[fdeck.api_ship[idx-1]].fleet_name_lv(); // 味方艦隊.
-		}
-		else // NaN, undefined, null
-			return '';
-	}
 	if (result.detail.length) {
 		var msg = ['YPS_battle_detail', '\t==種別\t==攻撃艦\t==防御艦\t==敵撃墜/戦果\t==被撃墜/ダメージ\t==使用装備'];
 		for (var i = 0; i < result.detail.length; ++i) {
