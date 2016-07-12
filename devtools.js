@@ -2106,11 +2106,10 @@ function on_battle(json, battle_api_name) {
 
 	req.push('## friend damage');
 	push_fdeck_status(req, fdeck, maxhps, nowhps, beginhps);
-	req.push('被撃墜数: ' + result.f_air_lostcount);
 	if (nowhps_c) {
-		req.push('## friend(2nd) damage');
 		push_fdeck_status(req, $fdeck_list[2], maxhps_c, nowhps_c, beginhps_c); // 連合第二艦隊は二番固定です.
 	}
+	req.push('被撃墜数: ' + result.f_air_lostcount);
 	req.push('## enemy damage');
 	$enemy_ship_names = [];
 	for (var i = 1; i <= 6; ++i) {
