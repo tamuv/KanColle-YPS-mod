@@ -1484,6 +1484,7 @@ function on_next_cell(json) {
 	}
 	if (g) {	// 資源マス.
 		var msg = area;
+		if (g.api_id) g = [g];	// 航空偵察マスの時は配列ではない.
 		for (var i = 0; i < g.length; ++i) {
 			var item = g[i];
 			var id = item.api_id;
@@ -1491,6 +1492,7 @@ function on_next_cell(json) {
 			$material.dropitem[id-1]   += count;	// 道中ドロップによる資材増加を記録する.
 			$material.autosupply[id-1] -= count;	// 後続の /api_port/port にて自然増加に誤算入される分を補正する.
 			msg += (i == 0 ? ':' : ', ') + material_name(id) + 'x' + count;
+			if (d.api_event_id == 7) msg += "(航空偵察)";	// 航空偵察マスの資源はboss戦勝利により獲得が確定する.　獲得失敗時は自然増加の減少として扱う.
 		}
 		$battle_log.push(msg);
 		print_next('next item', msg);
