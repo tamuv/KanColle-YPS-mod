@@ -2128,7 +2128,7 @@ function on_battle(json, battle_api_name) {
 		var enemy_kyouka = d.api_eKyouka[i-1];
 		var param = [];
 		for(var j = 0; j < 4; ++j){
-			param[j] = param_name[j] + ' ' + enemy_param[j] + (enemy_kyouka[j] ? ('(+' + enemy_kyouka[j] + ')') : '');
+			param[j] = param_name[j] + ' ' + enemy_param[j] + diff_name(enemy_kyouka[j], 0);
 		}
 		msg.push('* ' + param.join(', '));
 		for(var j = 0; j < enemy_slot.length; ++j){
