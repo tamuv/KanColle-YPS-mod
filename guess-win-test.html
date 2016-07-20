@@ -14,7 +14,6 @@ function parse_input() {
 	var e_count = 0;
 	var e_lost_count = 0;
 	var e_leader_lost = false;
-	var isChase = false;
 	var f_maxhp_total = 0;
 	var battle_api_name = "";
 	// guess_win_rank()を抜き出して、guess_win_rank2()を作成する.
@@ -68,7 +67,6 @@ function parse_input() {
 			if (match = /, rank:(完?[SA-E])(\/)?(完?[SA-E])?/.exec(s)) {
 				r_rank = match[1];
 				g_rank = match[3] ? match[3] : match[1];
-				isChase = /chase_rate/.test(s);
 			}
 			// [old-LOGBOOK] 演習相手:xxx, B/B, f_damage:3/103(3%)[0/6], e_damage:191/317(60%)[3/6], rate:20.7
 			if (match = /, (完?[SA-E])\/(完?[SA-E]), f_damage:/.exec(s)) {
@@ -88,7 +86,6 @@ function parse_input() {
 			if (match = /f_damage:(\d+)\/(\d+).[\d\.]+\%.\[(\d+)\/(\d+)\](\d+)?/.exec(s)) {
 				f_damage_total = match[1]; f_hp_total = match[2]; f_lost_count = match[3]; f_count = match[4];
 				if (match[5]) f_maxhp_total = match[5];
-				isChase = /chase_rate/.test(s);
 			}
 			if (match = /e_damage:(\d+)\/(\d+).[\d\.]+\%.\[(\x?)(\d+)\/(\d+)\]/.exec(s)) {
 				e_damage_total = match[1]; e_hp_total = match[2]; e_lost_count = match[4]; e_count = match[5];
@@ -106,7 +103,6 @@ function parse_input() {
 			if (r_rank != g_rank2) msg += ' MISS!!';
 			output.push($guess_info_str + ' => rank:' + msg);
 			r_rank = g_rank = g_rank2 = undefined;
-			isChase = false;
 			f_maxhp_total = 0;
 			battle_api_name = "";
 		}
