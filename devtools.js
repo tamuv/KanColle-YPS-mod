@@ -393,6 +393,7 @@ function get_weekly() {
 	}
 	if ($weekly.daily != dn) {
 		$weekly.daily = dn;
+		$weekly.daily_practice_state = 0;
 	}
 	if ($weekly.monday_material == null) {
 		$weekly.monday_material = $material.now.concat(); save_weekly();
@@ -1356,6 +1357,7 @@ function print_mapinfo(uncleared) {
 
 //------------------------------------------------------------------------
 function push_quests(req) {
+	if (get_weekly().daily_practice_state < 3) req.push('### @!!デイリー演習が未達成です!!@');
 	var quests = Object.keys($quest_list).length;
 	if (quests > 0) {
 		var msg = ['YPS_quest_list'];
@@ -2337,13 +2339,20 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			if (json.api_data.api_disp_page == 1 && $quest_count != Object.keys($quest_list).length) {
 				$quest_list = {}; // 任務総数が変わったらリストをクリアする.
 			}
+			var w = get_weekly();
 			if (list) list.forEach(function(data) {
 				if (data == -1) return; // 最終ページには埋草で-1 が入っているので除外する.
 				$quest_list[data.api_no] = data;
 				if (data.api_no == 214) {
-					get_weekly().quest_state = data.api_state; // あ号任務ならば、遂行状態を記録する(1:未遂行, 2:遂行中, 3:達成)
+					w.quest_state = data.api_state; // あ号任務ならば、遂行状態を記録する(1:未遂行, 2:遂行中, 3:達成)
+					w.savetime = 0;
+				}
+				else if (data.api_no == 303 || data.api_no == 304) {
+					w.daily_practice_state = data.api_state; // デイリー演習3回／5回(1:未遂行, 2:遂行中, 3:達成)
+					w.savetime = 0;
 				}
 			});
+			if (w.savetime == 0) { save_weekly(); } // 更新があれば再保存する.
 			print_port();
 		};
 	}
