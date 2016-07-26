@@ -379,6 +379,7 @@ function get_weekly() {
 	var ms = Date.now() - Date.UTC(2013, 4-1, 22, 5-9, 0); // 2013-4-22 05:00 JST からの経過ミリ秒数.
 	var dn = Math.floor(ms / (24*60*60*1000)); // 経過日数に変換する.
 	var wn = Math.floor(dn / 7); // 経過週数に変換する.
+	var hn = Math.floor((ms + 2*60*60*1000) / (12*60*60*1000)); // 演習更新数(03:00JST起点の半日周期)に変換する.
 	if ($weekly == null || $weekly.week != wn) {
 		$weekly = {
 			quest_state : 0, // あ号任務状況(1:未遂行, 2:遂行中, 3:達成)
@@ -393,6 +394,10 @@ function get_weekly() {
 	}
 	if ($weekly.daily != dn) {
 		$weekly.daily = dn;
+	}
+	if ($weekly.halfdaily != hn) {
+		$weekly.halfdaily = hn;
+		$weekly.practice_done = 0; save_weekly();
 	}
 	if ($weekly.monday_material == null) {
 		$weekly.monday_material = $material.now.concat(); save_weekly();
@@ -1316,6 +1321,8 @@ function print_port() {
 	}
 	//
 	// 遂行中任務を一覧表示する.
+	var w = get_weekly();
+	if (w.practice_done < 5) req.push('### @!!演習可能です(' + w.practice_done + '/5)!!@' ); // 警告表示.
 	push_quests(req);
 	//
 	// 各艦隊の情報を一覧表示する.
@@ -2549,6 +2556,9 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		// 演習メニュー.
 		func = function(json) { // 演習任務の受諾をチェックする.
 			on_mission_check(3);
+			// 演習遂行数を数える.
+			var n = json.api_data.reduce(function(count, data) { return count + (data.api_state > 0); }, 0);
+			get_weekly().practice_done = n;
 		};
 	}
 	else if (api_name == '/api_req_member/get_practice_enemyinfo') {
@@ -2667,7 +2677,11 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 	}
 	else if (api_name == '/api_req_practice/battle_result') {
 		// 演習結果.
-		func = on_battle_result;
+		func = function(json) {
+			on_battle_result(json);
+			get_weekly().practice_done++;
+			save_weekly();
+		}
 	}
 	else if (api_name == '/api_req_combined_battle/goback_port') {
 		// 護衛退避.
