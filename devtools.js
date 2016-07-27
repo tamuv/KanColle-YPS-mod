@@ -681,6 +681,17 @@ function battle_cl_name(a) {
 	}
 }
 
+function map_name() {
+	return $next_mapinfo ? $next_mapinfo.api_name : '';
+}
+
+function push_listform(ary, data) {
+	if (data instanceof Array)
+		data.forEach(function(a) { ary.push('* ' + a); });
+	else
+		ary.push('* ' + data);
+}
+
 //------------------------------------------------------------------------
 // データ解析.
 //
@@ -1442,7 +1453,8 @@ function push_all_fleets(req) {
 			$last_mission[f_id] = '前回遠征: ' + $mst_mission[id].api_name; // 支援遠征では /api_req_mission/result が来ないので、ここで事前更新しておく.
 		}
 		else if (deck.api_id == $battle_deck_id) {
-			req.push('出撃中: ' + $battle_log.join('\n→'));
+			req.push('出撃中: ' + map_name());
+			push_listform(req, $battle_log);
 			if (/大破!!!/.test(brief)) { req.damage_H_alart = true; } // 大破進撃警告ON.
 		}
 		else {
@@ -2070,9 +2082,9 @@ function on_battle(json, battle_api_name) {
 	}
 	if (!fdeck) return; // for debug.
 	var req = [request_date_time()];
-	req.push('# ' + ($next_mapinfo ? $next_mapinfo.api_name : '') + ' battle' + $battle_count);
-	if ($battle_count > 1) $battle_log.forEach(function(a) { req.push(a + ' →'); });
-	req.push($next_enemy);
+	req.push('# ' + map_name() + ' battle' + $battle_count);
+	push_listform(req, $battle_log);
+	push_listform(req, $next_enemy);
 	if (fmt) req.push(fmt);
 	if (d.api_search) {
 		req.push('索敵: ' + search_name(d.api_search[0])); // d.api_search[1] は敵索敵か??
@@ -2464,7 +2476,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			$max_ship     = basic.api_max_chara;
 			$max_slotitem = basic.api_max_slotitem + 3;
 			if ($battle_deck_id > 0) {
-				$last_mission[$battle_deck_id] = '前回出撃: ' + $battle_log.join('\n→');
+				$last_mission[$battle_deck_id] = '前回出撃: ' + map_name() + ' ' + $battle_log.pop();
 				$battle_deck_id = -1;
 				$do_print_port_on_slot_item = true;	// 戦闘直後の母港帰還時は、後続する slot_item で艦載機の熟練度が更新されるまで print_port() を遅延する.
 			}
