@@ -2071,6 +2071,7 @@ function on_battle(json, battle_api_name) {
 	if (!fdeck) return; // for debug.
 	var req = [request_date_time()];
 	req.push('# ' + ($next_mapinfo ? $next_mapinfo.api_name : '') + ' battle' + $battle_count);
+	if ($battle_count > 1) $battle_log.forEach(function(a) { req.push(a + ' →'); });
 	req.push($next_enemy);
 	if (fmt) req.push(fmt);
 	if (d.api_search) {
