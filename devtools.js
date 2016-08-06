@@ -867,9 +867,9 @@ function fleet_brief_status(deck, deck2) {
 			}
 		}
 	}
-	return kira_names(cond_list)
-		+ (fuel < fuel_max ? ' 燃料' + percent_name(fuel, fuel_max) : '')
-		+ (bull < bull_max ? ' 弾薬' + percent_name(bull, bull_max) : '')
+	var ret = kira_names(cond_list)
+		+ ' 燃料' + fuel + percent_name_unless100(fuel, fuel_max)
+		+ ' 弾薬' + bull + percent_name_unless100(bull, bull_max)
 		+ (esc  ? ' 退避' + esc : '')
 		+ (sunk ? ' 撃沈' + sunk : '')
 		+ (damage_H ? ' 大破!!!' + damage_H : '')
@@ -882,6 +882,7 @@ function fleet_brief_status(deck, deck2) {
 		+ (blank_slot_num ? ' 空スロット' + blank_slot_num : '')
 		+ akashi
 		;
+	return ret.trim();
 }
 
 function push_fleet_status(msg, deck) {
