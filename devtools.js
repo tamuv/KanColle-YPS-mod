@@ -1972,13 +1972,13 @@ function guess_win_rank(nowhps, maxhps, beginhps, nowhps_c, maxhps_c, beginhps_c
 		if (f_damage_percent < 80) return 'D'; // 要検証!!! 自ダメージ 76.1% で D判定を確認済み.
 		return 'E';
 	}
-	if (e_count == e_lost_count && f_lost_count == 0) {
+	if (e_count == e_lost_count && f_lost_count == 0) { // 確定. 敵全隻撃沈かつ、自轟沈なしならば、S勝利.
 		return (f_damage_total == 0) ? '完S' : 'S';	// 1%未満の微ダメージでも、"完S"にはならない.
 	}
-	if (e_lost_count >= (e_count == 6 ? 4 : e_count/2) && f_lost_count == 0) {
+	if (e_lost_count > 0 && e_lost_count >= Math.floor(e_count * 2 / 3) && f_lost_count == 0) { // 確定. 敵艦隊2/3隻(少数切り捨て)以上撃沈かつ、自轟沈なしならば、A勝利.
 		return 'A';
 	}
-	if (e_leader_lost && f_lost_count < e_lost_count) {
+	if (e_leader_lost && f_lost_count < e_lost_count) {　// 検証中!!! 敵旗艦撃沈かつ、自轟沈数より敵撃沈数が多いならば、B勝利.
 		return 'B';
 	}
 	if (10 * e_damage_percent > 25 * f_damage_percent) { // 確定. 戦果ゲージ比が2.5より大きいならば、B勝利.
