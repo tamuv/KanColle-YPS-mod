@@ -1699,12 +1699,12 @@ function on_battle_result(json) {
 		};
 		delta_update_ship_list([drop_ship]);
 	}
-	if (mvp) {
+	if (mvp > 0) {
 		var id = $fdeck_list[$battle_deck_id].api_ship[mvp-1];
 		var ship = $ship_list[id];
 		msg += '\nMVP: ' + ship.name_lv() + ' +' + d.api_get_ship_exp[mvp] + 'exp';
 	}
-	if (mvp_c) {
+	if (mvp_c > 0) {
 		var id = $fdeck_list[2].api_ship[mvp_c-1];
 		var ship = $ship_list[id];
 		msg += '\nMVP: ' + ship.name_lv() + ' +' + d.api_get_ship_exp_combined[mvp_c] + 'exp';

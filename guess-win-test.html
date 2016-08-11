@@ -102,7 +102,7 @@ function parse_input() {
 				battle_api_name = match[1];
 			}
 		}
-		if (/(勝敗推定ミス f_damage:|, f_damage:|=> rank:|^MVP:)/.test(s) && r_rank) {
+		if (/(勝敗推定ミス f_damage:|, f_damage:|=> rank:|^MVP:|^LOST:)/.test(s) && r_rank) {
 			if (!f_maxhp_total) f_maxhp_total = ""; // undefined or 0.
 			if (/^(33-1-[78]|34-5-2), f_damage:/.test(s)) battle_api_name = "ld_airbattle";	// "api:"追加前の戦況データ解析用.
 			var g_rank2 = guess_win_rank2();
