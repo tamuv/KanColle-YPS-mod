@@ -1987,10 +1987,10 @@ function guess_win_rank(nowhps, maxhps, beginhps, nowhps_c, maxhps_c, beginhps_c
 	if (10 * e_damage_percent > 9 * f_damage_percent) { // 確定. 戦果ゲージ比が0.9より大きいならば、C敗北.
 		return 'C';
 	}
-	if (f_lost_count < f_count/2) { // 要検証.
+	if (e_leader_lost || f_lost_count == 0 || f_count - f_lost_count > 1) {　// 検証中!!! 敵旗艦撃沈、または自轟沈なし、または自艦隊に旗艦以外の生存艦ありならば、D敗北.
 		return 'D';
 	}
-	return 'E';
+	return 'E'; // 検証中!!! 上記以外、つまり敵旗艦生存かつ自艦隊旗艦以外轟沈ならば、E敗北.
 }
 
 function on_battle(json, battle_api_name) {
