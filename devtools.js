@@ -2153,7 +2153,7 @@ function on_battle(json, battle_api_name) {
 		}
 		msg.push('* ' + param.join(', '));
 		for(var j = 0; j < enemy_slot.length; ++j){
-			if(enemy_slot[j] != -1){
+			if(enemy_slot[j] > 0) {	// 2016夏イベントE-1　boss 潜水夏姫のslotの空き枠に-1のかわりに0が入っていたので、除外条件を変更した.
 				msg.push('* ' + (j+1) + ': ' + slotitem_name(enemy_slot[j]));
 			}
 		}
