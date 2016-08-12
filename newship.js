@@ -156,10 +156,12 @@ $init_newship_slots = {
 425:	2,	// 朝霜.
 431:	1,	// U-511.
 432:	2,	// Graf Zeppelin.
+439:	undefined,	// Warspite.
 440:	2,	// Iowa.
 441:	3,	// Littorio.
 442:	3,	// Roma.
 443:	1,	// Libeccio.
+444:	undefined,	// Aquila.
 445:	2,	// 秋津洲.
 448:	1,	// Zara.
 449:	1,	// Pola.
@@ -175,4 +177,6 @@ $init_newship_slots = {
 465:	3,	// 鹿島.
 471:	2,	// 神風.
 473:	2,	// 春風.
+481:	1,	// 水無月.
+483:	0,	// 伊26.
 };
