@@ -1567,8 +1567,8 @@ function on_next_cell(json) {
 				if (s != ss) sum_ss += a.n;
 				sum_all += a.n;
 				ss = ss.replace(/輸送.級/g, '@!!$&!!@');
-				ss = ss.replace(/空母.級/g, '@!!$&!!@');
-				ss = ss.replace(/軽母.級/g, '@!!$&!!@');
+				ss = ss.replace(/空母.[級姫鬼]/g, '@!!$&!!@');
+				ss = ss.replace(/軽母.[級姫鬼]/g, '@!!$&!!@');
 				req.push(ss);
 			});
 			if (sum_ss > 0) {
