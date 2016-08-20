@@ -1563,7 +1563,7 @@ function on_next_cell(json) {
 			var sum_all = 0; //　全敵艦隊の通算回数合計.
 			list.forEach(function(a) {
 				var s = '\t  ' + a.w + '\t  ' + a.n + '\t|' + a.name + '\t' + a.lv;
-				var ss = s.replace(/潜水.級/g, '@!!$&!!@');
+				var ss = s.replace(/潜水.[級姫鬼]/g, '@!!$&!!@');
 				if (s != ss) sum_ss += a.n;
 				sum_all += a.n;
 				ss = ss.replace(/輸送.級/g, '@!!$&!!@');
