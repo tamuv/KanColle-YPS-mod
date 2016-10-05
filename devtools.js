@@ -2587,7 +2587,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		func = function(json) { // 海域情報を記録する.
 			$mapinfo_rank = {};
 			var uncleared = [];
-			json.api_data.forEach(function(data) {
+			json.api_data.api_map_info.forEach(function(data) {
 				if (data.api_eventmap)
 					$mapinfo_rank[data.api_id] = data.api_eventmap.api_selected_rank;
 				if (!data.api_cleared) {
