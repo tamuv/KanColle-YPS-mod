@@ -1944,7 +1944,7 @@ function guess_win_rank(nowhps, maxhps, beginhps, nowhps_c, maxhps_c, beginhps_c
 			++f_lost_count;
 		}
 	}
-	for(var i = 7; i <= 12; ++i){
+	for (var i = 7; i <= 12; ++i) {
 		// 敵艦被害集計.
 		if(maxhps[i] == -1) continue;
 		var n = nowhps[i];
@@ -1954,6 +1954,17 @@ function guess_win_rank(nowhps, maxhps, beginhps, nowhps_c, maxhps_c, beginhps_c
 		if (n <= 0) {
 			++e_lost_count;
 			if(i == 7) e_leader_lost = true;
+		}
+	}
+	for (var i = 7; i <= 12; ++i) {
+		// 敵連合護衛艦被害集計.
+		if(!maxhps_c || maxhps_c[i] == null || maxhps_c[i] == -1) continue;
+		var n = nowhps_c[i];
+		++e_count;
+		e_damage_total += beginhps_c[i] - Math.max(0, n);
+		e_hp_total += beginhps_c[i];
+		if (n <= 0) {
+			++e_lost_count;
 		}
 	}
 	$f_damage = f_damage_total;
