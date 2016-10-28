@@ -1775,7 +1775,7 @@ function calc_damage(result, hp, battle, hc) {
 	}
 	if (battle.api_edam) {
 		// 航空戦/雷撃戦:敵ダメージ集計.
-		for (var i = 1; i <= battle.api_edam.length; ++i) {
+		for (var i = 1; i < battle.api_edam.length; ++i) {
 			if (hc && i > 6)
 				hc[i] -= Math.floor(battle.api_edam[i]);
 			else
@@ -2073,7 +2073,12 @@ function on_battle(json, battle_api_name) {
 	calc_damage(result, nowhps, d.api_opening_atack, nowhps_c);	// 開幕雷撃.
 	calc_damage(result, nowhps, d.api_hougeki, nowhps_c);	// midnight
 	switch (nowhps_c ? $combined_flag : 0) {
-	default:// 不明.
+	default:// 不明　敵連合艦隊暫定対応.
+		calc_damage(result, nowhps, d.api_hougeki1);	// 第一艦隊砲撃一巡目.
+		calc_damage(result, nowhps, d.api_hougeki2);	// 第一艦隊砲撃二巡目.
+		calc_damage(result, nowhps, d.api_hougeki3, nowhps_c);	// 敵護衛艦隊砲撃三巡目.
+		calc_damage(result, nowhps, d.api_raigeki, nowhps_c);	// 第一艦隊雷撃戦.
+		break;
 	case 0: // 通常艦隊.
 		calc_damage(result, nowhps, d.api_hougeki1);	// 第一艦隊砲撃一巡目.
 		calc_damage(result, nowhps, d.api_hougeki2);	// 第一艦隊砲撃二巡目.
