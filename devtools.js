@@ -1775,9 +1775,9 @@ function calc_damage(result, hp, battle, hc) {
 	}
 	if (battle.api_edam) {
 		// 航空戦/雷撃戦:敵ダメージ集計.
-		for (var i = 1; i <= 6; ++i) {
-			if (hc && mc[i+6] > 0)
-				hc[i+6] -= Math.floor(battle.api_edam[i]);
+		for (var i = 1; i <= battle.api_edam.length; ++i) {
+			if (hc && i > 6)
+				hc[i] -= Math.floor(battle.api_edam[i]);
 			else
 				hp[i+6] -= Math.floor(battle.api_edam[i]);
 		}
@@ -1796,6 +1796,7 @@ function calc_damage(result, hp, battle, hc) {
 		for (var i = 1; i <= 6; ++i) {
 			var target = battle.api_frai[i];
 			var damage = battle.api_fydam[i];
+			if (target != 0 && mc && mc[target] > 0) target += 20-6;
 			if (target != 0) result.detail.push({ty:"雷撃戦", at: ((hc && mc[i] > 0) ? i + 20 : i), target: target + 6, cl: battle_cl_name(battle.api_fcl[i]), damage: damage, hp: hp[target+6]});
 		}
 	}
@@ -1895,7 +1896,7 @@ function push_fdeck_status(req, fdeck, maxhps, nowhps, beginhps) {
 }
 
 function repair_fdeck(fdeck, maxhps, nowhps) {
-	if (/^演習/.test($next_enemy)) return;
+	if (/^演習/.test($next_enemy) || $battle_deck_id < 0) return;
 	for (var i = 1; i <= 6; ++i) {
 		if (maxhps[i] == -1) continue;
 		var ship = $ship_list[fdeck.api_ship[i-1]];
@@ -2014,7 +2015,9 @@ function guess_win_rank(nowhps, maxhps, beginhps, nowhps_c, maxhps_c, beginhps_c
 	return 'E'; // 検証中!!! 上記以外、つまり敵旗艦生存かつ自艦隊旗艦以外轟沈ならば、E敗北.
 }
 
+var $debug_battle_json = null;
 function on_battle(json, battle_api_name) {
+	if ($debug_battle_json) json = $debug_battle_json;
 	var d = $battle_api_data = json.api_data;
 	if (!d.api_maxhps || !d.api_nowhps) return;
 	var maxhps = d.api_maxhps;				// 出撃艦隊[1..6] 敵艦隊[7..12]
@@ -2163,9 +2166,9 @@ function on_battle(json, battle_api_name) {
 	var eKyouka = d.api_eKyouka;
 	var ec = d.api_ship_ke_combined; if (ec) ship_ke = ship_ke.concat(ec.slice(1));
 	var ec = d.api_ship_lv_combined; if (ec) ship_lv = ship_lv.concat(ec.slice(1));
-	var ec = d.api_eParam_combined;  if (ec) eParam  = eParam.concat(ec.slice(1));
-	var ec = d.api_eSlot_combined;   if (ec) eSlot   = eSlot.concat(ec.slice(1));
-	var ec = d.api_eKyouka_combined; if (ec) eKyouka = eKyouka.concat(ec.slice(1));
+	var ec = d.api_eParam_combined;  if (ec) eParam  = eParam.concat(ec);
+	var ec = d.api_eSlot_combined;   if (ec) eSlot   = eSlot.concat(ec);
+	var ec = d.api_eKyouka_combined; if (ec) eKyouka = eKyouka.concat(ec);
 	for (var i = 1; i <= 12; ++i) {
 		var ke = ship_ke[i];
 		if (ke == -1 || ke == null) continue;
@@ -2403,6 +2406,13 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			});
 			print_port();
 		};
+		if ($debug_battle_json) {
+			$battle_count = 1;
+			$beginhps = null;
+			$beginhps_c = null;
+			$battle_log = [];
+			func = on_battle;	
+		}
 	}
 	else if (api_name == '/api_req_hokyu/charge') {
 		// 補給実施.
