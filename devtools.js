@@ -1784,21 +1784,29 @@ function calc_damage(result, hp, battle, hc) {
 	if (battle.api_fdam) {
 		// 航空戦/雷撃戦:味方ダメージ集計.
 		for (var i = 1; i < battle.api_fdam.length; ++i) {
-			if (hc && i > 6)
-				hc[i-6] -= Math.floor(battle.api_fdam[i]);
-			else if (hc && battle.api_fdam.length == 7)
-				hc[i] -= Math.floor(battle.api_fdam[i]);
-			else
-				hp[i] -= Math.floor(battle.api_fdam[i]);
+			var dam = Math.floor(battle.api_fdam[i]);
+			if (dam > 0) {
+				if (i > 6)
+					hc[i-6] -= dam;
+				else if (hc && battle.api_fdam.length == 7)
+					hc[i] -= dam;
+				else
+					hp[i] -= dam;
+			}
 		}
 	}
 	if (battle.api_edam) {
 		// 航空戦/雷撃戦:敵ダメージ集計.
 		for (var i = 1; i < battle.api_edam.length; ++i) {
-			if (hc && i > 6)
-				hc[i] -= Math.floor(battle.api_edam[i]);
-			else
-				hp[i+6] -= Math.floor(battle.api_edam[i]);
+			var dam = Math.floor(battle.api_edam[i]);
+			if (dam > 0) {
+				if (i > 6)
+					hc[i] -= dam;
+				else if (hc && mc[i+6] > 0)
+					hc[i+6] -= dam;
+				else
+					hp[i+6] -= dam;
+			}
 		}
 	}
 	if (battle.api_deck_id && battle.api_damage) { // battle: api_support_hourai
@@ -1812,19 +1820,39 @@ function calc_damage(result, hp, battle, hc) {
 	}
 	if (battle.api_frai) {
 		// 味方雷撃:戦闘詳報収集.
-		for (var i = 1; i <= 6; ++i) {
+		for (var i = 1; i < battle.api_frai.length; ++i) {
 			var target = battle.api_frai[i];
 			var damage = battle.api_fydam[i];
-			if (target != 0 && mc && mc[target] > 0) target += 20-6;
-			if (target != 0) result.detail.push({ty:"雷撃戦", at: ((hc && mc[i] > 0) ? i + 20 : i), target: target + 6, cl: battle_cl_name(battle.api_fcl[i]), damage: damage, hp: hp[target+6]});
+			if (target > 0) {
+				target = target <= 6 ? target+6 : target+20; // 敵軍主力艦隊 7..12, 敵軍護衛艦隊 27..32
+				var target_hp = (hc && target > 20) ? hc[target-20] : hp[target];
+				var at;
+				if (i > 6)
+					at = i+20-6;	// 自軍第二艦隊 21..26
+				else if (hc && battle.api_frai.length == 7)
+					at = i+20;		// 自軍第二艦隊 21..26
+				else
+					at = i;			// 自軍第一艦隊 1..6
+				result.detail.push({ty:"雷撃戦", at: at, target: target, cl: battle_cl_name(battle.api_fcl[i]), damage: damage, hp: target_hp});
+			
+			}
 		}
 	}
 	if (battle.api_erai) {
 		// 敵雷撃:戦闘詳報収集.
-		for (var i = 1; i <= 6; ++i) {
+		for (var i = 1; i <= battle.api_erai.length; ++i) {
 			var target = battle.api_erai[i];
 			var damage = battle.api_eydam[i];
-			if (target != 0) result.detail.push({ty:"雷撃戦", at: i + 6, target: ((hc && mc[i] > 0) ? target + 20 : target), cl: battle_cl_name(battle.api_ecl[i]), damage: damage, hp: ((hc && mc[target] > 0) ? hc[target] : hp[target])});
+			if (target > 0) {
+				target = target <= 6 ? target : target-6+20; // 自軍第一艦隊 1..6, 自軍第二艦隊 21..26
+				var target_hp = (hc && target > 20) ? hc[target-20] : hp[target];
+				var at;
+				if (i > 6)
+					at = i+20;	// 敵軍護衛艦隊 27..32
+				else
+					at = i+6;	// 敵軍主力艦隊 7..12
+				result.detail.push({ty:"雷撃戦", at: at, target: target, cl: battle_cl_name(battle.api_ecl[i]), damage: damage, hp: target_hp});
+			}
 		}
 	}
 	if (battle.api_frai_flag && battle.api_fbak_flag) {
@@ -1832,17 +1860,21 @@ function calc_damage(result, hp, battle, hc) {
 		for (var i = 1; i <= 6; ++i) {
 			var target = (hc && mc[i] > 0) ? i + 20 : i;
 			var damage = battle.api_fdam[i];
-			if (battle.api_frai_flag[i] || battle.api_fbak_flag[i])
-				result.detail.push({ty:"航空戦", target: target, cl: battle_cl_name(damage ? battle.api_fcl_flag[i]+1 : 0), damage: damage, hp: ((hc && mc[i] > 0) ? hc[i] : hp[i])});
+			if (battle.api_frai_flag[i] || battle.api_fbak_flag[i]) {
+				var target_hp = (hc && target > 20) ? hc[target-20] : hp[target];
+				result.detail.push({ty:"航空戦", target: target, cl: battle_cl_name(damage ? battle.api_fcl_flag[i]+1 : 0), damage: damage, hp: target_hp});
+			}
 		}
 	}
 	if (battle.api_erai_flag && battle.api_ebak_flag) {
 		// 開幕航空戦/航空支援:敵被害詳報収集.
 		for (var i = 1; i <= 6; ++i) {
-			var target = i + 6;
+			var target = (hc && mc[i+6] > 0) ? i + 26 : i + 6;
 			var damage = battle.api_edam[i];
-			if (battle.api_erai_flag[i] || battle.api_ebak_flag[i])
-				result.detail.push({ty: (battle.api_fdam ? "航空戦" : "航空支援"), target: target, cl: battle_cl_name(damage ? battle.api_ecl_flag[i]+1 : 0), damage: damage, hp: hp[target]});
+			if (battle.api_erai_flag[i] || battle.api_ebak_flag[i]) {
+				var target_hp = (hc && target > 20) ? hc[target-20] : hp[target];
+				result.detail.push({ty: (battle.api_fdam ? "航空戦" : "航空支援"), target: target, cl: battle_cl_name(damage ? battle.api_ecl_flag[i]+1 : 0), damage: damage, hp: target_hp});
+			}
 		}
 	}
 	// 緊急ダメコン発動によるhp補正を行う.
