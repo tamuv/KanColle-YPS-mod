@@ -1802,7 +1802,7 @@ function calc_damage(result, hp, battle, hc) {
 			if (dam > 0) {
 				if (i > 6)
 					hc[i] -= dam;
-				else if (hc && mc[i+6] > 0)
+				else if (hc && battle.api_edam.length == 7)
 					hc[i+6] -= dam;
 				else
 					hp[i+6] -= dam;
@@ -1849,6 +1849,8 @@ function calc_damage(result, hp, battle, hc) {
 				var at;
 				if (i > 6)
 					at = i+20;	// 敵軍護衛艦隊 27..32
+				else if (hc && battle.api_erai.length == 7)
+					at = i+26;	// 敵軍護衛艦隊 27..32
 				else
 					at = i+6;	// 敵軍主力艦隊 7..12
 				result.detail.push({ty:"雷撃戦", at: at, target: target, cl: battle_cl_name(battle.api_ecl[i]), damage: damage, hp: target_hp});
