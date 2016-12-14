@@ -2113,6 +2113,7 @@ function on_battle(json, battle_api_name) {
 			calc_kouku_damage(result, nowhps, kouku, nowhps_c);　// 2016.5 基地航空隊支援.
 		});
 	}
+	calc_kouku_damage(result, nowhps, d.api_injection_kouku, nowhps_c); // 航空戦.
 	calc_kouku_damage(result, nowhps, d.api_kouku, nowhps_c); // 航空戦.
 	calc_kouku_damage(result, nowhps, d.api_kouku2, nowhps_c); // 航空戦第二波.
 	var ds = d.api_support_info;
