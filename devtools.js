@@ -549,6 +549,7 @@ function seiku_name(id) {	///@param id	制空権 api_disp_seiku
 		case 0: return '航空互角';
 		case 3: return '航空劣勢';
 		case 4: return '制空権喪失';
+		case 5: return '噴式強襲';
 		default: return id.toString();
 	}
 }
@@ -804,6 +805,13 @@ function is_airplane(item) {
 	case 26:// 対潜哨戒機.
 	case 41:// 大型飛行艇.
 	case 45:// 水上戦闘機.
+	case 47:// 陸上攻撃機.
+	case 48:// 局地戦闘機.
+	case 56:// 噴式戦闘機.
+	case 57:// 噴式戦闘爆撃機.
+	case 58:// 噴式攻撃機.
+	case 59:// 噴式偵察機.
+	case 94:// 艦上偵察機（II）.
 		return true;
 	default:
 		return false;
@@ -1891,7 +1899,7 @@ function calc_kouku_damage(result, hp, kouku, hc) {
 	var mc = $maxhps_c;
 	if (kouku.api_stage1) {	// 制空戦.
 		var st = kouku.api_stage1;
-		result.seiku = st.api_disp_seiku;
+		result.seiku = st.api_disp_seiku ? st.api_disp_seiku : 5; // 5: 噴式強襲.
 		result.touch = st.api_touch_plane;
 		result.f_air_lostcount += st.api_f_lostcount;
 		if (st.api_touch_plane) {
@@ -1899,7 +1907,7 @@ function calc_kouku_damage(result, hp, kouku, hc) {
 			var t1 = st.api_touch_plane[1]; if (t1 != -1) result.detail.push({ty:'被触接', si:[t1]});
 		}
 		result.detail.push({
-			ty: seiku_name(st.api_disp_seiku),
+			ty: seiku_name(result.seiku),
 			ek: fraction_percent_name(st.api_e_lostcount, st.api_e_count),
 			fk: fraction_percent_name(st.api_f_lostcount, st.api_f_count)
 		});
@@ -2108,12 +2116,12 @@ function on_battle(json, battle_api_name) {
 		var t0 = d.api_flare_pos[0]; if (t0 != -1) result.detail.push({ty:'照明弾(夜戦)', at: nowhps_c ? t0+20 : t0});
 		var t1 = d.api_flare_pos[1]; if (t1 != -1) result.detail.push({ty:'敵照明弾(夜戦)', at:t1+6});
 	}
+	calc_kouku_damage(result, nowhps, d.api_injection_kouku, nowhps_c); // 航空戦.
 	if (d.api_air_base_attack) {
 		d.api_air_base_attack.forEach(function(kouku) {
 			calc_kouku_damage(result, nowhps, kouku, nowhps_c);　// 2016.5 基地航空隊支援.
 		});
 	}
-	calc_kouku_damage(result, nowhps, d.api_injection_kouku, nowhps_c); // 航空戦.
 	calc_kouku_damage(result, nowhps, d.api_kouku, nowhps_c); // 航空戦.
 	calc_kouku_damage(result, nowhps, d.api_kouku2, nowhps_c); // 航空戦第二波.
 	var ds = d.api_support_info;
