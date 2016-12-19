@@ -1595,16 +1595,16 @@ function add_ship_escape(idx) {
 		$ship_escape[$fdeck_list[1].api_ship[idx-1]] = 1; // 第一艦隊から退避.
 }
 
-/// 艦隊番号とLv付き艦名を生成する. idx = 1..6:第一艦隊, 7..12:敵艦隊, 21..26:第二艦隊, 27..32:敵護衛艦隊.
+/// 艦隊番号とLv付き艦名を生成する. idx = 1..6:第一艦隊, 7..12:敵艦隊, -1..-6:第二艦隊, -7..-12:敵護衛艦隊.
 function ship_name_lv(idx) {
-	if (idx > 26) {
+	if (idx < -6) {
 		var d = $battle_api_data;
-		idx -= 26; return '@!!(敵護衛' + idx + ')!!@' + ship_name(d.api_ship_ke_combined[idx]) + 'Lv' + d.api_ship_lv_combined[idx]; // 敵護衛艦隊.
+		idx = -idx-6; return '@!!(敵護衛' + idx + ')!!@' + ship_name(d.api_ship_ke_combined[idx]) + 'Lv' + d.api_ship_lv_combined[idx]; // 敵護衛艦隊.
 
 	}
-	if (idx > 20) {
+	if (idx < 0) {
 		var fdeck = $fdeck_list[2];
-		return $ship_list[fdeck.api_ship[idx-21]].fleet_name_lv(); // 連合第二艦隊.
+		return '(第二)' + $ship_list[fdeck.api_ship[-idx-1]].fleet_name_lv(); // 連合第二艦隊.
 	}
 	else if (idx > 6) {
 		var d = $battle_api_data;
@@ -1754,11 +1754,11 @@ function calc_damage(result, hp, battle, hc) {
 			if (hc) {
 				// 連合艦隊の番号補正.
 				if (ae == null)
-					at = at <= 6 ? at+20 : at;	// 自軍第二艦隊 21..26, 敵軍通常艦隊 7..12
+					at = at <= 6 ? -at : at;	// 自軍第二艦隊 -1..-6, 敵軍通常艦隊 7..12
 				else if (ae[i] == 0)
-					at = at <= 6 ? at : at-6+20; // 自軍第一艦隊 1..6, 自軍第二艦隊 21..26
+					at = at <= 6 ? at : 6-at;	// 自軍第一艦隊 1..6, 自軍第二艦隊 -1..-6
 				else // ae[i] == 1
-					at = at <= 6 ? at+6 : at+20; // 敵軍主力艦隊 7..12, 敵軍護衛艦隊 27..32
+					at = at <= 6 ? 6+at : -at;	// 敵軍主力艦隊 7..12, 敵軍護衛艦隊 -7..-12
 			}
 			var si = battle.api_si_list[i]; // 装備配列.
 			var cl = battle.api_cl_list[i]; // 命中配列.
@@ -1771,17 +1771,17 @@ function calc_damage(result, hp, battle, hc) {
 				if (hc) {
 					// 連合艦隊の番号補正.
 					if (ae == null)
-						target = target <= 6 ? target+20 : target;	// 自軍第二艦隊 21..26, 敵軍通常艦隊 7..12
+						target = target <= 6 ? -target : target;	// 自軍第二艦隊 -1..-6, 敵軍通常艦隊 7..12
 					else if (ae[i] == 1)
-						target = target <= 6 ? target : target-6+20; // 自軍第一艦隊 1..6, 自軍第二艦隊 21..26
+						target = target <= 6 ? target : 6-target;	// 自軍第一艦隊 1..6, 自軍第二艦隊 -1..-6
 					else // ae[i] == 0
-						target = target <= 6 ? target+6 : target+20; // 敵軍主力艦隊 7..12, 敵軍護衛艦隊 27..32
+						target = target <= 6 ? 6+target : -target;	// 敵軍主力艦隊 7..12, 敵軍護衛艦隊 -7..-12
 				}
 				var damage = battle.api_damage[i][j];
 				// 砲撃戦:敵味方ダメージ集計.
 				var target_hp = 0;
-				if (hc && target > 20)
-					target_hp = (hc[target-20] -= Math.floor(damage));
+				if (hc && target < 0)
+					target_hp = (hc[-target] -= Math.floor(damage));
 				else
 					target_hp = (hp[target] -= Math.floor(damage));
 				// 砲撃戦:敵味方砲撃詳報収集.
@@ -1819,6 +1819,7 @@ function calc_damage(result, hp, battle, hc) {
 	}
 	if (battle.api_deck_id && battle.api_damage) { // battle: api_support_hourai
 		for (var i = 1; i <= 6; ++i) {
+			///@todo 敵護衛艦隊の収集が抜けている..
 			if (hp[i+6] < 0) continue;	// 敵艦隊の編成外または撃沈済みなら集計対象外とする.
 			// 支援艦隊砲雷撃:敵ダメージ集計.
 			hp[i+6] -= Math.floor(battle.api_damage[i]);
@@ -1832,15 +1833,15 @@ function calc_damage(result, hp, battle, hc) {
 			var target = battle.api_frai[i];
 			var damage = battle.api_fydam[i];
 			if (target > 0) {
-				target = target <= 6 ? target+6 : target+20; // 敵軍主力艦隊 7..12, 敵軍護衛艦隊 27..32
-				var target_hp = (hc && target > 20) ? hc[target-20] : hp[target];
+				target = target <= 6 ? 6+target : -target; // 敵軍主力艦隊 7..12, 敵軍護衛艦隊 -7..-12
+				var target_hp = (hc && target < 0) ? hc[-target] : hp[target];
 				var at;
 				if (i > 6)
-					at = i+20-6;	// 自軍第二艦隊 21..26
+					at = 6-i;	// 自軍第二艦隊 -1..-6
 				else if (hc && battle.api_frai.length == 7)
-					at = i+20;		// 自軍第二艦隊 21..26
+					at = -i;	// 自軍第二艦隊 -1..-6
 				else
-					at = i;			// 自軍第一艦隊 1..6
+					at = i;		// 自軍第一艦隊 1..6
 				result.detail.push({ty:"雷撃戦", at: at, target: target, cl: battle_cl_name(battle.api_fcl[i]), damage: damage, hp: target_hp});
 			
 			}
@@ -1852,13 +1853,13 @@ function calc_damage(result, hp, battle, hc) {
 			var target = battle.api_erai[i];
 			var damage = battle.api_eydam[i];
 			if (target > 0) {
-				target = target <= 6 ? target : target-6+20; // 自軍第一艦隊 1..6, 自軍第二艦隊 21..26
-				var target_hp = (hc && target > 20) ? hc[target-20] : hp[target];
+				target = target <= 6 ? target : 6-target;	// 自軍第一艦隊 1..6, 自軍第二艦隊 -1..-6
+				var target_hp = (hc && target < 0) ? hc[-target] : hp[target];
 				var at;
 				if (i > 6)
-					at = i+20;	// 敵軍護衛艦隊 27..32
+					at = -i;	// 敵軍護衛艦隊 -7..-12
 				else if (hc && battle.api_erai.length == 7)
-					at = i+26;	// 敵軍護衛艦隊 27..32
+					at = -6-i;	// 敵軍護衛艦隊 -7..-12
 				else
 					at = i+6;	// 敵軍主力艦隊 7..12
 				result.detail.push({ty:"雷撃戦", at: at, target: target, cl: battle_cl_name(battle.api_ecl[i]), damage: damage, hp: target_hp});
@@ -1868,10 +1869,10 @@ function calc_damage(result, hp, battle, hc) {
 	if (battle.api_frai_flag && battle.api_fbak_flag) {
 		// 開幕航空戦:味方被害詳報収集.
 		for (var i = 1; i <= 6; ++i) {
-			var target = (hc && mc[i] > 0) ? i + 20 : i;
+			var target = (hc && mc[i] > 0) ? -i : i;
 			var damage = battle.api_fdam[i];
 			if (battle.api_frai_flag[i] || battle.api_fbak_flag[i]) {
-				var target_hp = (hc && target > 20) ? hc[target-20] : hp[target];
+				var target_hp = (hc && target < 0) ? hc[-target] : hp[target];
 				result.detail.push({ty:"航空戦", target: target, cl: battle_cl_name(damage ? battle.api_fcl_flag[i]+1 : 0), damage: damage, hp: target_hp});
 			}
 		}
@@ -1879,10 +1880,10 @@ function calc_damage(result, hp, battle, hc) {
 	if (battle.api_erai_flag && battle.api_ebak_flag) {
 		// 開幕航空戦/航空支援:敵被害詳報収集.
 		for (var i = 1; i <= 6; ++i) {
-			var target = (hc && mc[i+6] > 0) ? i + 26 : i + 6;
+			var target = (hc && mc[i+6] > 0) ? -6-i : 6+i;
 			var damage = battle.api_edam[i];
 			if (battle.api_erai_flag[i] || battle.api_ebak_flag[i]) {
-				var target_hp = (hc && target > 20) ? hc[target-20] : hp[target];
+				var target_hp = (hc && target < 0) ? hc[-target] : hp[target];
 				result.detail.push({ty: (battle.api_fdam ? "航空戦" : "航空支援"), target: target, cl: battle_cl_name(damage ? battle.api_ecl_flag[i]+1 : 0), damage: damage, hp: target_hp});
 			}
 		}
@@ -1916,7 +1917,7 @@ function calc_kouku_damage(result, hp, kouku, hc) {
 		var st = kouku.api_stage2;
 		result.f_air_lostcount += st.api_f_lostcount;
 		if (st.api_air_fire) {
-			var idx = st.api_air_fire.api_idx + 1; if (hc && idx > 6) idx += 20 - 6;
+			var idx = st.api_air_fire.api_idx + 1; if (hc && idx > 6) idx = 6-idx;
 			result.detail.push({
 				ty: '対空カットイン(' + st.api_air_fire.api_kind + ')',
 				at: idx,
@@ -2095,6 +2096,7 @@ function on_battle(json, battle_api_name) {
 	};
 	$maxhps = maxhps;
 	$maxhps_c = maxhps_c;
+	if (!d.api_deck_id) d.api_deck_id = d.api_dock_id; // battleのデータは、綴りミスがあるので補正する.
 	if (d.api_escape_idx) {
 		d.api_escape_idx.forEach(function(idx) {
 			maxhps[idx] = -1;	// 護衛退避した艦を艦隊リストから抜く. idx=1..6
@@ -2113,7 +2115,7 @@ function on_battle(json, battle_api_name) {
 	}
 	if (d.api_flare_pos) {
 		// 照明弾発射(夜戦).
-		var t0 = d.api_flare_pos[0]; if (t0 != -1) result.detail.push({ty:'照明弾(夜戦)', at: nowhps_c ? t0+20 : t0});
+		var t0 = d.api_flare_pos[0]; if (t0 != -1) result.detail.push({ty:'照明弾(夜戦)', at: nowhps_c ? -t0 : t0});
 		var t1 = d.api_flare_pos[1]; if (t1 != -1) result.detail.push({ty:'敵照明弾(夜戦)', at:t1+6});
 	}
 	calc_kouku_damage(result, nowhps, d.api_air_base_injection, nowhps_c); // 墳式強襲(基地航空隊).
@@ -2177,7 +2179,6 @@ function on_battle(json, battle_api_name) {
 		calc_damage(result, nowhps, d.api_raigeki, nowhps_c);	// 第二艦隊雷撃戦.
 		break;
 	}
-	if (!d.api_deck_id) d.api_deck_id = d.api_dock_id; // battleのデータは、綴りミスがあるので補正する.
 	var fdeck = $fdeck_list[$battle_deck_id = d.api_deck_id];
 	var fmt = null;
 	if (d.api_formation) {
@@ -2221,8 +2222,7 @@ function on_battle(json, battle_api_name) {
 		var msg = ['YPS_battle_detail', '\t==種別\t==攻撃艦\t==防御艦\t==敵撃墜/戦果\t==被撃墜/ダメージ\t==使用装備'];
 		for (var i = 0; i < result.detail.length; ++i) {
 			var dt = result.detail[i];
-//			if (dt.damage && dt.target) dt.damage = hp_status_on_battle(dt.hp, (dt.target >= 20 ? maxhps_c[dt.target-20] : maxhps[dt.target]), dt.hp + dt.damage);
-			if (dt.damage && dt.target) dt.damage += ':' + damage_name(dt.hp, (dt.target >= 20 ? maxhps_c[dt.target-20] : maxhps[dt.target]));
+			if (dt.damage && dt.target) dt.damage += ':' + damage_name(dt.hp, (dt.target < 0 ? maxhps_c[-dt.target] : maxhps[dt.target]));
 			msg.push('\t' + dt.ty
 				+ '\t' + ship_name_lv(dt.at)
 				+ '\t' + ship_name_lv(dt.target)
