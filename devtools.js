@@ -2226,6 +2226,8 @@ function on_battle(json, battle_api_name) {
 		for (var i = 0; i < result.detail.length; ++i) {
 			var dt = result.detail[i];
 			if (dt.title) {
+				var dtnext = result.detail[i+1];	// 範囲外ならundef
+				if (dtnext && dtnext.title) continue;	// タイトルのみで戦闘記録なしの場合（例：敵潜水艦のみの航空戦空爆）は、タイトルを除去する.
 				msg.push(dt.title); continue;
 			}
 			if (dt.damage && dt.target) dt.damage += ':' + damage_name(dt.hp, (dt.target < 0 ? maxhps_c[-dt.target] : maxhps[dt.target]));
