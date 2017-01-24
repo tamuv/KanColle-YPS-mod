@@ -837,7 +837,7 @@ function fleet_brief_status(deck, deck2) {
 	var fuel = 0, fuel_max = 0;
 	var bull = 0, bull_max = 0;
 	var drumcan = {ships:0, sum:0};
-	var daihatu = {ships:0, sum:0};
+	var daihatu = {ships:0, sum:0, up:0, up2:0}; ///@todo 大発の改修★効果も集計すべき.
 	var akashi = '';
 	var blank_slot_num = 0;
 	var list = deck.api_ship;
@@ -866,6 +866,26 @@ function fleet_brief_status(deck, deck2) {
 			if (d) {
 				daihatu.ships++;
 				daihatu.sum += d;
+				daihatu.up += 5 * d;
+			}
+			var d = slotitem_count(ship.slot, 166);	// 大発動艇(八九式中戦車＆陸戦隊).
+			if (d) {
+				daihatu.ships++;
+				daihatu.sum += d;
+				daihatu.up += 2 * d;
+			}
+			var d = slotitem_count(ship.slot, 167);	// 特二式内火艇.
+			if (d) {
+				daihatu.ships++;
+				daihatu.sum += d;
+				daihatu.up += 1 * d;
+			}
+			var d = slotitem_count(ship.slot, 193);	// 特大発動艇.
+			if (d) {
+				daihatu.ships++;
+				daihatu.sum += d;
+				daihatu.up += 5 * d;
+				daihatu.up2 += 2 * d;
 			}
 			blank_slot_num += ship.blank_slot_num();
 			// 明石検出.
@@ -875,6 +895,7 @@ function fleet_brief_status(deck, deck2) {
 			}
 		}
 	}
+	daihatu.up = Math.min(20, daihatu.up) +  Math.min(6, daihatu.up2); ///@bug 特大発３個以上の計算は不正確である(減衰や、通常大発とのシナジー効果を計算していない)
 	var ret = kira_names(cond_list)
 		+ ' 燃料' + fuel + percent_name_unless100(fuel, fuel_max)
 		+ ' 弾薬' + bull + percent_name_unless100(bull, bull_max)
@@ -886,7 +907,7 @@ function fleet_brief_status(deck, deck2) {
 		+ (ndockin ? ' 修理中' + ndockin : '')
 		+ (unlock ? ' 未ロック' + unlock : '')
 		+ (drumcan.sum ? ' ドラム缶' + drumcan.sum + '個' + drumcan.ships + '隻' : '')
-		+ (daihatu.sum ? ' 大発' + daihatu.sum + '個' : '')
+		+ (daihatu.sum ? ' 大発' + daihatu.sum + '個'+ daihatu.up + '%遠征UP' : '')
 		+ (blank_slot_num ? ' 空スロット' + blank_slot_num : '')
 		+ akashi
 		;
