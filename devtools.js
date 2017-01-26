@@ -19,6 +19,7 @@ var $fdeck_list = {};
 var $ship_fdeck = {};
 var $ship_escape = {};	// 護衛退避したshipidのマップ.
 var $mapinfo_rank = {};	// 海域難易度 undefined:なし, 1:丙, 2:乙, 3:甲.
+var	$locked_ship_idset = {};	// ロック艦の艦種IDセット.
 var $next_mapinfo = null;
 var $next_enemy = null;
 var $is_boss = false;
@@ -162,9 +163,13 @@ Ship.prototype.max_kyouka = function() {
 	];
 };
 
+function get_begin_shipid(ship_id) {
+	var mst = $mst_ship[ship_id];
+	return mst.yps_begin_shipid ? mst.yps_begin_shipid : ship_id;
+}
+
 Ship.prototype.begin_shipid = function() {
-	var mst = $mst_ship[this.ship_id];
-	return mst.yps_begin_shipid ? mst.yps_begin_shipid : this.ship_id;
+	return get_begin_shipid(this.ship_id);
 };
 
 Ship.prototype.slot_names = function() {
@@ -1020,6 +1025,8 @@ function print_port() {
 	var lock_repairlist = [];
 	var unowned_names = [];
 	var owned_ship_idset = {};
+	$locked_ship_idset = {};
+	var newship = 0;
 	var cond85 = 0;
 	var cond53 = 0;
 	var cond50 = 0;
@@ -1064,7 +1071,8 @@ function print_port() {
 	// ロック艦のcond別一覧、未ロック艦一覧、ロック装備持ち艦を検出する.
 	for (var id in $ship_list) {
 		var ship = $ship_list[id];
-		owned_ship_idset[ship.begin_shipid()] = true;
+		var begin_id = ship.begin_shipid();
+		owned_ship_idset[begin_id] = true;
 		if (!ship.locked) {
 			var n = count_unless(ship.slot, -1); // スロット装備数.
 			$unlock_slotitem += n;
@@ -1074,9 +1082,14 @@ function print_port() {
 				unlock_lv10++;
 				name = '@!!' + name + '!!@';
 			}
+			else if (ship.lv == 1 && !$locked_ship_idset[begin_id]) { // 新規艦を強調表示する.
+				newship++;
+				name = '@!!New★' + name + '!!@';
+			}
 			unlock_names.push(name);
 		}
 		else {	// locked
+			$locked_ship_idset[begin_id] = true;
 			var cond = ship.c_cond;
 			if (!lock_condlist[cond]) lock_condlist[cond] = [];
 			lock_condlist[cond].push(ship);
@@ -1102,9 +1115,8 @@ function print_port() {
 				else if (cond > 49) drumcan_cond50.push(ship);
 				else               drumcan_condxx.push(ship);
 			}
-			var b = ship.begin_shipid();
-			if (!lock_beginlist[b]) lock_beginlist[b] = [];
-			lock_beginlist[b].push(ship);
+			if (!lock_beginlist[begin_id]) lock_beginlist[begin_id] = [];
+			lock_beginlist[begin_id].push(ship);
 		}
 		if (ship.slot) {
 			ship.slot.forEach(function(id) {
@@ -1183,6 +1195,7 @@ function print_port() {
 	if (space <= 0)      req.push('### @!!艦娘保有数が満杯です!!@'); // 警告表示.
 	else if (space <= 5) req.push('### @!!艦娘保有数の上限まで残り' + space + '!!@'); // 警告表示.
 	if (unlock_lv10) req.push('### @!!Lv10以上の未ロック艦があります!!@'); // 警告表示.
+	if (newship) req.push('### @!!未ロックの新規艦があります!!@'); // 警告表示.
 	req.push('艦娘保有数:' + ships + '/' + $max_ship
 		+ '(未ロック:' + unlock_names.length
 		+ ($unlock_slotitem ? '*' : '')
@@ -1656,7 +1669,13 @@ function on_battle_result(json) {
 	var lost  = d.api_lost_flag;
 	var msg  = '';
 	var drop_ship_name = g ? g.api_ship_type + ':' + g.api_ship_name : null;
+	var drop_ship_log  = g ? g.api_ship_name : null;
 	var drop_item_name = h ? $mst_useitem[h.api_useitem_id].api_name : null;
+	if (g && !$locked_ship_idset[get_begin_shipid(g.api_ship_id)]) {
+		drop_ship_name = '@!!New★' + drop_ship_name + '!!@';
+		drop_ship_log  = '@!!New★' + drop_ship_log  + '!!@';
+	}
+
 	$escape_info = d.api_escape;	// on_goback_port()で使用する.
 	if (e) {
 		if ($next_mapinfo) {
@@ -1688,7 +1707,7 @@ function on_battle_result(json) {
 		}
 		var log = $next_enemy + '(' + e.api_deck_name + '):' + $battle_info + ':' + rank;
 		if (drop_ship_name) {
-			log += '+' + g.api_ship_name; // drop_ship_name; 艦種を付けると冗長すぎるので艦名のみとする.
+			log += '+' + drop_ship_log; // drop_ship_name; 艦種を付けると冗長すぎるので艦名のみとする.
 		}
 		if (drop_item_name) {
 			log += '+' + drop_item_name;
