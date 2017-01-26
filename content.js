@@ -25,6 +25,7 @@ hst.YPS_HTMLarray = [];	// html履歴配列.
 hst.YPS_HTMLcursor = 0;	// 履歴表示位置.
 
 var navi = document.createElement('div');
+navi.style.whiteSpace = 'nowrap';
 navi.style.position = 'absolute';
 navi.style.top = '50px'; // NaviBar 39px + margin 20px - 9px
 navi.style.left = div.style.left;
