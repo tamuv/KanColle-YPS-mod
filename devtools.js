@@ -554,8 +554,7 @@ function seiku_name(id) {	///@param id	制空権 api_disp_seiku
 		case 0: return '航空互角';
 		case 3: return '航空劣勢';
 		case 4: return '制空権喪失';
-		case 5: return '噴式強襲';
-		default: return id.toString();
+		default: return id == null ? '' : id.toString();
 	}
 }
 
@@ -1942,7 +1941,6 @@ function calc_kouku_damage(result, title, kouku, hp, hc) {
 	result.detail.push({ title: '\t==' + title + '\t==攻撃艦\t==防御艦\t==敵撃墜\t==被撃墜\t==使用装備'});
 	if (kouku.api_stage1) {	// 制空戦.
 		var st = kouku.api_stage1;
-//@todo	result.seiku = st.api_disp_seiku ? st.api_disp_seiku : 5; // 5: 噴式強襲.
 		result.seiku = st.api_disp_seiku;
 		result.touch = st.api_touch_plane;
 		result.f_air_lostcount += st.api_f_lostcount;
@@ -1951,7 +1949,7 @@ function calc_kouku_damage(result, title, kouku, hp, hc) {
 			var t1 = st.api_touch_plane[1]; if (t1 != -1) result.detail.push({ty:'被触接', si:[t1]});
 		}
 		result.detail.push({
-			ty: seiku_name(result.seiku),
+			ty: seiku_name(st.api_disp_seiku),
 			ek: fraction_percent_name(st.api_e_lostcount, st.api_e_count),
 			fk: fraction_percent_name(st.api_f_lostcount, st.api_f_count)
 		});
