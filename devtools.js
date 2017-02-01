@@ -2747,7 +2747,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		func = function(json) { // 演習任務の受諾をチェックする.
 			on_mission_check(3);
 			// 演習遂行数を数える.
-			var n = json.api_data.reduce(function(count, data) { return count + (data.api_state > 0); }, 0);
+			var n = json.api_data.api_list.reduce(function(count, data) { return count + (data.api_state > 0); }, 0);
 			get_weekly().practice_done = n;
 		};
 	}
