@@ -2125,9 +2125,10 @@ function on_battle(json, battle_api_name) {
 	var d = $battle_api_data = json.api_data;
 	if (!d.api_maxhps || !d.api_nowhps) return;
 	var maxhps = d.api_maxhps;				// 出撃艦隊[1..6] 敵艦隊[7..12]
-	var nowhps = d.api_nowhps;				// 出撃艦隊[1..6] 敵艦隊[7..12]
+	var nowhps = d.api_nowhps.concat();		// 出撃艦隊[1..6] 敵艦隊[7..12]
 	var maxhps_c = d.api_maxhps_combined;	// 連合第二艦隊[1..6] 敵護衛艦隊[7..12].
 	var nowhps_c = d.api_nowhps_combined;	// 連合第二艦隊[1..6] 敵護衛艦隊[7..12].
+	if (nowhps_c) nowhps_c = nowhps_c.concat();
 	var beginhps = nowhps.concat();
 	var beginhps_c = nowhps_c ? nowhps_c.concat() : [];
 	var result = {
