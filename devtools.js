@@ -2146,6 +2146,7 @@ function on_battle(json, battle_api_name) {
 		f_air_lostcount : 0,		// 非撃墜数.
 		detail : []					// 戦闘詳報.
 	};
+	if ($beginhps_c && maxhps_c) maxhps_c = $maxhps_c; // 連合艦隊夜戦APIのデータ化け回避対策 #76
 	$maxhps = maxhps;
 	$maxhps_c = maxhps_c;
 	if (!d.api_deck_id) d.api_deck_id = d.api_dock_id; // battleのデータは、綴りミスがあるので補正する.
