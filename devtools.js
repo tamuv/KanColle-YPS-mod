@@ -1631,18 +1631,24 @@ function add_ship_escape(idx) {
 
 /// 艦隊番号とLv付き艦名を生成する. idx = 1..6:第一艦隊, 7..12:敵艦隊, -1..-6:第二艦隊, -7..-12:敵護衛艦隊.
 function ship_name_lv(idx) {
-	if (idx < -6) {
+	if (idx < -6) {	// 敵護衛艦隊.
 		var d = $battle_api_data;
-		idx = -idx-6; return '@!!(敵護衛' + idx + ')!!@' + ship_name(d.api_ship_ke_combined[idx]) + 'Lv' + d.api_ship_lv_combined[idx]; // 敵護衛艦隊.
-
+		var i = -idx - 6;	// -7..-12 => 1..6
+		var s = '@!!(敵護衛' + i + ')!!@';
+		if (d.api_ship_ke_combined) s += ship_name(d.api_ship_ke_combined[i]);
+		if (d.api_ship_lv_combined) s +=    'Lv' + d.api_ship_lv_combined[i];
+		return s;
 	}
-	if (idx < 0) {
+	else if (idx > 6) { // 敵主力艦隊.
+		var d = $battle_api_data;
+		var i = idx - 6;	// 7..12 => 1..6
+		return '@!!(敵' + i + ')!!@'
+			+ ship_name(d.api_ship_ke[i])
+			+    'Lv' + d.api_ship_lv[i];
+	}
+	else if (idx < 0) {
 		var fdeck = $fdeck_list[2];
 		return '(第二)' + $ship_list[fdeck.api_ship[-idx-1]].fleet_name_lv(); // 連合第二艦隊.
-	}
-	else if (idx > 6) {
-		var d = $battle_api_data;
-		idx -= 6; return '@!!(敵' + idx + ')!!@' + ship_name(d.api_ship_ke[idx]) + 'Lv' + d.api_ship_lv[idx]; // 敵艦隊.
 	}
 	else if (idx >= 1) {
 		var fdeck = $fdeck_list[$battle_api_data.api_deck_id];
