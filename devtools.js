@@ -1843,8 +1843,8 @@ function calc_damage(result, title, battle, hp, hc) {
 			if (dam > 0) {
 				if (i > 6)
 					hc[i-6] -= dam;
-				else if (hc && battle.api_fdam.length == 7)
-					hc[i] -= dam;
+				else if (hc && hc.length == 7 && battle.api_fdam.length == 7)
+					hc[i] -= dam;	// #75 自軍連合vs敵通常の場合、雷撃対象は第二艦隊のみ.
 				else
 					hp[i] -= dam;
 			}
@@ -1857,8 +1857,6 @@ function calc_damage(result, title, battle, hp, hc) {
 			if (dam > 0) {
 				if (i > 6)
 					hc[i] -= dam;
-				else if (hc && battle.api_edam.length == 7)
-					hc[i+6] -= dam;
 				else
 					hp[i+6] -= dam;
 			}
@@ -1885,7 +1883,7 @@ function calc_damage(result, title, battle, hp, hc) {
 				var at;
 				if (i > 6)
 					at = 6-i;	// 自軍第二艦隊 -1..-6
-				else if (hc && battle.api_frai.length == 7)
+				else if (hc && mc[i] != 0) // #75 自軍連合の場合、雷撃参加は第二艦隊のみ.
 					at = -i;	// 自軍第二艦隊 -1..-6
 				else
 					at = i;		// 自軍第一艦隊 1..6
@@ -1900,12 +1898,17 @@ function calc_damage(result, title, battle, hp, hc) {
 			var target = battle.api_erai[i];
 			var damage = battle.api_eydam[i];
 			if (target > 0) {
-				target = target <= 6 ? target : 6-target;	// 自軍第一艦隊 1..6, 自軍第二艦隊 -1..-6
+				if (target > 6)
+					target = 6-target;	//自軍第二艦隊 -1..-6
+				else if (hc && hc.length == 7)
+					target = -target; 	//自軍第二艦隊 -1..-6 #75 自軍連合vs敵通常の場合、雷撃対象は第二艦隊のみ.
+				else
+					; // 自軍第一艦隊 1..6
 				var target_hp = (hc && target < 0) ? hc[-target] : hp[target];
 				var at;
 				if (i > 6)
 					at = -i;	// 敵軍護衛艦隊 -7..-12
-				else if (hc && battle.api_erai.length == 7)
+				else if (hc && hc.length == 13) // #75 敵連合の場合、雷撃戦参加は護衛艦隊のみ.
 					at = -6-i;	// 敵軍護衛艦隊 -7..-12
 				else
 					at = i+6;	// 敵軍主力艦隊 7..12
