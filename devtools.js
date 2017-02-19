@@ -440,6 +440,11 @@ function weekly_name() {
 		+ ')';
 }
 
+function to_string(id,nullstr) {	///< id == null に対して代理文字列を返し、例外落ちしない.
+	if (id == null) return nullstr ? nullstr : '';
+	return id.toString();
+}
+
 function diff_name(now, prev) {		// now:1, prev:2 -> "(-1)"
 	var diff = now - prev;	// 演算項目のどちらかがundefinedなら減算結果はNaNとなる. 項目がnullならば0として減算する.
 	if (prev == null) return '';	// nullかundefinedなら増減なしと見做して空文字列を返す.
@@ -524,7 +529,7 @@ function formation_name(id) {
 		case 12: return '連合前方警戒';
 		case 13: return '連合輪形陣';
 		case 14: return '連合戦闘隊形';
-		default: return id.toString();
+		default: return to_string(id);
 	}
 }
 
@@ -534,7 +539,7 @@ function match_name(id) {
 		case 2: return '反航';
 		case 3: return 'Ｔ字有利';
 		case 4: return 'Ｔ字不利';
-		default: return id.toString();
+		default: return to_string(id);
 	}
 }
 
@@ -543,7 +548,7 @@ function support_name(id) {	///@param id	支援タイプ api_support_flag
 		case 1: return '航空支援';
 		case 2: return '支援射撃';
 		case 3: return '支援長距離雷撃';
-		default: return id.toString();
+		default: return to_string(id);
 	}
 }
 
@@ -554,7 +559,7 @@ function seiku_name(id) {	///@param id	制空権 api_disp_seiku
 		case 0: return '航空互角';
 		case 3: return '航空劣勢';
 		case 4: return '制空権喪失';
-		default: return id == null ? '' : id.toString();
+		default: return to_string(id);
 	}
 }
 
@@ -566,7 +571,7 @@ function search_name(id) {	///@param id	索敵結果 api_search[]
 		case 4: return '敵艦隊発見できず…';
 		case 5: return '敵艦隊発見!(索敵機なし)';
 		case 6: return 'なし';
-		default: return id.toString();
+		default: return to_string(id);
 	}
 }
 
@@ -612,7 +617,7 @@ function ship_name(id) {
 			id += ship.api_yomi; // 'elite', 'flag ship' ...
 		}
 	}
-	return id == null ? "null" : id.toString();
+	return to_string(id, "null");
 }
 
 function shiplist_names(list) {	// Shipの配列をlv降順に並べて、","区切りの艦名Lv文字列化する.
