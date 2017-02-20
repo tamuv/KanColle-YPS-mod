@@ -1937,8 +1937,8 @@ function calc_damage(result, title, battle, hp, hc) {
 	}
 	if (battle.api_frai_flag && battle.api_fbak_flag) {
 		// 開幕航空戦:味方被害詳報収集.
-		for (var i = 1; i <= 6; ++i) {
-			var target = (hc && hc.has2nd) ? -i : i;
+		for (var i = 1; i < battle.api_fdam.length; ++i) {
+			var target = (i > 6) ? -i : (hc && hc.has2nd) ? -i : i;
 			var damage = battle.api_fdam[i];
 			if (battle.api_frai_flag[i] || battle.api_fbak_flag[i]) {
 				var target_hp = (hc && target < 0) ? hc[-target] : hp[target];
@@ -1948,8 +1948,8 @@ function calc_damage(result, title, battle, hp, hc) {
 	}
 	if (battle.api_erai_flag && battle.api_ebak_flag) {
 		// 開幕航空戦/航空支援:敵被害詳報収集.
-		for (var i = 1; i <= 6; ++i) {
-			var target = (hc && hc.length == 13) ? -6-i : 6+i;
+		for (var i = 1; i < battle.api_edam.length; ++i) {
+			var target = (i > 6) ? -i : (hc && hc.length == 13) ? -6-i : 6+i;
 			var damage = battle.api_edam[i];
 			if (battle.api_erai_flag[i] || battle.api_ebak_flag[i]) {
 				var target_hp = (hc && target < 0) ? hc[-target] : hp[target];
