@@ -1870,19 +1870,26 @@ function calc_damage(result, title, battle, hp, hc) {
 			if (dam > 0) {
 				if (i > 6)
 					hc[i] -= dam;
+				else if (hc && hc.length == 13 && battle.api_edam.length == 7)
+					hc[i+6] -= dam;
 				else
 					hp[i+6] -= dam;
 			}
 		}
 	}
 	if (battle.api_deck_id && battle.api_damage) { // battle: api_support_hourai
-		for (var i = 1; i <= 6; ++i) {
-			///@todo 敵護衛艦隊の収集が抜けている..
-			if (hp[i+6] < 0) continue;	// 敵艦隊の編成外または撃沈済みなら集計対象外とする.
+		for (var i = 1; i < battle.api_damage.length; ++i) {
+			var target = i <= 6 ? i+6 : -i;	// 敵軍主力艦隊 7..12, 敵軍護衛艦隊 -7..-12
+			var target_hp = hc && target < 0 ? hc[-target] : hp[target];
+			if (target_hp < 0) continue;	// 敵艦隊の編成外または撃沈済みなら集計対象外とする.
 			// 支援艦隊砲雷撃:敵ダメージ集計.
-			hp[i+6] -= Math.floor(battle.api_damage[i]);
+			var damage = battle.api_damage[i];
+			if (hc && target < 0)
+				target_hp = (hc[-target] -= Math.floor(damage));
+			else
+				target_hp = (hp[target] -= Math.floor(damage));
 			// 支援艦隊砲雷撃:戦闘詳報収集.
-			result.detail.push({ty:"支援砲雷撃", target: i + 6, cl: battle_cl_name(battle.api_cl_list[i]), damage: battle.api_damage[i], hp: hp[i+6]});
+			result.detail.push({ty:"支援砲雷撃", target: target, cl: battle_cl_name(battle.api_cl_list[i]), damage: damage, hp: target_hp});
 		}
 	}
 	if (battle.api_frai) {
@@ -2196,9 +2203,9 @@ function on_battle(json, battle_api_name) {
 	var ds = d.api_support_info;
 	if (ds) {
 		if (ds.api_support_airatack) ds.api_support_airattack = ds.api_support_airatack; // 綴り訂正.
-		if (d.api_support_flag == 1) calc_damage(result, "航空支援", ds.api_support_airattack.api_stage3, nowhps);
-		if (d.api_support_flag == 2) calc_damage(result, "支援射撃", ds.api_support_hourai, nowhps);
-		if (d.api_support_flag == 3) calc_damage(result, "支援長距離雷撃", ds.api_support_hourai, nowhps);
+		if (d.api_support_flag == 1) calc_damage(result, "航空支援", ds.api_support_airattack.api_stage3, nowhps, nowhps_c);
+		if (d.api_support_flag == 2) calc_damage(result, "支援射撃", ds.api_support_hourai, nowhps, nowhps_c);
+		if (d.api_support_flag == 3) calc_damage(result, "支援長距離雷撃", ds.api_support_hourai, nowhps, nowhps_c);
 	}
 	calc_damage(result, "先制爆雷", d.api_opening_taisen,  nowhps, nowhps_c);	// 対潜先制爆雷攻撃.　2016-06-30メンテ明けから追加.
 	calc_damage(result, "開幕雷撃", d.api_opening_atack,   nowhps, nowhps_c);	// 開幕雷撃.
