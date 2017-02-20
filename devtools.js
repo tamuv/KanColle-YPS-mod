@@ -1892,7 +1892,6 @@ function calc_damage(result, title, battle, hp, hc) {
 				else
 					at = i;		// 自軍第一艦隊 1..6
 				result.detail.push({ty:"雷撃", at: at, target: target, cl: battle_cl_name(battle.api_fcl[i]), damage: damage, hp: target_hp});
-			
 			}
 		}
 	}
@@ -2249,7 +2248,12 @@ function on_battle(json, battle_api_name) {
 		$enemy_formation = formation_name(d.api_formation[1]);
 	}
 	if (!fdeck) return; // for debug.
+	//
+	// --- print out ----
+	//
 	var req = [request_date_time()];
+	var msg = ['YPS_debug_battle_json', '```', '$debug_battle_json = '+JSON.stringify(json), '```'];
+	req.push(msg);
 	req.push('# ' + map_name() + ' battle' + $battle_count);
 	push_listform(req, $battle_log);
 	push_listform(req, $next_enemy);
@@ -2277,7 +2281,7 @@ function on_battle(json, battle_api_name) {
 	req.push('勝敗推定:' + $guess_win_rank);
 
 	if (result.detail.length) {
-		var msg = ['YPS_battle_detail']; 
+		var msg = ['YPS_battle_detail'];
 		for (var i = 0; i < result.detail.length; ++i) {
 			var dt = result.detail[i];
 			if (dt.title) {
