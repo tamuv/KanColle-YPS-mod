@@ -518,6 +518,15 @@ function material_name(id) {
 	}
 }
 
+function combined_name() {
+	switch ($combined_flag) {
+		case 1: return '連合機動部隊';
+		case 2: return '連合水上部隊';
+		case 3: return '連合輸送護衛部隊';
+		default: return to_string(id);
+	}
+}
+
 function formation_name(id) {
 	switch (parseInt(id, 10)) {	// 連合艦隊戦闘では id が数値ではなく文字列になっている.
 		case 1: return '単縦';
@@ -1479,7 +1488,7 @@ function push_all_fleets(req) {
 			push_fleet_status(msg, deck);
 			push_fleet_status(msg, deck2);
 			brief = fleet_brief_status(deck, deck2);
-			req.push('## 連合艦隊1+2: ' + deck.api_name + ' + ' + deck2.api_name + ' (' + brief + ')');
+			req.push('## ' + combined_name() + ': ' + deck.api_name + ' + ' + deck2.api_name + ' (' + brief + ')');
 		}
 		else if ($combined_flag && f_id == 2) {
 			continue;	// f_id == 1 にてまとめて表示済み.
