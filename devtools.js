@@ -1801,7 +1801,7 @@ function on_battle_result(json) {
 	chrome.runtime.sendMessage('## battle result\n' + msg);
 }
 
-function calc_damage(result, title, battle, hp, hc) {
+function calc_damage(result, title, battle, hp, hc, active_deck) {
 	// hp ::= [-1, friend1...6, enemy1...6]
 	// hc ::= [-1, friend_combined1..6, enemy_combined1...6]
 	if (!battle) return;
@@ -1813,8 +1813,12 @@ function calc_damage(result, title, battle, hp, hc) {
 			var at = battle.api_at_list[i]; // 攻撃艦No. 自軍 1..6, 敵軍 7..12
 			if (hc) {
 				// 連合艦隊の番号補正.
-				if (ae == null)
-					at = at <= 6 ? -at : at;	// 自軍第二艦隊 -1..-6, 敵軍通常艦隊 7..12
+				if (ae == null) {
+					if (at <= 6 && hc.has2nd)
+						at = (active_deck && active_deck[0] == 1) ? at : -at; // 自軍第一艦隊 1..6 / 自軍第二艦隊 -1..6
+					else if (at > 6 && hc.length == 13)
+						at = (active_deck && active_deck[1] == 1) ? at : -at; // 敵軍通常艦隊 7..12 / 敵軍護衛艦隊 -7..12
+				}
 				else if (ae[i] == 0)
 					at = at <= 6 ? at : 6-at;	// 自軍第一艦隊 1..6, 自軍第二艦隊 -1..-6
 				else // ae[i] == 1
@@ -1850,7 +1854,7 @@ function calc_damage(result, title, battle, hp, hc) {
 		}
 	}
 	if (battle.api_fdam) {
-		// 航空戦/雷撃戦:味方ダメージ集計.
+		// 航空戦/雷撃戦:自軍ダメージ集計.
 		for (var i = 1; i < battle.api_fdam.length; ++i) {
 			var dam = Math.floor(battle.api_fdam[i]);
 			if (dam > 0) {
@@ -1893,7 +1897,7 @@ function calc_damage(result, title, battle, hp, hc) {
 		}
 	}
 	if (battle.api_frai) {
-		// 味方雷撃:戦闘詳報収集.
+		// 自軍雷撃:戦闘詳報収集.
 		for (var i = 1; i < battle.api_frai.length; ++i) {
 			var target = battle.api_frai[i];
 			var damage = battle.api_fydam[i];
@@ -1936,7 +1940,7 @@ function calc_damage(result, title, battle, hp, hc) {
 		}
 	}
 	if (battle.api_frai_flag && battle.api_fbak_flag) {
-		// 開幕航空戦:味方被害詳報収集.
+		// 開幕航空戦:自軍被害詳報収集.
 		for (var i = 1; i < battle.api_fdam.length; ++i) {
 			var target = (i > 6) ? -i : (hc && hc.has2nd) ? -i : i;
 			var damage = battle.api_fdam[i];
@@ -2209,7 +2213,7 @@ function on_battle(json, battle_api_name) {
 	}
 	calc_damage(result, "先制爆雷", d.api_opening_taisen,  nowhps, nowhps_c);	// 対潜先制爆雷攻撃.　2016-06-30メンテ明けから追加.
 	calc_damage(result, "開幕雷撃", d.api_opening_atack,   nowhps, nowhps_c);	// 開幕雷撃.
-	calc_damage(result, "夜戦砲撃", d.api_hougeki,         nowhps, nowhps_c);	// midnight
+	calc_damage(result, "夜戦砲撃", d.api_hougeki,         nowhps, nowhps_c, d.api_active_deck);	// midnight
 	switch (nowhps_c ? $combined_flag : 0) {
 	default:// 不明.
 	case 0: // 通常艦隊.
