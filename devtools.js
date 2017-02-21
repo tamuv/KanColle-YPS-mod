@@ -1662,7 +1662,7 @@ function ship_name_lv(idx) {
 	}
 	else if (idx < 0) {
 		var fdeck = $fdeck_list[2];
-		return '(第二)' + $ship_list[fdeck.api_ship[-idx-1]].fleet_name_lv(); // 連合第二艦隊.
+		return $ship_list[fdeck.api_ship[-idx-1]].fleet_name_lv(); // 連合第二艦隊.
 	}
 	else if (idx >= 1) {
 		var fdeck = $fdeck_list[$battle_api_data.api_deck_id];
