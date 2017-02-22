@@ -1817,7 +1817,9 @@ function calc_damage(result, title, battle, hp, hc, active_deck) {
 					if (at <= 6 && hc.has2nd)
 						at = (active_deck && active_deck[0] == 1) ? at : -at; // 自軍第一艦隊 1..6 / 自軍第二艦隊 -1..6
 					else if (at > 6 && hc.length == 13)
-						at = (active_deck && active_deck[1] == 1) ? at : -at; // 敵軍通常艦隊 7..12 / 敵軍護衛艦隊 -7..12
+						at = (active_deck && active_deck[1] == 1) ? at : -at; // 敵軍主力艦隊 7..12 / 敵軍護衛艦隊 -7..12
+					else
+						; // 自軍第一艦隊 1..6, 敵軍主力艦隊 7..12
 				}
 				else if (ae[i] == 0)
 					at = at <= 6 ? at : 6-at;	// 自軍第一艦隊 1..6, 自軍第二艦隊 -1..-6
@@ -1834,8 +1836,14 @@ function calc_damage(result, title, battle, hp, hc, active_deck) {
 				if (target == -1) continue;
 				if (hc) {
 					// 連合艦隊の番号補正.
-					if (ae == null)
-						target = target <= 6 ? -target : target;	// 自軍第二艦隊 -1..-6, 敵軍通常艦隊 7..12
+					if (ae == null) {
+						if (target <= 6 && hc.has2nd)
+							target = (active_deck && active_deck[0] == 1) ? target : -target; // 自軍第一艦隊 1..6 / 自軍第二艦隊 -1..6
+						else if (target > 6 && hc.length == 13)
+							target = (active_deck && active_deck[1] == 1) ? target : -target; // 敵軍主力艦隊 7..12 / 敵軍護衛艦隊 -7..12
+						else
+							; // 自軍第一艦隊 1..6, 敵軍主力艦隊 7..12
+					}
 					else if (ae[i] == 1)
 						target = target <= 6 ? target : 6-target;	// 自軍第一艦隊 1..6, 自軍第二艦隊 -1..-6
 					else // ae[i] == 0
