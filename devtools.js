@@ -1868,7 +1868,7 @@ function calc_damage(result, title, battle, hp, hc, active_deck) {
 			if (dam > 0) {
 				if (i > 6)
 					hc[i-6] -= dam;
-				else if (hc && hc.length == 7 && battle.api_fdam.length == 7)
+				else if (hc && hc.has2nd && battle.api_fdam.length == 7)
 					hc[i] -= dam;	// #75 自軍連合vs敵通常の場合、雷撃対象は第二艦隊のみ.
 				else
 					hp[i] -= dam;
