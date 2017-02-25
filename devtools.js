@@ -10,6 +10,7 @@ var $enemy_db		= load_storage('enemy_db');
 var $weekly			= load_storage('weekly');
 var $logbook		= load_storage('logbook', []);
 var $debug_print	= load_storage('debug_print', -1);
+var $debug_battle_json = null;
 var $tmp_ship_id = -1000;	// ドロップ艦の仮ID.
 var $tmp_slot_id = -1000;	// ドロップ艦装備の仮ID.
 var $max_ship = 0;
@@ -2162,9 +2163,7 @@ function guess_win_rank(nowhps, maxhps, beginhps, nowhps_c, maxhps_c, beginhps_c
 	return 'E'; // 検証中!!! 上記以外、つまり敵旗艦生存かつ自艦隊旗艦以外轟沈ならば、E敗北.
 }
 
-var $debug_battle_json = null;
 function on_battle(json, battle_api_name) {
-	if ($debug_battle_json) json = $debug_battle_json;
 	var d = $battle_api_data = json.api_data;
 	if (!d.api_maxhps || !d.api_nowhps) return;
 	var maxhps = d.api_maxhps.concat(); // 出撃艦隊[1..6] 敵艦隊[7..12]
@@ -2591,10 +2590,14 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		};
 		if ($debug_battle_json) {
 			$battle_count = 1;
-			$beginhps = null;
-			$beginhps_c = null;
+			if (!$debug_battle_json.api_data.api_hougeki) {
+				$beginhps = null;
+				$beginhps_c = null;
+			}
 			$battle_log = [];
-			func = on_battle;
+			func = function(json) {
+				on_battle($debug_battle_json, 'debug');
+			}
 		}
 	}
 	else if (api_name == '/api_req_hokyu/charge') {
