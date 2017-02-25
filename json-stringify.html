@@ -24,6 +24,7 @@ function parse_input() {
 	s = s.replace(/\n\s*(-?\d+),/g, '$1, ');		// 数値の配列要素は改行を省く.
 	s = s.replace(/\n\s*(-?\d+)\n\s+]/g, '$1]');	// 数値の配列要素は改行を省く.
 	document.getElementById('result').textContent = s;
+	document.getElementById('result1').textContent = JSON.stringify(input, repXX);
 }
 </script>
 </head>
@@ -38,5 +39,6 @@ function parse_input() {
 </form>
 <h2>output</h2>
 <textarea id="result" rows="20" cols="100">結果</textarea>
+<textarea id="result1" rows="2" cols="100">結果(1行)</textarea>
 </body>
 </html>
