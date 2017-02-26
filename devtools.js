@@ -2283,7 +2283,15 @@ function on_battle(json, battle_api_name) {
 	// --- print out ----
 	//
 	var req = [request_date_time()];
-	var msg = ['YPS_debug_battle_json', '```', '$debug_battle_json = '+JSON.stringify(json), '```'];
+	var msg = ['YPS_debug_battle',
+		'```',
+		'$debug_battle_json = '+JSON.stringify(json),
+		'$beginhps      = '+JSON.stringify($beginhps),
+		'$beginhps_c    = '+JSON.stringify($beginhps_c),
+		'$combined_flag = '+JSON.stringify($combined_flag),
+		'$battle_count  = '+JSON.stringify($battle_count),
+		'$next_mapinfo  = '+JSON.stringify($next_mapinfo),
+		'```'];
 	req.push(msg);
 	req.push('# ' + map_name() + ' battle' + $battle_count);
 	push_listform(req, $battle_log);
