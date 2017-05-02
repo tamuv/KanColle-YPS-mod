@@ -1590,6 +1590,7 @@ function on_next_cell(json) {
 		case 1: msg += ':敵影を見ず'; break;
 		case 2: msg += ':能動分岐'; break;
 		case 3: msg += ':穏やかな海です'; break;
+		case 4: msg += ':穏やかな海峡です'; break;
 		default: msg += ':??'; break;
 		}
 		$battle_log.push(msg);
