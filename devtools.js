@@ -1601,6 +1601,12 @@ function on_next_cell(json) {
 		$battle_log.push(msg);
 		print_next('next skip', msg);
 	}
+	else if (d.api_event_id == 9) {	// 揚陸地点マス.
+		var msg = area;
+		msg += ':揚陸地点';
+		$battle_log.push(msg);
+		print_next('next event', msg);
+	}
 	else {	// 戦闘マス.
 		var req = [area];
 		var db = $enemy_db[$next_enemy = area];
