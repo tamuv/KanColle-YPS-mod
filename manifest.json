@@ -1,8 +1,8 @@
 {
 	"manifest_version": 2,
 	"name": "KanColle-YPS",
-	"version": "1.5.10",
-	"version_name": "v1.5.10 May.2017 E3暫定対応",
+	"version": "1.5.11",
+	"version_name": "v1.5.11 May.2017",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"permissions": [
