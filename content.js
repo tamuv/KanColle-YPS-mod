@@ -275,8 +275,11 @@ chrome.runtime.onMessage.addListener(function (req) {
 		div.innerHTML = parse_markdown(req);
 		navi.innerHTML = all_close_button() + history_buttons() + version_banner();
 	}
-	else {
-		div.innerHTML += parse_markdown(req.toString().split('\n'));
+	else if (req.appendData) {
+		div.innerHTML += parse_markdown(req.appendData);
+	}
+	else { // may be String
+		div.innerHTML += parse_markdown([req]);
 	}
 	push_history(div.innerHTML);	// 履歴に追加する.
 	update_button_target();			// 更新したHTMLに対して、ターゲット表示/非表示を反映する.

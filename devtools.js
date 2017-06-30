@@ -1700,7 +1700,7 @@ function on_battle_result(json) {
 	var mvp   = d.api_mvp;
 	var mvp_c = d.api_mvp_combined;
 	var lost  = d.api_lost_flag;
-	var msg  = '';
+	var req = ['## battle result'];
 	var drop_ship_name = g ? g.api_ship_type + ':' + g.api_ship_name : null;
 	var drop_ship_log  = g ? g.api_ship_name : null;
 	var drop_item_name = h ? $mst_useitem[h.api_useitem_id].api_name : null;
@@ -1720,19 +1720,19 @@ function on_battle_result(json) {
 			}
 		}
 		var rank = d.api_win_rank;
-		msg += e.api_deck_name;
+		var msg = e.api_deck_name;
 		if (d.api_ship_id) {
 			var total = count_unless(d.api_ship_id, -1);
 			msg += '(' + d.api_dests + '/' + total + ')';
 			if (rank == 'S' && $f_damage == 0) rank = '完S';
 		}
-		msg += ':' + rank;
+		req.push(msg + ':' + rank);
 		$guess_info_str += ', f_lost:' + count_if(lost, 1); // 自轟沈数.
 		$guess_info_str += ', e_lost:' + (d.api_destsf ? 'x' : '') + d.api_dests; // 敵撃沈数.
 		$guess_info_str += ', rank:' + rank;
 		if (rank != $guess_win_rank) {
 			$guess_info_str += '/' + $guess_win_rank + ' MISS!!';
-			msg += '\n### @!!勝敗推定ミス!!@ ' + $guess_info_str;
+			req.push('### @!!勝敗推定ミス!!@ ' + $guess_info_str);
 			push_to_logbook($next_enemy + ', ' + $guess_info_str);
 		}
 		else if ($guess_debug_log) {
@@ -1788,30 +1788,30 @@ function on_battle_result(json) {
 	if (mvp > 0) {
 		var id = $fdeck_list[$battle_deck_id].api_ship[mvp-1];
 		var ship = $ship_list[id];
-		msg += '\nMVP: ' + ship.name_lv() + ' +' + d.api_get_ship_exp[mvp] + 'exp';
+		req.push('MVP: ' + ship.name_lv() + ' +' + d.api_get_ship_exp[mvp] + 'exp');
 	}
 	if (mvp_c > 0) {
 		var id = $fdeck_list[2].api_ship[mvp_c-1];
 		var ship = $ship_list[id];
-		msg += '\nMVP: ' + ship.name_lv() + ' +' + d.api_get_ship_exp_combined[mvp_c] + 'exp';
+		req.push('MVP: ' + ship.name_lv() + ' +' + d.api_get_ship_exp_combined[mvp_c] + 'exp');
 	}
 	if (lost) {
 		for (var i in lost) {
 			if (lost[i] == 1) {
 				var id = $fdeck_list[$battle_deck_id].api_ship[i-1];
 				var ship = $ship_list[id];
-				msg += '\nLOST: ' + ship.name_lv();
+				req.push('LOST: ' + ship.name_lv());
 				ship_delete([id]);
 			}
 		}
 	}
 	if (drop_ship_name) {
-		msg += '\n## drop ship\n' + drop_ship_name;
+		req.push('## drop ship', drop_ship_name);
 	}
 	if (drop_item_name) {
-		msg += '\n## drop item\n' + drop_item_name;
+		req.push('## drop item', drop_item_name);
 	}
-	chrome.runtime.sendMessage('## battle result\n' + msg);
+	chrome.runtime.sendMessage({ appendData: req });
 }
 
 function calc_damage(result, title, battle, hp, hc, active_deck) {
