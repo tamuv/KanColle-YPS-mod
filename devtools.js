@@ -9,7 +9,6 @@ var $slotitem_list	= load_storage('slotitem_list');
 var $enemy_db		= load_storage('enemy_db');
 var $weekly			= load_storage('weekly');
 var $logbook		= load_storage('logbook', []);
-var $debug_print	= load_storage('debug_print', -1);
 var $debug_battle_json = null;
 var $tmp_ship_id = -1000;	// ドロップ艦の仮ID.
 var $tmp_slot_id = -1000;	// ドロップ艦装備の仮ID.
@@ -1019,9 +1018,9 @@ function debug_print_mst_slotitem() {
 		msg.push('\t' + item.api_id + '\t' + item.api_name + '\t' + item.api_type.join('\t'));
 	}
 	var req = [];
-	req.push('DEBUG mst_slotitem');
+	req.push('### mst_slotitem');
 	req.push(msg);
-	chrome.runtime.sendMessage(req);
+	chrome.runtime.sendMessage({appendData: req});
 }
 
 function debug_print_newship_slots() {
@@ -1034,9 +1033,9 @@ function debug_print_newship_slots() {
 		msg.push('\t' + id + ':\t' + newship_slots[id] + ',\t// ' + ship_name(id) + '.');
 	}
 	var req = [];
-	req.push('DEBUG newship_slots');
+	req.push('### newship_slots');
 	req.push(msg);
-	chrome.runtime.sendMessage(req);
+	chrome.runtime.sendMessage({appendData: req});
 }
 
 //------------------------------------------------------------------------
@@ -2427,10 +2426,8 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			update_mst_mapinfo(json.api_data.api_mst_mapinfo);
 			sync_cloud();
 			chrome.runtime.sendMessage("## ロード完了");
-			if ($debug_print > 0) {
-				debug_print_mst_slotitem();
-				debug_print_newship_slots();
-			}
+			debug_print_mst_slotitem();
+			debug_print_newship_slots();
 		};
 	}
 	else if (api_name == '/api_get_member/require_info') { // 2016.4 メンテで追加された.
