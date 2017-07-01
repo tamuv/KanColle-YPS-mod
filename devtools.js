@@ -6,6 +6,8 @@ var $mst_useitem	= load_storage('mst_useitem');
 var $mst_mapinfo	= load_storage('mst_mapinfo');
 var $ship_list		= load_storage('ship_list');
 var $slotitem_list	= load_storage('slotitem_list');
+var $remodel_slotlist = load_storage('remodel_slotlist');
+var $remodel_slotweek = load_storage('remodel_slotweek');
 var $enemy_db		= load_storage('enemy_db');
 var $weekly			= load_storage('weekly');
 var $logbook		= load_storage('logbook', []);
@@ -1441,6 +1443,66 @@ function print_mapinfo(uncleared) {
 }
 
 //------------------------------------------------------------------------
+// 装備改修工廠画面表示.
+//
+function print_remodel_slotlist(list) {
+	var req = ['## 本日の改修工廠',
+		'\t==装備\t==二番艦\t==燃料/弾薬/鋼材/ボーキ'
+		+'\t==開発/改修/消費装備'
+		+'\t==★+6開発/改修/消費装備'
+		+'\t==★max開発/改修/消費装備'
+	];
+	for (var id in list) {
+		var data = $remodel_slotlist[id];
+		var subship = (id == 101 || id == 201 || id == 301) ? '---' : ship_name(list[id]);
+		var msg = '\t|' + slotitem_levellist(data.api_slot_id).join(', ');
+		msg += '\t' + subship;
+		msg += '\t' + data.api_req_fuel;
+		msg += '/'  + data.api_req_bull;
+		msg += '/'  + data.api_req_steel;
+		msg += '/'  + data.api_req_bauxite;
+		msg += '\t' + remodel_req_kits_name(data)         + remodel_req_slot_name(data);
+		msg += '\t' + remodel_req_kits_name(data.my_lv6)  + remodel_req_slot_name(data.my_lv6);
+		msg += '\t' + remodel_req_kits_name(data.my_lv10) + remodel_req_slot_name(data.my_lv10);
+		req.push(msg);
+	}
+	chrome.runtime.sendMessage(req);
+
+}
+
+function remodel_req_kits_name(data) {
+	if (!data || !data.api_req_remodelkit) return '';
+	return data.api_req_buildkit + '/' + data.api_req_remodelkit;
+}
+
+function remodel_req_slot_name(data) {
+	if (!data || !data.api_req_slot_num) return '';
+	return '/' + slotitem_name(data.api_req_slot_id) + 'x' + data.api_req_slot_num;
+}
+
+function slotitem_levellist(mstid) {
+	var count = {};
+	var basename = slotitem_name(mstid);
+	for (var id in $slotitem_list) {
+		var value = $slotitem_list[id];
+		if (value.item_id == mstid) {
+			var name = slotitem_name(value.item_id, value.level, value.alv);
+			if (count[name] == null)
+				count[name] = 1;
+			else
+				count[name]++;
+		}
+	}
+	var list = Object.keys(count).sort();
+	for (var i = 0; i < list.length; ++i) {
+		list[i] += ' x' + count[list[i]];
+		if (i > 0) list[i] = list[i].substr(basename.length); // remove duplicated basename
+	}
+	if (list.length == 0) list.push(basename);
+	return list;
+}
+
+//------------------------------------------------------------------------
 function push_quests(req) {
 	var quests = Object.keys($quest_list).length;
 	if (quests > 0) {
@@ -2518,14 +2580,62 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			print_port();
 		}
 	}
+	else if (api_name == '/api_req_kousyou/remodel_slotlist') {
+		// 装備改修メニュー.
+		func = function(json) {
+			var ms = $svDateTime.getTime() - Date.UTC(2013, 4-1, 22, 5-9, 0); // 2013-4-22 Mon 00:00 JST からの経過ミリ秒数.
+			var dn = Math.floor(ms / (24*60*60*1000)); // 経過日数に変換する.
+			var day_of_week = dn % 7; // 曜日番号. 0:Mon, 1:Tue, ... 6:Sun.
+			var subship_id = $ship_list[$fdeck_list[1].api_ship[1]].ship_id;
+			$remodel_slot_today = $remodel_slotweek[day_of_week];
+			if (!$remodel_slot_today) $remodel_slotweek[day_of_week] = $remodel_slot_today = {};
+			// update $remodel_slotlist and $remodel_slotweek.
+			var list = json.api_data;
+			list.forEach(function(data) {
+				var id = data.api_id; // レシピID.
+				var prev = $remodel_slotlist[id];
+				if (prev) {
+					if (prev.my_lv10) data.my_lv10 = prev.my_lv10;
+					if (prev.my_lv6) data.my_lv6 = prev.my_lv6;
+				}
+				$remodel_slotlist[id] = data;
+				$remodel_slot_today[id] = subship_id;
+			});
+			save_storage('remodel_slotlist', $remodel_slotlist);
+			save_storage('remodel_slotweek', $remodel_slotweek);
+			// print remodel list on today.
+			print_remodel_slotlist($remodel_slot_today);
+		}
+	}
+	else if (api_name == '/api_req_kousyou/remodel_slotlist_detail') {
+		// 装備改修選択.
+		func = function(json) {
+			var params = decode_postdata_params(request.request.postData.params);
+			// update $remodel_slotlist
+			var d = json.api_data;
+			var item = $slotitem_list[params.api_slot_id];
+			var data = $remodel_slotlist[params.api_id];
+			if (!data.api_req_remodelkit) return;
+			if (item.level >= 10)    data.my_lv10 = d;
+			else if (item.level >= 6) data.my_lv6 = d;
+			else if (d.api_req_slot_num) {
+				data.api_req_slot_id  = d.api_req_slot_id;
+				data.api_req_slot_num = d.api_req_slot_num;
+			}
+			save_storage('remodel_slotlist', $remodel_slotlist);
+			save_storage('remodel_slotweek', $remodel_slotweek);
+			// print remodel list on today.
+			print_remodel_slotlist($remodel_slot_today);
+		}
+	}
 	else if (api_name == '/api_req_kousyou/remodel_slot') {
-		// 装備改修.
+		// 装備改修結果.
 		func = function(json) {	// 明石の改修工廠で改修した装備をリストに反映する.
 			var d = json.api_data;
 			add_slotitem_list(d.api_after_slot);	// 装備リストを更新する.
 			slotitem_delete(d.api_use_slot_id);		// 改修で消費した装備を装備リストから抜く.
 			update_material(d.api_after_material, $material.remodelslot);	/// 改修による資材消費を記録する.
-			print_port();
+			print_remodel_slotlist($remodel_slot_today);
 		};
 	}
 	else if (api_name == '/api_req_kaisou/lock') {
