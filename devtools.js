@@ -2583,7 +2583,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 	else if (api_name == '/api_req_kousyou/remodel_slotlist') {
 		// 装備改修メニュー.
 		func = function(json) {
-			var ms = $svDateTime.getTime() - Date.UTC(2013, 4-1, 22, 5-9, 0); // 2013-4-22 Mon 00:00 JST からの経過ミリ秒数.
+			var ms = $svDateTime.getTime() - Date.UTC(2013, 4-1, 22, 0-9, 0); // 2013-4-22 Mon 00:00 JST からの経過ミリ秒数.
 			var dn = Math.floor(ms / (24*60*60*1000)); // 経過日数に変換する.
 			var day_of_week = dn % 7; // 曜日番号. 0:Mon, 1:Tue, ... 6:Sun.
 			var subship_id = $ship_list[$fdeck_list[1].api_ship[1]].ship_id;
@@ -2595,8 +2595,10 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 				var id = data.api_id; // レシピID.
 				var prev = $remodel_slotlist[id];
 				if (prev) {
-					if (prev.my_lv10) data.my_lv10 = prev.my_lv10;
-					if (prev.my_lv6) data.my_lv6 = prev.my_lv6;
+					if (prev.my_lv10)          data.my_lv10 = prev.my_lv10;
+					if (prev.my_lv6)           data.my_lv6  = prev.my_lv6;
+					if (prev.api_req_slot_id)  data.api_req_slot_id  = prev.api_req_slot_id;
+					if (prev.api_req_slot_num) data.api_req_slot_num = prev.api_req_slot_num;
 				}
 				$remodel_slotlist[id] = data;
 				$remodel_slot_today[id] = subship_id;
