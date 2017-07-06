@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 var $mst_ship		= load_storage('mst_ship');
 var $mst_slotitem	= load_storage('mst_slotitem');
+var $mst_slotitemeq	= load_storage('mst_slotitemeq');
 var $mst_mission	= load_storage('mst_mission');
 var $mst_useitem	= load_storage('mst_useitem');
 var $mst_mapinfo	= load_storage('mst_mapinfo');
@@ -353,6 +354,15 @@ function update_mst_slotitem(list) {
 		$mst_slotitem[data.api_id] = data;
 	});
 	save_storage('mst_slotitem', $mst_slotitem);
+}
+
+function update_mst_slotitemeq(list) {
+	if (!list) return;
+	$mst_slotitemeq = {};
+	list.forEach(function(data) {
+		$mst_slotitemeq[data.api_id] = data;
+	});
+	save_storage('mst_slotitemeq', $mst_slotitemeq);
 }
 
 function update_mst_mission(list) {
@@ -1271,13 +1281,18 @@ function print_port() {
 		});
 		var msg = ['YPS_lockeditem_list'];
 		msg.push('## ロック装備一覧');
-		msg.push('\t==装備名\t==個数\t==使用艦名'); // 表ヘッダ.
+		msg.push('\t==分類\t==装備名\t==個数\t==使用艦名'); // 表ヘッダ.
+		var category = -1;
 		lockeditem_ids.forEach(function(id) {
+			var cat = $mst_slotitem[id].api_type[2];
+			if (cat != category) {
+				msg.push('\t==' + $mst_slotitemeq[category = cat].api_name);
+			}
 			for (var lv in lockeditem_list[id]) {
 				var item = lockeditem_list[id][lv];
 				var level = lv % 16;
 				var alv = (lv - level) / 16;
-				msg.push('\t' + slotitem_name(id, level, alv) + '\t' + item.shiplist.length + '/' + item.count + '\t|' + shiplist_names(item.shiplist));
+				msg.push('\t\t' + slotitem_name(id, level, alv) + '\t' + item.shiplist.length + '/' + item.count + '\t|' + shiplist_names(item.shiplist));
 			}
 		});
 		msg.push('---');
@@ -2494,6 +2509,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		func = function(json) { // 艦種表を取り込む.
 			update_mst_ship(json.api_data.api_mst_ship);
 			update_mst_slotitem(json.api_data.api_mst_slotitem);
+			update_mst_slotitemeq(json.api_data.api_mst_slotitem_equiptype);
 			update_mst_useitem(json.api_data.api_mst_useitem);
 			update_mst_mission(json.api_data.api_mst_mission);
 			update_mst_mapinfo(json.api_data.api_mst_mapinfo);
