@@ -1452,9 +1452,20 @@ function print_remodel_slotlist(list) {
 		+'\t==★+6開発/改修/消費装備'
 		+'\t==★max開発/改修/消費装備'
 	];
-	for (var id in list) {
+	var list_ids = Object.keys(list);
+	list_ids.sort(function(a, b) {	// 改修レシピID配列を装備分類順に並べ替える.
+		a = $remodel_slotlist[a]; a = a.api_slot_id;
+		b = $remodel_slotlist[b]; b = b.api_slot_id;
+		var aa = $mst_slotitem[a];
+		var bb = $mst_slotitem[b];
+		var ret = aa.api_type[2] - bb.api_type[2]; // 装備分類の大小判定.
+		if (!ret) ret = aa.api_sortno - bb.api_sortno; // 分類内の大小判定.
+		// if (!ret) ret = a - b; // 種別ID値での大小判定.
+		return ret;
+	});
+	list_ids.forEach(function(id) {
 		var data = $remodel_slotlist[id];
-		var subship = (id == 101 || id == 201 || id == 301) ? '---' : ship_name(list[id]);
+		var subship = (id == 101 || id == 201 || id == 301 || id == 306) ? '---' : ship_name(list[id]);
 		var msg = '\t|' + slotitem_levellist(data.api_slot_id).join(', ');
 		msg += '\t' + subship;
 		msg += '\t' + data.api_req_fuel;
@@ -1465,7 +1476,7 @@ function print_remodel_slotlist(list) {
 		msg += '\t' + remodel_req_kits_name(data.my_lv6)  + remodel_req_slot_name(data.my_lv6);
 		msg += '\t' + remodel_req_kits_name(data.my_lv10) + remodel_req_slot_name(data.my_lv10);
 		req.push(msg);
-	}
+	});
 	chrome.runtime.sendMessage(req);
 
 }
