@@ -1462,7 +1462,7 @@ function print_mapinfo(uncleared) {
 //
 function print_remodel_slotlist(list) {
 	var req = ['## 本日の改修工廠',
-		'\t==装備\t==二番艦\t==燃料/弾薬/鋼材/ボーキ'
+		'\t==分類\t==装備\t==二番艦\t==燃料/弾薬/鋼材/ボーキ'
 		+'\t==開発/改修/消費装備'
 		+'\t==★+6開発/改修/消費装備'
 		+'\t==★max開発/改修/消費装備'
@@ -1478,10 +1478,15 @@ function print_remodel_slotlist(list) {
 		// if (!ret) ret = a - b; // 種別ID値での大小判定.
 		return ret;
 	});
+	var category = -1;
 	list_ids.forEach(function(id) {
 		var data = $remodel_slotlist[id];
+		var cat = $mst_slotitem[data.api_slot_id].api_type[2];
+		if (cat != category) {
+			req.push('\t==' + $mst_slotitemeq[category = cat].api_name);
+		}
 		var subship = (id == 101 || id == 201 || id == 301 || id == 306) ? '---' : ship_name(list[id]);
-		var msg = '\t|' + slotitem_levellist(data.api_slot_id).join(', ');
+		var msg = '\t\t|' + slotitem_levellist(data.api_slot_id).join(', ');
 		msg += '\t' + subship;
 		msg += '\t' + data.api_req_fuel;
 		msg += '/'  + data.api_req_bull;
