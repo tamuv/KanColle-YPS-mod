@@ -2646,6 +2646,11 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			var subship_id = $ship_list[$fdeck_list[1].api_ship[1]].ship_id;
 			$remodel_slot_today = $remodel_slotweek[day_of_week];
 			if (!$remodel_slot_today) $remodel_slotweek[day_of_week] = $remodel_slot_today = {};
+			// remove old recipe:subship data
+			for (var id in $remodel_slot_today) {
+				if ($remodel_slot_today[id] == subship_id)
+					delete $remodel_slot_today[id];
+			}
 			// update $remodel_slotlist and $remodel_slotweek.
 			var list = json.api_data;
 			list.forEach(function(data) {
