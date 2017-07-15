@@ -1527,7 +1527,7 @@ function print_remodel_slotlist(list) {
 }
 
 function remodel_req_kits_name(data) {
-	if (!data || !data.api_req_remodelkit) return '';
+	if (!data || data.api_req_remodelkit == null) return ''; // 戦闘糧食ではremodelkit==0なので、!remodelkit では判定できない.
 	return data.api_req_buildkit + '/' + data.api_req_remodelkit;
 }
 
@@ -2679,7 +2679,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			var d = json.api_data;
 			var item = $slotitem_list[params.api_slot_id];
 			var data = $remodel_slotlist[params.api_id];
-			if (!data.api_req_remodelkit) return;
+			if (data.api_req_remodelkit == null) return;
 			if (item.level >= 10)    data.my_lv10 = d;
 			else if (item.level >= 6) data.my_lv6 = d;
 			else if (d.api_req_slot_num) {
