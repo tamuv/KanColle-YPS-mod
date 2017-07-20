@@ -1075,6 +1075,15 @@ function debug_print_newship_slots() {
 	chrome.runtime.sendMessage({appendData: req});
 }
 
+function debug_print_as_json(data, name) {
+	var msg = ['YPS_' + name];
+	var json = JSON.stringify(data, null, 2);
+	var req = [];
+	req.push('### ' + name);
+	req.push(msg.concat(json.split('¥n')));
+	chrome.runtime.sendMessage({appendData: req});
+}
+
 //------------------------------------------------------------------------
 // 母港画面表示.
 //
@@ -2547,6 +2556,8 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			chrome.runtime.sendMessage("## ロード完了");
 			debug_print_mst_slotitem();
 			debug_print_newship_slots();
+			debug_print_as_json($remodel_slotlist, 'remodel_slotlist');
+			debug_print_as_json($remodel_slotweek, 'remodel_slotweek');
 		};
 	}
 	else if (api_name == '/api_get_member/require_info') { // 2016.4 メンテで追加された.
