@@ -2654,7 +2654,8 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			var ms = $svDateTime.getTime() - Date.UTC(2013, 4-1, 22, 0-9, 0); // 2013-4-22 Mon 00:00 JST からの経過ミリ秒数.
 			var dn = Math.floor(ms / (24*60*60*1000)); // 経過日数に変換する.
 			var day_of_week = dn % 7; // 曜日番号. 0:Mon, 1:Tue, ... 6:Sun.
-			var subship_id = $ship_list[$fdeck_list[1].api_ship[1]].ship_id;
+			var subship = $ship_list[$fdeck_list[1].api_ship[1]];
+			var subship_id = subship ? subship.ship_id : -1;
 			$remodel_slot_today = $remodel_slotweek[day_of_week];
 			if (!$remodel_slot_today) $remodel_slotweek[day_of_week] = $remodel_slot_today = {};
 			// remove old recipe:subship data
