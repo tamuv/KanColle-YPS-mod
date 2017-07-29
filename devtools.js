@@ -923,6 +923,9 @@ function fleet_brief_status(deck, deck2) {
 			else if (r <= 0.75) damage_L++; // 小破.
 			if ($ndock_list[ship.id]) ndockin++; // 修理中.
 			if (!ship.locked) unlock++; // ロック無し.
+			if (ship.ship_id == 487) { // 鬼怒改二.
+				daihatu.up += 5;
+			}
 			// 装備集計.
 			var d = slotitem_count(ship.slot, 75);	// ドラム缶.
 			if (d) {
@@ -974,7 +977,7 @@ function fleet_brief_status(deck, deck2) {
 		+ (ndockin ? ' 修理中' + ndockin : '')
 		+ (unlock ? ' 未ロック' + unlock : '')
 		+ (drumcan.sum ? ' ドラム缶' + drumcan.sum + '個' + drumcan.ships + '隻' : '')
-		+ (daihatu.sum ? ' 大発' + daihatu.sum + '個'+ daihatu.up + '%遠征UP' : '')
+		+ (daihatu.up  ? ' 大発' + daihatu.sum + '個'+ daihatu.up + '%遠征UP' : '')
 		+ (blank_slot_num ? ' 空スロット' + blank_slot_num : '')
 		+ akashi
 		;
