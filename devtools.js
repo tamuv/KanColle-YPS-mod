@@ -904,7 +904,7 @@ function fleet_brief_status(deck, deck2) {
 	var fuel = 0, fuel_max = 0;
 	var bull = 0, bull_max = 0;
 	var drumcan = {ships:0, sum:0};
-	var daihatu = {sum:0, up:0, up2:0}; ///@todo 大発の改修★効果も集計すべき.
+	var daihatu = {sum:0, level:0, up:0, up2:0};
 	var akashi = '';
 	var blank_slot_num = 0;
 	var list = deck.api_ship;
@@ -923,45 +923,54 @@ function fleet_brief_status(deck, deck2) {
 			else if (r <= 0.75) damage_L++; // 小破.
 			if ($ndock_list[ship.id]) ndockin++; // 修理中.
 			if (!ship.locked) unlock++; // ロック無し.
-			if (ship.ship_id == 487) { // 鬼怒改二.
-				daihatu.up += 5;
-			}
 			// 装備集計.
 			var d = slotitem_count(ship.slot, 75);	// ドラム缶.
 			if (d) {
 				drumcan.ships++;
 				drumcan.sum += d;
 			}
-			var d = slotitem_count(ship.slot, 68);	// 大発動艇.
-			if (d) {
-				daihatu.sum += d;
-				daihatu.up += 5 * d;
-			}
-			var d = slotitem_count(ship.slot, 166);	// 大発動艇(八九式中戦車＆陸戦隊).
-			if (d) {
-				daihatu.sum += d;
-				daihatu.up += 2 * d;
-			}
-			var d = slotitem_count(ship.slot, 167);	// 特二式内火艇.
-			if (d) {
-				daihatu.sum += d;
-				daihatu.up += 1 * d;
-			}
-			var d = slotitem_count(ship.slot, 193);	// 特大発動艇.
-			if (d) {
-				daihatu.sum += d;
-				daihatu.up += 5 * d;
-				daihatu.up2 += 2 * d;
-			}
+			ship.slot.forEach(function(data) {
+				var value = $slotitem_list[data];
+				if (!value) return;
+				switch (value.item_id) {
+					case 68:	// 大発動艇.
+						daihatu.up += 5;
+						daihatu.level += value.level;
+						daihatu.sum++;
+						break;
+					case 166:	// 大発動艇(八九式中戦車＆陸戦隊).
+						daihatu.up += 2;
+						daihatu.level += value.level;
+						daihatu.sum++;
+						break;
+					case 167:	// 特二式内火艇.
+						daihatu.up += 1;
+						daihatu.level += value.level;
+						daihatu.sum++;
+						break;
+					case 193:	// 特大発動艇.
+						daihatu.up += 5;
+						daihatu.up2 += 2;
+						daihatu.level += value.level;
+						daihatu.sum++;
+						break;
+				}
+			});
 			blank_slot_num += ship.blank_slot_num();
 			// 明石検出.
 			var name = ship.name_lv();
 			if (/明石/.test(name)) {
 				akashi += ' ' + name;
 			}
+			// 鬼怒改二.
+			if (ship.ship_id == 487) {
+				daihatu.up += 5;
+			}
 		}
 	}
-	daihatu.up = Math.min(20, daihatu.up) +  Math.min(6, daihatu.up2); ///@bug 特大発３個以上の計算は不正確である(減衰や、通常大発とのシナジー効果を計算していない)
+	daihatu.up = Math.min(20, daihatu.up); // 素効果の上限は20%.
+	daihatu.up += 0.01 * Math.floor(daihatu.up * daihatu.level / daihatu.sum); // 改修★の平均値を加算する.
+	daihatu.up2 = Math.min(6, daihatu.up2); // 特大発効果の上限は6%. @bug 特大発３個以上の計算は不正確である(減衰や、通常大発とのシナジー効果を計算していない)
 	var ret = kira_names(cond_list)
 		+ ' 燃料' + fuel + percent_name_unless100(fuel, fuel_max)
 		+ ' 弾薬' + bull + percent_name_unless100(bull, bull_max)
@@ -973,7 +982,7 @@ function fleet_brief_status(deck, deck2) {
 		+ (ndockin ? ' 修理中' + ndockin : '')
 		+ (unlock ? ' 未ロック' + unlock : '')
 		+ (drumcan.sum ? ' ドラム缶' + drumcan.sum + '個' + drumcan.ships + '隻' : '')
-		+ (daihatu.up  ? ' 大発' + daihatu.sum + '個'+ daihatu.up + '%遠征UP' : '')
+		+ (daihatu.up  ? ' 大発' + daihatu.sum + '個'+ (daihatu.up + daihatu.up2) + '%遠征UP' : '')
 		+ (blank_slot_num ? ' 空スロット' + blank_slot_num : '')
 		+ akashi
 		;
