@@ -904,7 +904,7 @@ function fleet_brief_status(deck, deck2) {
 	var fuel = 0, fuel_max = 0;
 	var bull = 0, bull_max = 0;
 	var drumcan = {ships:0, sum:0};
-	var daihatu = {ships:0, sum:0, up:0, up2:0}; ///@todo 大発の改修★効果も集計すべき.
+	var daihatu = {sum:0, up:0, up2:0}; ///@todo 大発の改修★効果も集計すべき.
 	var akashi = '';
 	var blank_slot_num = 0;
 	var list = deck.api_ship;
@@ -934,25 +934,21 @@ function fleet_brief_status(deck, deck2) {
 			}
 			var d = slotitem_count(ship.slot, 68);	// 大発動艇.
 			if (d) {
-				daihatu.ships++;
 				daihatu.sum += d;
 				daihatu.up += 5 * d;
 			}
 			var d = slotitem_count(ship.slot, 166);	// 大発動艇(八九式中戦車＆陸戦隊).
 			if (d) {
-				daihatu.ships++;
 				daihatu.sum += d;
 				daihatu.up += 2 * d;
 			}
 			var d = slotitem_count(ship.slot, 167);	// 特二式内火艇.
 			if (d) {
-				daihatu.ships++;
 				daihatu.sum += d;
 				daihatu.up += 1 * d;
 			}
 			var d = slotitem_count(ship.slot, 193);	// 特大発動艇.
 			if (d) {
-				daihatu.ships++;
 				daihatu.sum += d;
 				daihatu.up += 5 * d;
 				daihatu.up2 += 2 * d;
