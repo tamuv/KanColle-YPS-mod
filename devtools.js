@@ -893,6 +893,55 @@ function hp_status_on_battle(nowhp, maxhp, beginhp) {
 	return (nowhp < 0 ? 0 : nowhp) + '/' + maxhp + diff_name(nowhp, beginhp) + ':' + damage_name(nowhp, maxhp);
 }
 
+function Daihatu() {
+	this.sum = 0;
+	this.level = 0;
+	this.up = 0;
+	this.up2 = 0;
+	this.up3 = 0;
+}
+
+Daihatu.prototype.count_up = function(value) {
+	if (!value) return;
+	switch (value.item_id) {
+	case 68:	// 大発動艇.
+		this.up += 5;
+		this.up3 += 2; // 特大発3個以上の場合のシナジー効果 * 10.
+		this.level += value.level;
+		this.sum++;
+		break;
+	case 166:	// 大発動艇(八九式中戦車＆陸戦隊).
+		this.up += 2;
+		this.level += value.level;
+		this.sum++;
+		break;
+	case 167:	// 特二式内火艇.
+		this.up += 1;
+		this.level += value.level;
+		this.sum++;
+		break;
+	case 193:	// 特大発動艇.
+		this.up += 5;
+		this.up2 += 2;
+		this.level += value.level;
+		this.sum++;
+		break;
+	}
+	if (value.ship_id == 487) { // 鬼怒改二.
+		this.up += 5;
+	}
+}
+
+Daihatu.prototype.calc_up = function() {
+	var u = Math.min(20, this.up); // 素効果の上限は20%.
+	u += 0.01 * Math.floor(u * this.level / this.sum); // 大発系改修★の平均値を加算する.
+	var u2 = 0; // 特大発効果.
+	if      (this.up2 > 6) u2 = (54 + (this.up3 > 6 ? 6 : this.up3 > 5 ? 5 : this.up3)) / 10; // 特大発4個以上: 5.4%, 5.6%, 5.8%, 5.9%, 6.0% ...
+	else if (this.up2 > 5) u2 = (48 + (this.up3 > 6 ? 6 : this.up3 < 2 ? 2 : this.up3)) / 10; // 特大発3個:     5.0%, 5.0%, 5.2%, 5.4%, 5.4% ...
+	else                   u2 = this.up2; // 特大発0,1,2個: 0.0%, 2.0%, 4.0%.
+	return u + u2;
+}
+
 function fleet_brief_status(deck, deck2) {
 	var cond_list = [];
 	var esc = 0, sunk = 0;
@@ -904,7 +953,7 @@ function fleet_brief_status(deck, deck2) {
 	var fuel = 0, fuel_max = 0;
 	var bull = 0, bull_max = 0;
 	var drumcan = {ships:0, sum:0};
-	var daihatu = {sum:0, level:0, up:0, up2:0};
+	var daihatu = new Daihatu();
 	var akashi = '';
 	var blank_slot_num = 0;
 	var list = deck.api_ship;
@@ -930,31 +979,7 @@ function fleet_brief_status(deck, deck2) {
 				drumcan.sum += d;
 			}
 			ship.slot.forEach(function(data) {
-				var value = $slotitem_list[data];
-				if (!value) return;
-				switch (value.item_id) {
-					case 68:	// 大発動艇.
-						daihatu.up += 5;
-						daihatu.level += value.level;
-						daihatu.sum++;
-						break;
-					case 166:	// 大発動艇(八九式中戦車＆陸戦隊).
-						daihatu.up += 2;
-						daihatu.level += value.level;
-						daihatu.sum++;
-						break;
-					case 167:	// 特二式内火艇.
-						daihatu.up += 1;
-						daihatu.level += value.level;
-						daihatu.sum++;
-						break;
-					case 193:	// 特大発動艇.
-						daihatu.up += 5;
-						daihatu.up2 += 2;
-						daihatu.level += value.level;
-						daihatu.sum++;
-						break;
-				}
+				daihatu.count_up($slotitem_list[data]);
 			});
 			blank_slot_num += ship.blank_slot_num();
 			// 明石検出.
@@ -963,14 +988,9 @@ function fleet_brief_status(deck, deck2) {
 				akashi += ' ' + name;
 			}
 			// 鬼怒改二.
-			if (ship.ship_id == 487) {
-				daihatu.up += 5;
-			}
+			daihatu.count_up(ship);
 		}
 	}
-	daihatu.up = Math.min(20, daihatu.up); // 素効果の上限は20%.
-	daihatu.up += 0.01 * Math.floor(daihatu.up * daihatu.level / daihatu.sum); // 改修★の平均値を加算する.
-	daihatu.up2 = Math.min(6, daihatu.up2); // 特大発効果の上限は6%. @bug 特大発３個以上の計算は不正確である(減衰や、通常大発とのシナジー効果を計算していない)
 	var ret = kira_names(cond_list)
 		+ ' 燃料' + fuel + percent_name_unless100(fuel, fuel_max)
 		+ ' 弾薬' + bull + percent_name_unless100(bull, bull_max)
@@ -982,7 +1002,7 @@ function fleet_brief_status(deck, deck2) {
 		+ (ndockin ? ' 修理中' + ndockin : '')
 		+ (unlock ? ' 未ロック' + unlock : '')
 		+ (drumcan.sum ? ' ドラム缶' + drumcan.sum + '個' + drumcan.ships + '隻' : '')
-		+ (daihatu.up  ? ' 大発' + daihatu.sum + '個'+ (daihatu.up + daihatu.up2) + '%遠征UP' : '')
+		+ (daihatu.up  ? ' 大発' + daihatu.sum + '個'+ daihatu.calc_up() + '%遠征UP' : '')
 		+ (blank_slot_num ? ' 空スロット' + blank_slot_num : '')
 		+ akashi
 		;
