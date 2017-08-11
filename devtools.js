@@ -604,6 +604,7 @@ function event_kind_name(id) {	///@param id	非戦闘マスのメッセージ ap
 		case 3: return '穏やかな海です';
 		case 4: return '穏やかな海峡です';
 		case 5: return '警戒が必要です';
+		case 6: return '静かな海です';
 		default: return '??'+to_string(id);
 	}
 }
