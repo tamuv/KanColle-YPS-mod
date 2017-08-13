@@ -935,7 +935,7 @@ Daihatu.prototype.count_up = function(value) {
 
 Daihatu.prototype.calc_up = function() {
 	var u = Math.min(20, this.up); // 素効果の上限は20%.
-	u += 0.01 * Math.floor(u * this.level / this.sum); // 大発系改修★の平均値を加算する.
+	u += 0.01 * Math.floor(u * this.level / (this.sum || 1)); // 大発系改修★の平均値を加算する.
 	var u2 = 0; // 特大発効果.
 	if      (this.up2 > 6) u2 = (54 + (this.up3 > 6 ? 6 : this.up3 > 5 ? 5 : this.up3)) / 10; // 特大発4個以上: 5.4%, 5.6%, 5.8%, 5.9%, 6.0% ...
 	else if (this.up2 > 5) u2 = (48 + (this.up3 > 6 ? 6 : this.up3 < 2 ? 2 : this.up3)) / 10; // 特大発3個:     5.0%, 5.0%, 5.2%, 5.4%, 5.4% ...
