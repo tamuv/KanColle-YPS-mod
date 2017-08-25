@@ -200,5 +200,5 @@ $init_newship_slots = {
 521:	1,	// 春日丸.
 524:	2,	// 択捉.
 525:	2,	// 松輪.
-539:	0,	// Luigi Torelli.
+535:	0,	// Luigi Torelli.
 };
