@@ -1,5 +1,5 @@
 # 艦これ余所見プレイ支援 KanColleYPS
-* v1.5.8 Feb.2017: 2017-02-25
+* v1.5.11 May.2017: 2017-05-22
 * 開発サイト: https://github.com/hkuno9000/KanColle-YPS
 * 公開サイト: https://hkuno9000.github.io/KanColle-YPS
 * リリース履歴: https://github.com/hkuno9000/KanColle-YPS/releases
