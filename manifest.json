@@ -1,8 +1,8 @@
 {
 	"manifest_version": 2,
 	"name": "KanColle-YPS",
-	"version": "1.6.1",
-	"version_name": "v1.6.1 Aug.2017 Testing",
+	"version": "1.6.2",
+	"version_name": "v1.6.2 Aug.2017 夏イベントE7対応",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"permissions": [
