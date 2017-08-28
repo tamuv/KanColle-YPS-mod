@@ -605,6 +605,7 @@ function event_kind_name(id) {	///@param id	非戦闘マスのメッセージ ap
 		case 4: return '穏やかな海峡です';
 		case 5: return '警戒が必要です';
 		case 6: return '静かな海です';
+		case 7: return '我が「連合艦隊」はドーバー海峡を進撃中です';
 		default: return '??'+to_string(id);
 	}
 }
