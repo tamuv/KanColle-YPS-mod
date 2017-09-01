@@ -1961,6 +1961,12 @@ function on_battle_result(json) {
 			}
 		}
 	}
+	if (d.api_landing_hp) {
+		var p = d.api_landing_hp;
+		var s = p.api_now_hp - p.api_sub_value;
+		s = s > 0 ? fraction_percent_name(s, p.api_max_hp) : '達成';
+		req.push('TP: ' + p.api_sub_value + ' => ' + s);
+	}
 	if (drop_ship_name) {
 		req.push('## drop ship', drop_ship_name);
 	}
