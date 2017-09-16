@@ -649,7 +649,8 @@ function slotitem_name(id, lv, alv, p_alv, n, max) {
 
 function slotitem_seiku(id, lv, alv, n) {
 	// https://gist.github.com/YSRKEN/4cdecc6e8a1c2c75b13b08126c94f4cf の制空値計算式を採用する.
-	// seiku ::= floor((P + Ga * sqrt(lv) + 1.5 * In) * sqrt(n) + sqrt(v/10) + Vc)
+	// http://kancollecalc.web.fc2.com/air_supremacy.html の計算結果に合うように計算式を修正する.
+	// seiku ::= floor((P + Ga * lv + 1.5 * In) * sqrt(n) + sqrt(v/10) + Vc)
 	// lv ::= 改修レベル:0-10
 	// alv::= 熟練度:0-7
 	// n  ::= 搭載機数.
@@ -661,7 +662,6 @@ function slotitem_seiku(id, lv, alv, n) {
 	var item = $mst_slotitem[id];
 	if (!is_airplane(item)) return 0;
 	var seiku = 0;
-	var P = item.api_tyku;
 	var In = 0;
 	var Ga = 0;
 	var Vc = null;
@@ -696,7 +696,8 @@ function slotitem_seiku(id, lv, alv, n) {
 		break;
 	}
 	if (n > 0) {
-		seiku += (P + Ga * Math.sqrt(lv) + 1.5 * In) * Math.sqrt(n);
+		var P = item.api_tyku;
+		seiku += (P + Ga * lv + 1.5 * In) * Math.sqrt(n);
 	}
 	if (alv > 0) {
 		var v = [0, 10, 25, 40, 55, 70, 85, 100][alv];	// 内部熟練度:下端.
