@@ -193,6 +193,19 @@ Ship.prototype.slot_names = function() {
 	return a.join(', ');
 };
 
+Ship.prototype.slot_seiku = function() {	///< 制空値.
+	var slot = this.slot;
+	var onslot = this.onslot;
+	var a = 0;
+	for (var i = 0; i < slot.length; ++i) {
+		var value = $slotitem_list[slot[i]];
+		if (value) {
+			a += slotitem_seiku(value.item_id, value.level, value.alv, onslot[i]);
+		}
+	}
+	return a;
+};
+
 Ship.prototype.blank_slot_num = function() {	///< 通常スロットの空き数を返す(補強スロットは対象外とする)
 	var num = 0;
 	var slot = this.slot;
@@ -634,6 +647,66 @@ function slotitem_name(id, lv, alv, p_alv, n, max) {
 	return name;
 }
 
+function slotitem_seiku(id, lv, alv, n) {
+	// https://gist.github.com/YSRKEN/4cdecc6e8a1c2c75b13b08126c94f4cf の制空値計算式を採用する.
+	// seiku ::= floor((P + Ga * sqrt(lv) + 1.5 * In) * sqrt(n) + sqrt(v/10) + Vc)
+	// lv ::= 改修レベル:0-10
+	// alv::= 熟練度:0-7
+	// n  ::= 搭載機数.
+	// P  ::= 装備対空値. api_tyku
+	// In ::= 装備迎撃値. 局地戦闘機:api_houk, その他:0
+	// Ga ::= 改修レベル係数. 艦上戦闘機&水上戦闘機:0.2, 艦上爆撃機:0.25, その他:0
+	// v  ::= 内部熟練度:0-120
+	// Vc ::= 熟練度ボーナス. 艦上戦闘機&水上戦闘機:0-22, 水上爆撃機:0-6, その他:0
+	var item = $mst_slotitem[id];
+	if (!is_airplane(item)) return 0;
+	var seiku = 0;
+	var P = item.api_tyku;
+	var In = 0;
+	var Ga = 0;
+	var Vc = null;
+	switch (item.api_type[2]) {
+	case 48:// 局地戦闘機.
+		In = item.api_houk;
+		break;
+	case 6:	// 艦上戦闘機.
+	case 45:// 水上戦闘機.
+		Ga = 0.2;
+		Vc = [0, 0, 2, 5, 6, 14, 14, 22];
+		break;
+	case 7:	// 艦上爆撃機.
+		Ga = 0.25;
+		break;
+	case 11:// 水上爆撃機.
+		Vc = [0, 0, 1, 1, 1, 3, 3, 6];
+		break;
+	case 9:	// 艦上偵察機.
+	case 10:// 水上偵察機.
+	case 25:// オートジャイロ.
+	case 26:// 対潜哨戒機.
+	case 41:// 大型飛行艇.
+		return 0; // 制空戦に参加しない機種.
+	case 8:	// 艦上攻撃機.
+	case 47:// 陸上攻撃機.
+	case 56:// 噴式戦闘機.
+	case 57:// 噴式戦闘爆撃機.
+	case 58:// 噴式攻撃機.
+	case 59:// 噴式偵察機.
+	case 94:// 艦上偵察機（II）.
+		break;
+	}
+	if (n > 0) {
+		seiku += (P + Ga * Math.sqrt(lv) + 1.5 * In) * Math.sqrt(n);
+	}
+	if (alv > 0) {
+		var v = [0, 10, 25, 40, 55, 70, 85, 100][alv];	// 内部熟練度:下端.
+	//	var v = [9, 24, 39, 54, 69, 85, 99, 120][alv];	// 内部熟練度:上端.
+		seiku += Math.sqrt(v / 10.0);
+		if (Vc) seiku += Vc[alv];	// Vc: 艦上戦闘機、水上戦闘機.
+	}
+	return Math.floor(seiku);
+}
+
 function slotitem_names(idlist) {
 	if (!idlist) return '';
 	var names = [];
@@ -959,6 +1032,7 @@ function fleet_brief_status(deck, deck2) {
 	var daihatu = new Daihatu();
 	var akashi = '';
 	var blank_slot_num = 0;
+	var slot_seiku = 0;
 	var list = deck.api_ship;
 	if (deck2) list = list.concat(deck2.api_ship);
 	for (var i in list) {
@@ -985,6 +1059,7 @@ function fleet_brief_status(deck, deck2) {
 				daihatu.count_up($slotitem_list[data]);
 			});
 			blank_slot_num += ship.blank_slot_num();
+			slot_seiku     += ship.slot_seiku();
 			// 明石検出.
 			var name = ship.name_lv();
 			if (/明石/.test(name)) {
@@ -1006,6 +1081,7 @@ function fleet_brief_status(deck, deck2) {
 		+ (unlock ? ' 未ロック' + unlock : '')
 		+ (drumcan.sum ? ' ドラム缶' + drumcan.sum + '個' + drumcan.ships + '隻' : '')
 		+ (daihatu.up  ? ' 大発' + daihatu.sum + '個'+ daihatu.calc_up() + '%遠征UP' : '')
+		+ (slot_seiku  ? ' 制空値' + slot_seiku : '')
 		+ (blank_slot_num ? ' 空スロット' + blank_slot_num : '')
 		+ akashi
 		;

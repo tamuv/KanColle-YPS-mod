@@ -1,8 +1,8 @@
 {
 	"manifest_version": 2,
 	"name": "KanColle-YPS",
-	"version": "1.6.3",
-	"version_name": "v1.6.3 2017-9-12メンテ対応(暫定)",
+	"version": "1.6.4",
+	"version_name": "v1.6.4 制空値計算対応",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"permissions": [
