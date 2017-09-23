@@ -26,6 +26,7 @@ var	$locked_ship_idset = {};	// ロック艦の艦種IDセット.
 var $next_mapinfo = null;
 var $next_enemy = null;
 var $is_boss = false;
+var $is_next = false;
 var $material = {
 	// [燃料,弾薬,鋼材,ボーキ, バーナー,バケツ,歯車,螺子]
 	mission: [0,0,0,0, 0,0,0,0],	///< 遠征累計.
@@ -629,6 +630,12 @@ function mission_clear_name(cr) {	///@param c	遠征クリア api_clear_result
 		case 2: return '大成功';
 		default: return '失敗';
 	}
+}
+
+function boss_next_name() {
+	if ($is_boss) return '(boss)';
+	if (!$is_next) return '(end)';
+	return '';
 }
 
 function slotitem_name(id, lv, alv, p_alv, n, max) {
@@ -1800,6 +1807,7 @@ function on_next_cell(json) {
 	var h = json.api_data.api_happening;
 	var area = d.api_maparea_id + '-' + d.api_mapinfo_no + '-' + d.api_no;
 	$next_mapinfo = $mst_mapinfo[d.api_maparea_id * 10 + d.api_mapinfo_no];
+	$is_next = (d.api_next > 0);
 	if (d.api_event_id == 5) {
 		area += '(boss)';
 		$is_boss = true;
@@ -1817,7 +1825,7 @@ function on_next_cell(json) {
 			if (d.api_event_id == 7) msg += "(航空偵察)";	// 航空偵察マスの資源はboss戦勝利により獲得が確定する.　獲得失敗時は自然増加の減少として扱う.
 		}
 		$battle_log.push(msg);
-		print_next('next item', msg);
+		print_next('next item' + boss_next_name(), msg);
 	}
 	else if (h) {	// 渦潮マス.
 		var id = h.api_mst_id;
@@ -1827,19 +1835,19 @@ function on_next_cell(json) {
 		var msg = area + ':' + material_name(id) + 'x' + -count;
 		if (h.api_dentan) msg += '(電探により軽減あり)';
 		$battle_log.push(msg);
-		print_next('next loss', msg);
+		print_next('next loss' + boss_next_name(), msg);
 	}
 	else if (d.api_event_id == 6) {	// 非戦闘マス.
 		var msg = area;
 		msg += ':' + event_kind_name(d.api_event_kind);
 		$battle_log.push(msg);
-		print_next('next skip', msg);
+		print_next('next skip' + boss_next_name(), msg);
 	}
 	else if (d.api_event_id == 9) {	// 揚陸地点マス.
 		var msg = area;
 		msg += ':揚陸地点';
 		$battle_log.push(msg);
-		print_next('next event', msg);
+		print_next('next event' + boss_next_name(), msg);
 	}
 	else {	// 戦闘マス.
 		var req = [area];
@@ -1878,7 +1886,7 @@ function on_next_cell(json) {
 				req.push('### @!!潜水艦注意!!@ ' + fraction_percent_name(sum_ss, sum_all));
 			}
 		}
-		print_next('next enemy' + ($battle_count + 1), req);
+		print_next('next enemy' + ($battle_count + 1) + boss_next_name(), req);
 	}
 }
 
@@ -2546,6 +2554,7 @@ function on_battle(json, battle_api_name) {
 		'```'];
 	req.push(msg);
 	req.push('# ' + map_name() + ' battle' + $battle_count);
+	if (!/^演習/.test(map_name())) req.push(req.pop() + boss_next_name());
 	push_listform(req, $battle_log);
 	push_listform(req, $next_enemy);
 	if (fmt) req.push(fmt);
@@ -3026,7 +3035,9 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			$max_ship     = basic.api_max_chara;
 			$max_slotitem = basic.api_max_slotitem + 3;
 			if ($battle_deck_id > 0) {
-				$last_mission[$battle_deck_id] = '前回出撃: ' + map_name() + ' ' + $battle_log.pop();
+				var log = $battle_log.pop();
+				if (!/^演習/.test(log) && $is_next) log += '(道中撤退)';
+				$last_mission[$battle_deck_id] = '前回出撃: ' + map_name() + ' ' + log;
 				$battle_deck_id = -1;
 				$do_print_port_on_slot_item = true;	// 戦闘直後の母港帰還時は、後続する slot_item で艦載機の熟練度が更新されるまで print_port() を遅延する.
 			}
