@@ -1768,8 +1768,11 @@ function push_all_fleets(req) {
 			if (/大破!!!/.test(brief)) { req.damage_H_alart = true; } // 大破進撃警告ON.
 		}
 		else {
-			if ($last_mission[f_id])
-				req.push($last_mission[f_id]);
+			var m = $last_mission[f_id];
+			if (m instanceof Array)
+				m.forEach(function(a) { req.push(a); });
+			else if (m)
+				req.push(m);
 			else
 				req.push('母港待機中');
 		}
@@ -3036,8 +3039,11 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			$max_slotitem = basic.api_max_slotitem + 3;
 			if ($battle_deck_id > 0) {
 				var log = $battle_log.pop();
+				var msg = ['YPS_mission'+$battle_deck_id];
+				push_listform(msg, $battle_log);
 				if (!/^演習/.test(log) && $is_next) log += '(道中撤退)';
-				$last_mission[$battle_deck_id] = '前回出撃: ' + map_name() + ' ' + log;
+				$last_mission[$battle_deck_id] = ['前回出撃: ' + map_name() + ' ' + log];
+				if (msg.length > 1) $last_mission[$battle_deck_id].push('道中', msg);
 				$battle_deck_id = -1;
 				$do_print_port_on_slot_item = true;	// 戦闘直後の母港帰還時は、後続する slot_item で艦載機の熟練度が更新されるまで print_port() を遅延する.
 			}
