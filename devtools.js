@@ -833,8 +833,8 @@ function battle_cl_name(a) {
 	}
 }
 
-function map_name() {
-	return $next_mapinfo ? $next_mapinfo.api_name : '';
+function map_name() { // "演習-5" "鎮守府正面海域1-1" etc..
+	return $next_mapinfo ? $next_mapinfo.api_name + [$next_mapinfo.api_maparea_id, $next_mapinfo.api_no].join('-') : '';
 }
 
 function push_listform(ary, data) {
@@ -1580,7 +1580,7 @@ function print_port() {
 //
 function print_next(title, msg) {
 	var req = [request_date_time()];
-	req.push('# ' + $next_mapinfo.api_name + ' ' + title);
+	req.push('# ' + map_name() + ' ' + title);
 	req = req.concat(msg); // msg は string or Array.
 	req.push('---');
 	push_quests(req);
@@ -3038,12 +3038,11 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			$max_ship     = basic.api_max_chara;
 			$max_slotitem = basic.api_max_slotitem + 3;
 			if ($battle_deck_id > 0) {
-				var log = $battle_log.pop();
+				var log = map_name();
 				var msg = ['YPS_mission'+$battle_deck_id];
 				push_listform(msg, $battle_log);
 				if (!/^演習/.test(log) && $is_next) log += '(道中撤退)';
-				$last_mission[$battle_deck_id] = ['前回出撃: ' + map_name() + ' ' + log];
-				if (msg.length > 1) $last_mission[$battle_deck_id].push('道中', msg);
+				$last_mission[$battle_deck_id] = ['前回出撃: ' + log, msg];
 				$battle_deck_id = -1;
 				$do_print_port_on_slot_item = true;	// 戦闘直後の母港帰還時は、後続する slot_item で艦載機の熟練度が更新されるまで print_port() を遅延する.
 			}
@@ -3145,7 +3144,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		// 演習相手の情報.
 		func = function(json) { // 演習相手の提督名を記憶する.
 			$next_enemy = "演習相手:" + json.api_data.api_nickname;
-			$next_mapinfo = { api_name : "演習" };
+			$next_mapinfo = { api_name : "演習", api_no: get_weekly().practice_done + 1 };
 		};
 	}
 	else if (api_name == '/api_get_member/mapinfo') {
