@@ -1969,8 +1969,9 @@ function on_battle_result(json) {
 		}
 		var rank = d.api_win_rank;
 		var msg = e.api_deck_name;
-		var e_lost_count = typeof d.api_dests !== 'undefined' ? d.api_dests : $e_lost_count;
-		var e_leader_lost = typeof d.api_destsf !== 'undefined' ? d.api_destsf : $e_leader_lost;
+		// api_req_practice/battle_result 「演習戦闘結果」JSONでは api_dests, api_destsf が存在しないので、推定計算の値を使う.
+		var e_lost_count  = (d.api_dests != null) ? d.api_dests : $e_lost_count;
+		var e_leader_lost = (d.api_destsf != null) ? d.api_destsf : $e_leader_lost;
 		if (d.api_ship_id) {
 			var total = count_unless(d.api_ship_id, -1);
 			msg += '(' + e_lost_count + '/' + total + ')';
