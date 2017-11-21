@@ -61,6 +61,8 @@ var $f_maxhps = null;
 var $f_beginhps = null;
 var $e_beginhps = null;
 var $f_damage = 0;
+var $e_lost_count = 0;
+var $e_leader_lost = false;
 var $guess_win_rank = '?';
 var $guess_info_str = '';
 var $pcDateTime = null;
@@ -1967,14 +1969,16 @@ function on_battle_result(json) {
 		}
 		var rank = d.api_win_rank;
 		var msg = e.api_deck_name;
+		var e_lost_count = typeof d.api_dests !== 'undefined' ? d.api_dests : $e_lost_count;
+		var e_leader_lost = typeof d.api_destsf !== 'undefined' ? d.api_destsf : $e_leader_lost;
 		if (d.api_ship_id) {
 			var total = count_unless(d.api_ship_id, -1);
-			msg += '(' + d.api_dests + '/' + total + ')';
+			msg += '(' + e_lost_count + '/' + total + ')';
 			if (rank == 'S' && $f_damage == 0) rank = '完S';
 		}
 		req.push(msg + ':' + rank);
 		$guess_info_str += ', f_lost:' + count_if(lost, 1); // 自轟沈数.
-		$guess_info_str += ', e_lost:' + (d.api_destsf ? 'x' : '') + d.api_dests; // 敵撃沈数.
+		$guess_info_str += ', e_lost:' + (e_leader_lost ? 'x' : '') + e_lost_count; // 敵撃沈数.
 		$guess_info_str += ', rank:' + rank;
 		if (rank != $guess_win_rank) {
 			$guess_info_str += '/' + $guess_win_rank + ' MISS!!';
@@ -2286,6 +2290,8 @@ function guess_win_rank(f_nowhps, f_maxhps, f_beginhps, e_nowhps, e_maxhps, e_be
 		}
 	}
 	$f_damage = f_damage_total;
+	$e_lost_count = e_lost_count;
+	$e_leader_lost = e_leader_lost;
 	// %%% CUT HERE FOR TEST %%%
 	var f_damage_percent = Math.floor(100 * f_damage_total / f_hp_total); // 自ダメージ百分率. 小数点以下切り捨て.
 	var e_damage_percent = Math.floor(100 * e_damage_total / e_hp_total); // 敵ダメージ百分率. 小数点以下切り捨て.
