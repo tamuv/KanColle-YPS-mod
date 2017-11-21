@@ -2121,9 +2121,10 @@ function calc_damage(result, title, battle, fhp, ehp, is_repair_2nd) {
 	}
 	if (battle.api_deck_id && battle.api_damage) { // battle: api_support_hourai
 		for (var i = 0; i < battle.api_damage.length; ++i) {
-			if (ehp[i] < 0) continue;	// 敵艦隊の編成外または撃沈済みなら集計対象外とする.
-			// 支援艦隊砲雷撃:敵ダメージ集計.
 			var damage = battle.api_damage[i];
+			if (ehp[i] == null || ehp[i] < 0) continue;	// 敵艦隊の編成外または撃沈済みなら集計対象外とする.
+			if (damage == 0) continue;	// ダメージなしなら集計対象外とする.
+			// 支援艦隊砲雷撃:敵ダメージ集計.
 			var target_hp = (ehp[i] -= Math.floor(damage));
 			// 支援艦隊砲雷撃:戦闘詳報収集.
 			result.detail.push({ty:"支援砲雷撃", target: i, ae: 0, cl: battle_cl_name(battle.api_cl_list[i]), damage: damage, hp: target_hp});
