@@ -836,8 +836,10 @@ function battle_cl_name(a) {
 	}
 }
 
-function map_name() { // "演習-5" "鎮守府正面海域1-1" etc..
-	return $next_mapinfo ? $next_mapinfo.api_name + [$next_mapinfo.api_maparea_id, $next_mapinfo.api_no].join('-') : '';
+function map_name() { // "演習-5" "鎮守府正面海域1-1" "台湾沖/ルソン島沖40-2 海域HP363/400(90%)" etc..
+	if ($next_mapinfo == null) return '';
+	var opt = $next_mapinfo.yps_opt_name;
+	return $next_mapinfo.api_name + [$next_mapinfo.api_maparea_id, $next_mapinfo.api_no].join('-') + (opt ? ' ' + opt : '');
 }
 
 function push_listform(ary, data) {
@@ -3055,14 +3057,16 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			$mapinfo_rank = {};
 			var uncleared = [];
 			json.api_data.api_map_info.forEach(function(data) {
+				var mst = $mst_mapinfo[data.api_id];
+				mst.yps_opt_name = null;
 				if (data.api_eventmap)
 					$mapinfo_rank[data.api_id] = data.api_eventmap.api_selected_rank;
 				if (!data.api_cleared) {
-					var mst = $mst_mapinfo[data.api_id];
+					// 2017.11: イベント海域の初回攻略時はnow_maphps,max_maphpsともに9999固定であり、正しい値ではない. 二回目以後は正しい値なのでこの問題は放置する.
 					var now = data.api_eventmap ? data.api_eventmap.api_now_maphp : data.api_defeat_count;
 					var max = data.api_eventmap ? data.api_eventmap.api_max_maphp : mst.api_required_defeat_count;
-					var prompt = data.api_eventmap ? '海域HP' : '';
-					uncleared.push('* ' + mst.api_maparea_id + '-' + mst.api_no + ': ' + mst.api_name + ' ' + prompt + fraction_percent_name(now, max));
+					mst.yps_opt_name = (data.api_eventmap ? '海域HP' : '') + fraction_percent_name(now, max);
+					uncleared.push('* ' + mst.api_maparea_id + '-' + mst.api_no + ': ' + mst.api_name + ' ' + mst.yps_opt_name);
 				}
 			});
 			print_mapinfo(uncleared);
