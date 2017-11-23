@@ -2447,7 +2447,7 @@ function on_battle(json, battle_api_name) {
 			+ '/敵' + formation_name(d.api_formation[1]);
 		if (d.api_support_flag) fmt += '+' + support_name(d.api_support_flag);
 		if (d.api_air_base_attack) fmt += '+基地航空隊';
-		$battle_info = fmt;
+		if (result.seiku != null) fmt += '/' + seiku_name(result.seiku);
 		$enemy_formation = formation_name(d.api_formation[1]);
 	}
 	if (!fdeck) return; // for debug.
@@ -2477,14 +2477,11 @@ function on_battle(json, battle_api_name) {
 		var t0 = result.touch[0]; if (t0 != -1) req.push('触接中: ' + slotitem_name(t0));
 		var t1 = result.touch[1]; if (t1 != -1) req.push('被触接中: ' + slotitem_name(t1));
 	}
-	if (result.seiku != null) {
-		var s = seiku_name(result.seiku);
-		req.push(s);
-		$battle_info += '/' + s;
-	}
 	if ($f_beginhps) {
 		req.push('緒戦被害:' + $guess_info_str + ', 推定:' + $guess_win_rank);
 		$battle_info += '/追撃';
+	} else {
+		$battle_info = fmt;
 	}
 	if (!$f_beginhps) $f_beginhps = f_beginhps;
 	if (!$e_beginhps) $e_beginhps = e_beginhps;
