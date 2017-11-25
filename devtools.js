@@ -836,10 +836,12 @@ function battle_cl_name(a) {
 	}
 }
 
-function map_name() { // "演習-5" "鎮守府正面海域1-1" "台湾沖/ルソン島沖40-2 海域HP363/400(90%)" etc..
-	if ($next_mapinfo == null) return '';
-	var opt = $next_mapinfo.yps_opt_name;
-	return $next_mapinfo.api_name + [$next_mapinfo.api_maparea_id, $next_mapinfo.api_no].join('-') + (opt ? ' ' + opt : '');
+function map_name(mst) { // "演習 5", "1-1: 鎮守府正面海域", "40-2: 台湾沖/ルソン島沖 TP363/400(90%)" etc..
+	if (!mst) mst = $next_mapinfo;
+	var s = mst.api_name;
+	if (mst.api_no) s = mst.api_maparea_id + '-' + mst.api_no + ': ' + s;
+	if (mst.yps_opt_name) s +=  ' ' + mst.yps_opt_name;
+	return s;
 }
 
 function push_listform(ary, data) {
@@ -3048,7 +3050,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		// 演習相手の情報.
 		func = function(json) { // 演習相手の提督名を記憶する.
 			$next_enemy = "演習相手:" + json.api_data.api_nickname;
-			$next_mapinfo = { api_name : "演習", api_no: get_weekly().practice_done + 1 };
+			$next_mapinfo = { api_name: "演習", yps_opt_name: get_weekly().practice_done + 1 };
 		};
 	}
 	else if (api_name == '/api_get_member/mapinfo') {
@@ -3057,16 +3059,17 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			$mapinfo_rank = {};
 			var uncleared = [];
 			json.api_data.api_map_info.forEach(function(data) {
+				var evm = data.api_eventmap;
 				var mst = $mst_mapinfo[data.api_id];
 				mst.yps_opt_name = null;
-				if (data.api_eventmap)
-					$mapinfo_rank[data.api_id] = data.api_eventmap.api_selected_rank;
+				if (evm)
+					$mapinfo_rank[data.api_id] = evm.api_selected_rank;
 				if (!data.api_cleared) {
 					// 2017.11: イベント海域の初回攻略時はnow_maphps,max_maphpsともに9999固定であり、正しい値ではない. 二回目以後は正しい値なのでこの問題は放置する.
-					var now = data.api_eventmap ? data.api_eventmap.api_now_maphp : data.api_defeat_count;
-					var max = data.api_eventmap ? data.api_eventmap.api_max_maphp : mst.api_required_defeat_count;
-					mst.yps_opt_name = (data.api_eventmap ? '海域HP' : '') + fraction_percent_name(now, max);
-					uncleared.push('* ' + mst.api_maparea_id + '-' + mst.api_no + ': ' + mst.api_name + ' ' + mst.yps_opt_name);
+					var now = evm ? evm.api_now_maphp : data.api_defeat_count;
+					var max = evm ? evm.api_max_maphp : mst.api_required_defeat_count;
+					mst.yps_opt_name = (evm ? (evm.api_gauge_type == 3 ? 'TP' : 'HP') : '') + fraction_percent_name(now, max);
+					uncleared.push('* ' + map_name(mst));
 				}
 			});
 			print_mapinfo(uncleared);
