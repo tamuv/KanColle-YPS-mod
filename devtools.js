@@ -2243,8 +2243,8 @@ function calc_kouku_damage(result, title, kouku, fhp, ehp, fhc, ehc) {
 			});
 		}
 	}
-	calc_damage(result, '', kouku.api_stage3, fhp, ehp);				// 航空爆撃雷撃戦.
-	calc_damage(result, '', kouku.api_stage3_combined, fhp, ehp, fhc, ehc);	// 連合第二艦隊：航空爆撃雷撃戦.
+	calc_damage(result, title, kouku.api_stage3, fhp, ehp);				// 航空爆撃雷撃戦.
+	calc_damage(result, title, kouku.api_stage3_combined, fhp, ehp, fhc, ehc);	// 連合第二艦隊：航空爆撃雷撃戦.
 }
 
 function push_fdeck_status(req, fdeck, maxhps, nowhps, beginhps) {
@@ -2457,7 +2457,7 @@ function on_battle(json, battle_api_name) {
 		if (d.api_support_flag == 2) calc_damage(result, "支援射撃", ds.api_support_hourai,               f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);
 		if (d.api_support_flag == 3) calc_damage(result, "支援長距離雷撃", ds.api_support_hourai,         f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);
 	}
-	calc_damage(result, "先制爆雷", d.api_opening_taisen,  f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 対潜先制爆雷攻撃.　2016-06-30メンテ明けから追加.
+	calc_damage(result, "先制対潜", d.api_opening_taisen,  f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 対潜先制爆雷攻撃.　2016-06-30メンテ明けから追加.
 	calc_damage(result, "開幕雷撃", d.api_opening_atack,   f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 開幕雷撃.
 	calc_damage(result, "夜戦砲撃", d.api_hougeki,         f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// midnight
 	switch ($combined_flag) {
