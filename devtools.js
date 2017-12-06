@@ -1916,31 +1916,33 @@ function add_ship_escape(idx) {
 
 /// 艦隊番号とLv付き艦名を生成する. idx = 0..5:第一艦隊, 6..11:第二艦隊. ae = 0/null/false:自軍, 1/true:敵軍
 function ship_name_lv(idx, ae) {
-	if (ae && idx >= 6) {	// 敵護衛艦隊.
+	if (ae) {
 		var d = $battle_api_data;
-		var i = idx - 6;	// 6..12 => 0..5
-		var s = '@!!(敵護衛' + (i+1) + ')!!@';
-		if (d.api_ship_ke_combined) s += ship_name(d.api_ship_ke_combined[i]);
-		if (d.api_ship_lv_combined) s +=    'Lv' + d.api_ship_lv_combined[i];
-		return s;
+		if (idx >= 6) { // 敵護衛艦隊.
+			var i = idx - 6;	// 6..12 => 0..5
+			var s = '@!!(敵護衛' + (i+1) + ')!!@';
+			if (d.api_ship_ke_combined) s += ship_name(d.api_ship_ke_combined[i]);
+			if (d.api_ship_lv_combined) s +=    'Lv' + d.api_ship_lv_combined[i];
+			return s;
+		}
+		else if (idx >= 0) { // 敵主力艦隊.
+			var i = idx;	// 0..5
+			return '@!!(敵' + (i+1) + ')!!@'
+				+ ship_name(d.api_ship_ke[i])
+				+    'Lv' + d.api_ship_lv[i];
+		}
 	}
-	else if (ae && idx >= 0) { // 敵主力艦隊.
-		var d = $battle_api_data;
-		var i = idx;	// 0..5
-		return '@!!(敵' + (i+1) + ')!!@'
-			+ ship_name(d.api_ship_ke[i])
-			+    'Lv' + d.api_ship_lv[i];
+	else {
+		if ($combined_flag && idx >= 6) {
+			var fdeck = $fdeck_list[2];
+			return $ship_list[fdeck.api_ship[idx-6]].fleet_name_lv(); // 連合第二艦隊.
+		}
+		else if (idx >= 0) {
+			var fdeck = $fdeck_list[$battle_api_data.api_deck_id];
+			return $ship_list[fdeck.api_ship[idx]].fleet_name_lv(); // 味方艦隊.
+		}
 	}
-	else if ($combined_flag && idx >= 6) {
-		var fdeck = $fdeck_list[2];
-		return $ship_list[fdeck.api_ship[idx-6]].fleet_name_lv(); // 連合第二艦隊.
-	}
-	else if (idx >= 0) {
-		var fdeck = $fdeck_list[$battle_api_data.api_deck_id];
-		return $ship_list[fdeck.api_ship[idx]].fleet_name_lv(); // 味方艦隊.
-	}
-	else // NaN, undefined, null
-		return '';
+	return ''; // idx: NaN, undefined, null, < 0
 }
 
 /// 護衛退避実行. 退避可能リストから１艦、護衛可能リストから１艦、合計2艦のみ退避できる.
