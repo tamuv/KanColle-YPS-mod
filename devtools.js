@@ -945,12 +945,12 @@ function slotitem_delete(slot) {
 	});
 }
 
-function ship_delete(list) {
+function ship_delete(list, keep_slot) {
 	if (!list) return;
 	list.forEach(function(id) {
 		var ship = $ship_list[id];
 		if (ship) {
-			slotitem_delete(ship.slot);
+			if (!keep_slot) slotitem_delete(ship.slot);
 			delete $ship_list[id];
 		}
 	});
@@ -2762,8 +2762,9 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 	else if (api_name == '/api_req_kousyou/destroyship') {
 		// 艦娘解体.
 		func = function(json) {
-			var id = decode_postdata_params(request.request.postData.params).api_ship_id;
-			if (id) ship_delete([id]);		// 解体した艦娘が持つ装備を、リストから抜く.
+			var dest = decode_postdata_params(request.request.postData.params).api_slot_dest_flag;
+			var ids = decode_postdata_params(request.request.postData.params).api_ship_id;
+			if (ids) ship_delete(/%2C/.test(ids) ? ids.split('%2C') : [ids], dest==0);	// 解体した艦娘を、リストから抜く.
 			update_material(json.api_data.api_material, $material.destroyship); /// 解体による資材増加を記録する.
 			print_port();
 		};
