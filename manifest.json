@@ -1,8 +1,8 @@
 {
 	"manifest_version": 2,
 	"name": "KanColle-YPS",
-	"version": "1.7.2",
-	"version_name": "v1.7.2 艦娘一斉解体、装備保管解体対応",
+	"version": "1.7.3",
+	"version_name": "v1.7.3pre refactor/94",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"permissions": [
