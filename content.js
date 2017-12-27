@@ -216,6 +216,9 @@ function push_history(html) {
 		ha.shift(); // 50を超えたら古いものから削除する.
 	}
 }
+function pop_history() {
+	hst.YPS_HTMLarray.pop();
+}
 
 function update_histinfo() {
 	var e = document.getElementById('YPS_histinfo');
@@ -276,9 +279,11 @@ chrome.runtime.onMessage.addListener(function (req) {
 		navi.innerHTML = all_close_button() + history_buttons() + version_banner();
 	}
 	else if (req.appendData) {
+		pop_history();
 		div.innerHTML += parse_markdown(req.appendData);
 	}
 	else { // may be String
+		pop_history();
 		div.innerHTML += parse_markdown([req]);
 	}
 	push_history(div.innerHTML);	// 履歴に追加する.
