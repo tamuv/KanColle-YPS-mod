@@ -60,9 +60,6 @@ var $last_mission = {};
 var $f_maxhps = null;
 var $f_beginhps = null;
 var $e_beginhps = null;
-var $f_maxhps_c = null;
-var $f_beginhps_c = null;
-var $e_beginhps_c = null;
 var $f_damage = 0;
 var $e_lost_count = 0;
 var $e_leader_lost = false;
@@ -1938,7 +1935,7 @@ function ship_name_lv(idx, ae) {
 			return $ship_list[fdeck.api_ship[idx-6]].fleet_name_lv(); // 連合第二艦隊.
 		}
 		else if (idx >= 0) {
-			var fdeck = $fdeck_list[$battle_api_data.api_deck_id];
+			var fdeck = $fdeck_list[$battle_deck_id];
 			return $ship_list[fdeck.api_ship[idx]].fleet_name_lv(); // 味方艦隊.
 		}
 	}
@@ -2083,12 +2080,15 @@ function on_battle_result(json) {
 	chrome.runtime.sendMessage({ appendData: req });
 }
 
-function calc_damage(result, title, battle, fhp, ehp, fhc, ehc) {
-	// fhp ::= [friend1...6] 0base
-	// ehp ::= [enemy1..6] 0base
-	// fhp ::= [friend7...12] 0base
-	// ehp ::= [enemy7..12] 0base
+function calc_damage(result, title, battle, fhp, ehp, active_deck) {
+	// fhp ::= [friend1..N] 0base, if 2nd fleet exists, "fhp.has2nd == true" and "fhp.idx2nd > 0".
+	// ehp ::= [enemy1..N] 0base,  if 2nd fleet exists. "ehp.has2nd == ttue" and "ehp.idx2nd > 0".
+	// active_deck[0] ::= active friend fleet: 1:1st, 2:2nd, 3:1st and 2nd.
+	// active_deck[1] ::= active enemy  fleet: 1:1st, 2:2nd, 3:1st and 2nd.
+	// !active_deck   ::= normal 6vs6, support attack, etc...
 	if (!battle) return;
+	var fidx = 0; if (active_deck && active_deck[0] == 2 && fhp.has2nd) fidx = fhp.idx2nd;
+	var eidx = 0; if (active_deck && active_deck[1] == 2 && ehp.has2nd) eidx = ehp.idx2nd;
 	result.detail.push({ title: '\t==' + title + '\t==攻撃艦\t==防御艦\t==命中\t==ダメージ\t==使用装備'});
 	if (battle.api_df_list && battle.api_damage) {
 		var df = battle.api_df_list;
@@ -2106,16 +2106,12 @@ function calc_damage(result, title, battle, fhp, ehp, fhc, ehc) {
 				var damage = battle.api_damage[i][j];
 				// 砲撃戦:敵味方ダメージ集計.
 				var target_hp = 0;
-				if (ae[i] == 1)
-					if (fhc && target >= 6)
-						target_hp = (fhc[target-6] -= Math.floor(damage));
-					else
-						target_hp = (fhp[target] -= Math.floor(damage));
-				else
-					if (ehc && target >= 6)
-						target_hp = (ehc[target-6] -= Math.floor(damage));
-					else
-						target_hp = (ehp[target] -= Math.floor(damage));
+				if (ae[i] == 1) {
+					target_hp = (fhp[target] -= Math.floor(damage));
+				}
+				else { // ae[i] == 0
+					target_hp = (ehp[target] -= Math.floor(damage));
+				}
 				// 砲撃戦:敵味方砲撃詳報収集.
 				result.detail.push({ty: ty, at: at, target: target, ae: ae[i], si: si, cl: battle_cl_name(cl[j]), damage: damage, hp: target_hp});
 			}
@@ -2126,12 +2122,8 @@ function calc_damage(result, title, battle, fhp, ehp, fhc, ehc) {
 		for (var i = 0; i < battle.api_fdam.length; ++i) {
 			var dam = Math.floor(battle.api_fdam[i]);
 			if (dam > 0) {
-				if (fhc && i >= 6)
-					fhc[i-6] -= dam;
-				else if (fhc && i >=0 && battle.api_fdam.length <= 6)
-					fhc[i] -= dam;
-				else
-					fhp[i] -= dam;
+				var target = i + fidx; // if api_stage3_combined then fidx=6, else fidx=0
+				fhp[target] -= dam;
 			}
 		}
 	}
@@ -2140,28 +2132,21 @@ function calc_damage(result, title, battle, fhp, ehp, fhc, ehc) {
 		for (var i = 0; i < battle.api_edam.length; ++i) {
 			var dam = Math.floor(battle.api_edam[i]);
 			if (dam > 0) {
-				if (ehc && i >= 6)
-					ehc[i-6] -= dam;
-				else if (ehc && i >= 0 && battle.api_edam.length <= 6)
-					ehc [i] -= dam;
-				else
-					ehp[i] -= dam;
+				var target = i + eidx; // if api_stage3_combined then eidx=6, else eidx=0
+				ehp[target] -= dam;
 			}
 		}
 	}
 	if (battle.api_deck_id && battle.api_damage) { // battle: api_support_hourai
 		for (var i = 0; i < battle.api_damage.length; ++i) {
-			var target_hp = (ehc && i >= 6) ? ehc[i-6] : ehp[i];
-			if (target_hp == null || target_hp < 0) continue;	// 敵艦隊の編成外または撃沈済みなら集計対象外とする.
+			// 支援艦隊砲雷撃:敵ダメージ集計.
 			var damage = battle.api_damage[i];
 			if (damage == 0) continue;	// ダメージなしなら集計対象外とする.
-			// 支援艦隊砲雷撃:敵ダメージ集計.
-			if (ehc && i >= 6)
-				target_hp = (ehc[i-6] -= Math.floor(damage));
-			else
-				target_hp = (ehp[i] -= Math.floor(damage));
+			var target = i + eidx;
+			if (ehp[target] <= 0) continue;	// 敵艦隊の編成外または撃沈済みなら集計対象外とする.
+			var target_hp = (ehp[target] -= Math.floor(damage));
 			// 支援艦隊砲雷撃:戦闘詳報収集.
-			result.detail.push({ty:"支援砲雷撃", target: i, ae: 0, cl: battle_cl_name(battle.api_cl_list[i]), damage: damage, hp: target_hp});
+			result.detail.push({ty:"支援砲雷撃", target: target, ae: 0, cl: battle_cl_name(battle.api_cl_list[i]), damage: damage, hp: target_hp});
 		}
 	}
 	if (battle.api_frai) {
@@ -2170,8 +2155,9 @@ function calc_damage(result, title, battle, fhp, ehp, fhc, ehc) {
 			var target = battle.api_frai[i];
 			var damage = battle.api_fydam[i];
 			if (target >= 0) {
-				var target_hp = (ehc && target >= 6) ? ehc[target-6] : ehp[target];
-				result.detail.push({ty:"雷撃", at: i, target: target, ae: 0, cl: battle_cl_name(battle.api_fcl[i]), damage: damage, hp: target_hp});
+				var target_hp = ehp[target];
+				var at = i + fidx;	///@todo check this
+				result.detail.push({ty:"雷撃", at: at, target: target, ae: 0, cl: battle_cl_name(battle.api_fcl[i]), damage: damage, hp: target_hp});
 			}
 		}
 	}
@@ -2181,8 +2167,9 @@ function calc_damage(result, title, battle, fhp, ehp, fhc, ehc) {
 			var target = battle.api_erai[i];
 			var damage = battle.api_eydam[i];
 			if (target >= 0) {
-				var target_hp = (fhc && target >=6) ? fhc[target-6] : fhp[target];
-				result.detail.push({ty:"雷撃", at: i, target: target, ae: 1, cl: battle_cl_name(battle.api_ecl[i]), damage: damage, hp: target_hp});
+				var target_hp = fhp[target];
+				var at = i + eidx;	///@todo check this
+				result.detail.push({ty:"雷撃", at: at, target: target, ae: 1, cl: battle_cl_name(battle.api_ecl[i]), damage: damage, hp: target_hp});
 			}
 		}
 	}
@@ -2191,8 +2178,8 @@ function calc_damage(result, title, battle, fhp, ehp, fhc, ehc) {
 		for (var i = 0; i < battle.api_fdam.length; ++i) {
 			var damage = battle.api_fdam[i];
 			if (battle.api_frai_flag[i] || battle.api_fbak_flag[i]) {
-				var target = (fhc && i >=0 && battle.api_fdam.length <= 6) ? i+6 : i;
-				var target_hp = fhc ? fhc[i-6] : fhp[i];
+				var target = i + fidx;
+				var target_hp = fhp[target];
 				result.detail.push({ty:"空爆", target: target, ae: 1, cl: battle_cl_name(damage ? battle.api_fcl_flag[i]+1 : 0), damage: damage, hp: target_hp});
 			}
 		}
@@ -2202,20 +2189,33 @@ function calc_damage(result, title, battle, fhp, ehp, fhc, ehc) {
 		for (var i = 0; i < battle.api_edam.length; ++i) {
 			var damage = battle.api_edam[i];
 			if (battle.api_erai_flag[i] || battle.api_ebak_flag[i]) {
-				var target = (ehc && i >=0 && battle.api_edam.length <= 6) ? i+6 : i;
-				var target_hp = ehc ? ehc[i-6] : ehp[i];
+				var target = i + eidx;
+				var target_hp = ehp[target];
 				result.detail.push({ty: (battle.api_fdam ? "空爆" : "支援空爆"), target: target, ae: 0, cl: battle_cl_name(damage ? battle.api_ecl_flag[i]+1 : 0), damage: damage, hp: target_hp});
 			}
 		}
 	}
 	// 緊急ダメコン発動によるhp補正を行う.
-	if (fhc)
-		repair_fdeck($fdeck_list[2], $f_maxhps_c, fhc); ///@todo check!
-	else
-		repair_fdeck($fdeck_list[$battle_deck_id], $f_maxhps, fhp);
+	if (! /^演習/.test($next_enemy)) {
+		for (var i = 0; i < fhp.length; ++i) {
+			if ($f_maxhps[i] == -1) continue;
+			var sid = $fdeck_list[$battle_deck_id].api_ship[i];
+			if (fhp.has2nd && i >= fhp.idx2nd) {
+				sid = $fdeck_list[2].api_ship[i-fhp.idx2nd];
+			}
+			var ship = $ship_list[sid];
+			if (ship && fhp[i] <= 0) {
+				var id = slotitem_use(ship.slot, [42, 43]);	// slotの先頭から末尾に検索し、最初に見つけたダメコン装備を抜く.
+				switch (id) {
+				case 42: ship.repair_msg = '!!修理要員発動'; fhp[i] = Math.floor($f_maxhps[i] * 0.2); break; // 修理要員は 20% 回復する.
+				case 43: ship.repair_msg = '!!修理女神発動'; fhp[i] = $f_maxhps[i]; break; // 修理女神は 100% 回復する.
+				}
+			}
+		}
+	}
 }
 
-function calc_kouku_damage(result, title, kouku, fhp, ehp, fhc, ehc) {
+function calc_kouku_damage(result, title, kouku, fhp, ehp) {
 	if (!kouku) return;
 	result.detail.push({ title: '\t==' + title + '\t==攻撃艦\t==防御艦\t==敵撃墜\t==被撃墜\t==使用装備'});
 	if (kouku.api_stage1) {	// 制空戦.
@@ -2255,15 +2255,15 @@ function calc_kouku_damage(result, title, kouku, fhp, ehp, fhc, ehc) {
 		}
 	}
 	calc_damage(result, title, kouku.api_stage3, fhp, ehp);				// 航空爆撃雷撃戦.
-	calc_damage(result, title, kouku.api_stage3_combined, fhp, ehp, fhc, ehc);	// 連合第二艦隊：航空爆撃雷撃戦.
+	calc_damage(result, title, kouku.api_stage3_combined, fhp, ehp, [2,2]);	// 連合第二艦隊：航空爆撃雷撃戦.
 }
 
-function push_fdeck_status(req, fdeck, maxhps, nowhps, beginhps) {
+function push_fdeck_status(req, fdeck, maxhps, nowhps, beginhps, idx, end) {
 	req.push(fdeck.api_name);
-	for (var i = 0; i < nowhps.length; ++i) {
+	for (var i = idx; i < end; ++i) {
 		if (maxhps[i] == -1) continue;
 		var name = '?';
-		var ship = $ship_list[fdeck.api_ship[i]];
+		var ship = $ship_list[fdeck.api_ship[i-idx]];
 		if (ship) {
 			name = ship.name_lv();
 			if (ship.repair_msg) name += ship.repair_msg;
@@ -2277,22 +2277,7 @@ function push_fdeck_status(req, fdeck, maxhps, nowhps, beginhps) {
 	}
 }
 
-function repair_fdeck(fdeck, maxhps, nowhps) {
-	if (/^演習/.test($next_enemy) || $battle_deck_id < 0) return;
-	for (var i = 0; i < nowhps.length; ++i) {
-		if (maxhps[i] == -1) continue;
-		var ship = $ship_list[fdeck.api_ship[i]];
-		if (ship && nowhps[i] <= 0) {
-			var id = slotitem_use(ship.slot, [42, 43]);	// slotの先頭から末尾に検索し、最初に見つけたダメコン装備を抜く.
-			switch (id) {
-			case 42: ship.repair_msg = '!!修理要員発動'; nowhps[i] = Math.floor(maxhps[i] * 0.2); break; // 修理要員は 20% 回復する.
-			case 43: ship.repair_msg = '!!修理女神発動'; nowhps[i] = maxhps[i]; break; // 修理女神は 100% 回復する.
-			}
-		}
-	}
-}
-
-function guess_win_rank(f_nowhps, f_maxhps, f_beginhps, e_nowhps, e_maxhps, e_beginhps, f_nowhps_c, f_maxhps_c, f_beginhps_c, e_nowhps_c, e_maxhps_c, e_beginhps_c, battle_api_name) {
+function guess_win_rank(f_nowhps, f_maxhps, f_beginhps, e_nowhps, e_maxhps, e_beginhps, battle_api_name) {
 	var f_damage_total = 0;
 	var f_hp_total = 0;
 	var f_maxhp_total = 0;
@@ -2315,20 +2300,6 @@ function guess_win_rank(f_nowhps, f_maxhps, f_beginhps, e_nowhps, e_maxhps, e_be
 			++f_lost_count;
 		}
 	}
-	if (f_maxhps_c) {
-		for (var i = 0; i < f_maxhps_c.length; ++i) {
-			// 連合第二友軍被害集計.
-			if (!f_maxhps_c || f_maxhps_c[i] == -1) continue;
-			var n = f_nowhps_c[i];
-			++f_count;
-			f_damage_total += f_beginhps_c[i] - Math.max(0, n);
-			f_hp_total += f_beginhps_c[i];
-			f_maxhp_total += f_maxhps_c[i];
-			if (n <= 0) {
-				++f_lost_count;
-			}
-		}
-	}
 	for (var i = 0; i < e_maxhps.length; ++i) {
 		// 敵艦被害集計.
 		if (e_maxhps[i] == -1) continue;
@@ -2339,19 +2310,6 @@ function guess_win_rank(f_nowhps, f_maxhps, f_beginhps, e_nowhps, e_maxhps, e_be
 		if (n <= 0) {
 			++e_lost_count;
 			if(i == 0) e_leader_lost = true;
-		}
-	}
-	if (e_maxhps_c) {
-		for (var i = 0; i < e_maxhps_c.length; ++i) {
-			// 敵連合護衛艦被害集計.
-			if (!e_maxhps_c || e_maxhps_c[i] == null || e_maxhps_c[i] == -1) continue;
-			var n = e_nowhps_c[i];
-			++e_count;
-			e_damage_total += e_beginhps_c[i] - Math.max(0, n);
-			e_hp_total += e_beginhps_c[i];
-			if (n <= 0) {
-				++e_lost_count;
-			}
 		}
 	}
 	$f_damage = f_damage_total;
@@ -2405,22 +2363,26 @@ function guess_win_rank(f_nowhps, f_maxhps, f_beginhps, e_nowhps, e_maxhps, e_be
 
 function on_battle(json, battle_api_name) {
 	var d = $battle_api_data = json.api_data;
-	var f_maxhps = d.api_f_maxhps.concat(); // 通常艦隊[0..5], 増強第三艦隊[0..6], 第一第二連合艦隊[0..5,6..11]???
-	var f_nowhps = d.api_f_nowhps.concat();
+	var fidx2nd = 0;
+	var eidx2nd = 0;
+	var combined = d.api_f_maxhps_combined;
+	var f_maxhps = d.api_f_maxhps.concat(combined ? combined : []); // 通常艦隊[0..5], 増強第三艦隊[0..6], 第一/第二連合艦隊[0..5,6..11]
+	var combined = d.api_f_nowhps_combined;
+	var f_nowhps = d.api_f_nowhps.concat(combined ? combined : []);
+	if (combined) {
+		f_nowhps.has2nd = true;
+		f_nowhps.idx2nd = fidx2nd = d.api_f_nowhps.length;
+	}
 	var f_beginhps = f_nowhps.concat();
-	var f_maxhps_c = d.api_f_maxhps_combined
-				 ? d.api_f_maxhps_combined.concat() : null; // 連合第二艦隊[1..6] 敵護衛艦隊[7..12].
-	var f_nowhps_c = d.api_f_nowhps_combined
-				 ? d.api_f_nowhps_combined.concat() : null; // 連合第二艦隊[1..6] 敵護衛艦隊[7..12].
-	var f_beginhps_c = f_nowhps_c ? f_nowhps_c.concat() : null;
-	var e_maxhps = d.api_e_maxhps.concat();
-	var e_nowhps = d.api_e_nowhps.concat();
+	var combined = d.api_e_maxhps_combined;
+	var e_maxhps = d.api_e_maxhps.concat(combined ? combined : []); // 敵通常艦隊[0..5], 敵主力/敵護衛連合艦隊[0..5,6..11]
+	var combined = d.api_e_nowhps_combined;
+	var e_nowhps = d.api_e_nowhps.concat(combined ? combined : []);
+	if (combined) {
+		e_nowhps.has2nd = true;
+		e_nowhps.idx2nd = eidx2nd = d.api_e_nowhps.length;
+	}
 	var e_beginhps = e_nowhps.concat();
-	var e_maxhps_c = d.api_e_maxhps_combined
-				 ? d.api_e_maxhps_combined.concat() : null; // 連合第二艦隊[1..6] 敵護衛艦隊[7..12].
-	var e_nowhps_c = d.api_e_nowhps_combined
-				 ? d.api_e_nowhps_combined.concat() : null; // 連合第二艦隊[1..6] 敵護衛艦隊[7..12].
-	var e_beginhps_c = e_nowhps_c ? e_nowhps_c.concat() : null;
 	var result = {
 		seiku : null, 				// 制空権.
 		touch : null,				// 触接.
@@ -2428,9 +2390,7 @@ function on_battle(json, battle_api_name) {
 		detail : []					// 戦闘詳報.
 	};
 	$f_maxhps = f_maxhps;
-	$f_maxhps_c = f_maxhps_c;
-//	if (nowhps_c && maxhps_c[1] > 0) nowhps_c.has2nd = true; // 連合第二艦隊の有無を判定フラグに記憶する.
-	if (d.api_deck_id == null) d.api_deck_id = d.api_dock_id; // battleのデータは、綴りミスがあるので補正する.
+//	if (d.api_deck_id == null) d.api_deck_id = d.api_dock_id; // battleのデータは、綴りミスがあるので補正する. => fixed on Nov.2017.
 	if (d.api_escape_idx) {
 		d.api_escape_idx.forEach(function(idx) {
 			f_maxhps[idx-1] = -1;	// 護衛退避した艦を艦隊リストから抜く. idx=1..6
@@ -2438,7 +2398,7 @@ function on_battle(json, battle_api_name) {
 	}
 	if (d.api_escape_idx_combined) {
 		d.api_escape_idx_combined.forEach(function(idx) {
-			f_maxhps_c[idx-1] = -1;	// 護衛退避した艦を第二艦隊リストから抜く. idx=1..6
+			f_maxhps[idx-1+fidx2nd] = -1;	// 護衛退避した艦を第二艦隊リストから抜く. idx=1..6
 		});
 	}
 	if (d.api_touch_plane) {
@@ -2449,91 +2409,88 @@ function on_battle(json, battle_api_name) {
 	}
 	if (d.api_flare_pos) {
 		// 照明弾発射(夜戦).
-		var t0 = d.api_flare_pos[0];
-		if (t0 != -1) {
-			if (d.api_active_deck) {
-				if (d.api_active_deck[0] == 2) t0 += 6;
-			}
-			result.detail.push({ty:'照明弾(夜戦)',   at: t0-1, ae: 0}); ///@todo t0 is 1 based. is it correct?
-		}
-		var t1 = d.api_flare_pos[1]; if (t1 != -1) result.detail.push({ty:'敵照明弾(夜戦)', at: t1-1, ae: 1});
+		var act0 = (d.api_active_deck && d.api_active_deck[0] == 2) ? fidx2nd : 0;
+		var act1 = (d.api_active_deck && d.api_active_deck[1] == 2) ? eidx2nd : 0; ///@todo would we need act1?
+		var t0 = d.api_flare_pos[0]; if (t0 != -1) result.detail.push({ty:'照明弾(夜戦)',   at: t0-1+act0, ae: 0})
+		var t1 = d.api_flare_pos[1]; if (t1 != -1) result.detail.push({ty:'敵照明弾(夜戦)', at: t1-1+act1, ae: 1});
 	}
+	// calc_damage() の呼び出し順序は、下記資料の戦闘の流れに従っている.
+	// @see http://wikiwiki.jp/kancolle/?%C0%EF%C6%AE%A4%CB%A4%C4%A4%A4%A4%C6
+	// @see http://wikiwiki.jp/kancolle/?%CF%A2%B9%E7%B4%CF%C2%E2
 	var dns = d.api_n_support_info;
 	if (dns) {
-		if (dns.api_support_airatack) dns.api_support_airattack = dns.api_support_airatack; // 綴り訂正.
-		if (d.api_n_support_flag == 1) calc_damage(result, "夜戦航空支援", dns.api_support_airattack.api_stage3, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);
-		if (d.api_n_support_flag == 2) calc_damage(result, "夜戦支援射撃", dns.api_support_hourai,               f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);
-		if (d.api_n_support_flag == 3) calc_damage(result, "夜戦支援長距離雷撃", dns.api_support_hourai,         f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);
+		if (d.api_n_support_flag == 1) calc_damage(result, "夜戦航空支援", dns.api_support_airatack.api_stage3, f_nowhps, e_nowhps);
+		if (d.api_n_support_flag == 2) calc_damage(result, "夜戦支援射撃", dns.api_support_hourai,              f_nowhps, e_nowhps);
+		if (d.api_n_support_flag == 3) calc_damage(result, "夜戦支援長距離雷撃", dns.api_support_hourai,        f_nowhps, e_nowhps);
 	}
-	calc_damage(result, "夜戦砲撃", d.api_hougeki,         f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// midnight
-	calc_damage(result, "夜戦砲撃1", d.api_n_hougeki1, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 夜戦砲撃一巡目.
-	calc_damage(result, "夜戦砲撃2", d.api_n_hougeki2, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 夜戦砲撃二巡目.
-	calc_kouku_damage(result, "噴式強襲(基地航空隊)", d.api_air_base_injection, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);
-	calc_kouku_damage(result, "噴式強襲", d.api_injection_kouku, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);
+	calc_damage(result, "夜戦砲撃",         d.api_hougeki,    f_nowhps, e_nowhps, /*d.api_active_deck*/);	// 追撃夜戦.
+	calc_damage(result, "夜戦砲撃(敵護衛)", d.api_n_hougeki1, f_nowhps, e_nowhps);	// ec_night_to_day: 6vs12払暁戦 夜戦砲撃(友軍 vs 敵護衛艦隊 対全体).
+	calc_damage(result, "夜戦砲撃(敵主力)", d.api_n_hougeki2, f_nowhps, e_nowhps);	// ec_night_to_day: 6vs12払暁戦 夜戦砲撃(友軍 vs 敵主力艦隊 対全体).
+	if (d.api_day_flag) {
+		e_nowhps.has2nd = false; // Nov.2017 払暁戦の昼戦では敵護衛艦隊が撤退して敵本体のみとなる.
+		///@todo e_maxhps[ehp.idx2nd...] = -1; would we need for guess_win_rank?
+	}
+	calc_kouku_damage(result, "噴式強襲(基地航空隊)", d.api_air_base_injection, f_nowhps, e_nowhps);
+	calc_kouku_damage(result, "噴式強襲",             d.api_injection_kouku,    f_nowhps, e_nowhps);
 	if (d.api_air_base_attack) {
 		d.api_air_base_attack.forEach(function(kouku) {
-			calc_kouku_damage(result, "基地航空隊支援", kouku, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);　// 2016.5
+			calc_kouku_damage(result, "基地航空隊支援", kouku, f_nowhps, e_nowhps);　// 2016.5
 		});
 	}
-	calc_kouku_damage(result, "航空戦",  d.api_kouku,  f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);
-	calc_kouku_damage(result, "航空戦2", d.api_kouku2, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);
+	calc_kouku_damage(result, "航空戦",  d.api_kouku,  f_nowhps, e_nowhps);
+	calc_kouku_damage(result, "航空戦2", d.api_kouku2, f_nowhps, e_nowhps);
 	var ds = d.api_support_info;
 	if (ds) {
-		if (ds.api_support_airatack) ds.api_support_airattack = ds.api_support_airatack; // 綴り訂正.
-		if (d.api_support_flag == 1) calc_damage(result, "航空支援", ds.api_support_airattack.api_stage3, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);
-		if (d.api_support_flag == 2) calc_damage(result, "支援射撃", ds.api_support_hourai,               f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);
-		if (d.api_support_flag == 3) calc_damage(result, "支援長距離雷撃", ds.api_support_hourai,         f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);
+		if (d.api_support_flag == 1) calc_damage(result, "航空支援", ds.api_support_airatack.api_stage3, f_nowhps, e_nowhps);
+		if (d.api_support_flag == 2) calc_damage(result, "支援射撃", ds.api_support_hourai,              f_nowhps, e_nowhps);
+		if (d.api_support_flag == 3) calc_damage(result, "支援長距離雷撃", ds.api_support_hourai,        f_nowhps, e_nowhps);
 	}
-	calc_damage(result, "先制対潜", d.api_opening_taisen,  f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 対潜先制爆雷攻撃.　2016-06-30メンテ明けから追加.
-	calc_damage(result, "開幕雷撃", d.api_opening_atack,   f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 開幕雷撃.
+	calc_damage(result, "先制対潜", d.api_opening_taisen, f_nowhps, e_nowhps);	// 対潜先制爆雷攻撃.　2016-06-30メンテ明けから追加.
+	calc_damage(result, "開幕雷撃", d.api_opening_atack,  f_nowhps, e_nowhps);	// 開幕雷撃.
 	switch ($combined_flag) {
 	default:// 不明.
 	case 0: // 通常艦隊.
-		if (e_nowhps_c) {	// 敵軍連合艦隊.
-			if (!d.api_day_flag){
-				calc_damage(result, "砲撃戦(護衛)", d.api_hougeki1, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 砲撃一巡目(友軍 vs 敵護衛艦隊).
-				calc_damage(result, "雷撃戦(連合)", d.api_raigeki,  f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 雷撃戦(友軍からの攻撃対象は敵主力・護衛の双方).
-				calc_damage(result, "砲撃戦(主力)", d.api_hougeki2, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 砲撃二巡目(友軍 vs 敵主力艦隊).
-				calc_damage(result, "砲撃戦(連合)", d.api_hougeki3, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 砲撃三巡目(友軍からの攻撃対象は敵主力・護衛の双方).
-				break;
-			} else if (d.api_day_flag == 1) {
-				calc_damage(result, "昼戦砲撃1", d.api_hougeki1, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 昼戦砲撃一巡目.
-				calc_damage(result, "昼戦砲撃2", d.api_hougeki2, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 昼戦砲撃二巡目.
-				calc_damage(result, "昼戦雷撃",  d.api_raigeki,  f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 昼戦雷撃戦.
-				break;
-			}
+		if (e_nowhps.has2nd) { // 6vs12
+			calc_damage(result, "砲撃戦(護衛)", d.api_hougeki1, f_nowhps, e_nowhps);	// 砲撃一巡目(友軍 vs 敵護衛艦隊).
+			calc_damage(result, "雷撃戦(連合)", d.api_raigeki,  f_nowhps, e_nowhps);	// 雷撃戦(友軍からの攻撃対象は敵主力・護衛の双方).
+			calc_damage(result, "砲撃戦(主力)", d.api_hougeki2, f_nowhps, e_nowhps);	// 砲撃二巡目(友軍 vs 敵主力艦隊).
+			calc_damage(result, "砲撃戦(連合)", d.api_hougeki3, f_nowhps, e_nowhps);	// 砲撃三巡目(友軍からの攻撃対象は敵主力・護衛の双方).
 		}
-		calc_damage(result, "砲撃戦1", d.api_hougeki1, f_nowhps, e_nowhps);	// 砲撃一巡目.
-		calc_damage(result, "砲撃戦2", d.api_hougeki2, f_nowhps, e_nowhps);	// 砲撃二巡目.
-		calc_damage(result, "砲撃戦3", d.api_hougeki3, f_nowhps, e_nowhps);	// 砲撃三巡目.
-		calc_damage(result, "雷撃戦",  d.api_raigeki,  f_nowhps, e_nowhps);	// 雷撃戦.
+		else { // 6vs6 or 6vs12払暁昼戦.
+			calc_damage(result, "砲撃戦1", d.api_hougeki1, f_nowhps, e_nowhps);	// 砲撃一巡目.
+			calc_damage(result, "砲撃戦2", d.api_hougeki2, f_nowhps, e_nowhps);	// 砲撃二巡目.
+			calc_damage(result, "砲撃戦3", d.api_hougeki3, f_nowhps, e_nowhps);	// 砲撃三巡目.
+			calc_damage(result, "雷撃戦",  d.api_raigeki,  f_nowhps, e_nowhps);	// 雷撃戦.
+		}
 		break;
 	case 1: // 連合艦隊(機動部隊).
 	case 3: // 連合艦隊(輸送護衛部隊).
-		if (e_nowhps_c) {
-			calc_damage(result, "第一砲撃戦(敵主力)", d.api_hougeki1, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 第一艦隊砲撃(vs 敵主力).
-			calc_damage(result, "第二砲撃戦(敵護衛)", d.api_hougeki2, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);// 第二艦隊砲撃(vs 敵護衛).
-			calc_damage(result, "第二雷撃戦(敵連合)", d.api_raigeki,  f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 第二艦隊雷撃戦(vs 敵主力+敵護衛).
-			calc_damage(result, "第一砲撃戦(敵連合)", d.api_hougeki3, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 第一艦隊砲撃(vs 敵主力+敵護衛).
-			break;
+		if (e_nowhps.has2nd) { // 12vs12
+			calc_damage(result, "第一砲撃戦(敵主力)", d.api_hougeki1, f_nowhps, e_nowhps);	// 第一艦隊砲撃(vs 敵主力).
+			calc_damage(result, "第二砲撃戦(敵護衛)", d.api_hougeki2, f_nowhps, e_nowhps);	// 第二艦隊砲撃(vs 敵護衛).
+			calc_damage(result, "第二雷撃戦(敵連合)", d.api_raigeki,  f_nowhps, e_nowhps);	// 第二艦隊雷撃戦(vs 敵主力+敵護衛).
+			calc_damage(result, "第一砲撃戦(敵連合)", d.api_hougeki3, f_nowhps, e_nowhps);	// 第一艦隊砲撃(vs 敵主力+敵護衛).
 		}
-		calc_damage(result, "第二砲撃戦",  d.api_hougeki1, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 第二艦隊砲撃.
-		calc_damage(result, "第二雷撃戦",  d.api_raigeki,  f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 第二艦隊雷撃戦.
-		calc_damage(result, "第一砲撃戦1", d.api_hougeki2, f_nowhps, e_nowhps);		// 第一艦隊砲撃一巡目.
-		calc_damage(result, "第一砲撃戦2", d.api_hougeki3, f_nowhps, e_nowhps);		// 第一艦隊砲撃二巡目.
+		else { // 12vs6
+			calc_damage(result, "第二砲撃戦",  d.api_hougeki1, f_nowhps, e_nowhps);	// 第二艦隊砲撃.
+			calc_damage(result, "第二雷撃戦",  d.api_raigeki,  f_nowhps, e_nowhps);	// 第二艦隊雷撃戦.
+			calc_damage(result, "第一砲撃戦1", d.api_hougeki2, f_nowhps, e_nowhps);	// 第一艦隊砲撃一巡目.
+			calc_damage(result, "第一砲撃戦2", d.api_hougeki3, f_nowhps, e_nowhps);	// 第一艦隊砲撃二巡目.
+		}
 		break;
 	case 2: // 連合艦隊(水上部隊).
-		if (e_nowhps_c) {
-			calc_damage(result, "第一砲撃戦(敵主力)", d.api_hougeki1, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 第一艦隊砲撃(vs 敵主力).
-			calc_damage(result, "第一砲撃戦(敵連合)", d.api_hougeki2, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 第一艦隊砲撃(vs 敵主力+敵護衛).
-			calc_damage(result, "第二砲撃戦(敵護衛)", d.api_hougeki3, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 第二艦隊砲撃(vs 敵護衛).
-			calc_damage(result, "第二雷撃戦(敵連合)", d.api_raigeki,  f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 第二艦隊雷撃戦(vs 敵主力+敵護衛).
-			break;
+		if (e_nowhps.has2nd) { // 12vs12
+			calc_damage(result, "第一砲撃戦(敵主力)", d.api_hougeki1, f_nowhps, e_nowhps);	// 第一艦隊砲撃(vs 敵主力).
+			calc_damage(result, "第一砲撃戦(敵連合)", d.api_hougeki2, f_nowhps, e_nowhps);	// 第一艦隊砲撃(vs 敵主力+敵護衛).
+			calc_damage(result, "第二砲撃戦(敵護衛)", d.api_hougeki3, f_nowhps, e_nowhps);	// 第二艦隊砲撃(vs 敵護衛).
+			calc_damage(result, "第二雷撃戦(敵連合)", d.api_raigeki,  f_nowhps, e_nowhps);	// 第二艦隊雷撃戦(vs 敵主力+敵護衛).
 		}
-		calc_damage(result, "第一砲撃戦1", d.api_hougeki1, f_nowhps, e_nowhps);		// 第一艦隊砲撃一巡目.
-		calc_damage(result, "第一砲撃戦2", d.api_hougeki2, f_nowhps, e_nowhps);		// 第一艦隊砲撃二順目.
-		calc_damage(result, "第二砲撃戦",  d.api_hougeki3, f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 第二艦隊砲撃.
-		calc_damage(result, "第二雷撃戦",  d.api_raigeki,  f_nowhps, e_nowhps, f_nowhps_c, e_nowhps_c);	// 第二艦隊雷撃戦.
+		else { // 12vs6
+			calc_damage(result, "第一砲撃戦1", d.api_hougeki1, f_nowhps, e_nowhps);	// 第一艦隊砲撃一巡目.
+			calc_damage(result, "第一砲撃戦2", d.api_hougeki2, f_nowhps, e_nowhps);	// 第一艦隊砲撃二順目.
+			calc_damage(result, "第二砲撃戦",  d.api_hougeki3, f_nowhps, e_nowhps);	// 第二艦隊砲撃.
+			calc_damage(result, "第二雷撃戦",  d.api_raigeki,  f_nowhps, e_nowhps);	// 第二艦隊雷撃戦.
+		}
 		break;
 	}
 	var fdeck = $fdeck_list[$battle_deck_id = d.api_deck_id];
@@ -2582,10 +2539,8 @@ function on_battle(json, battle_api_name) {
 		$battle_info = fmt;
 	}
 	if (!$f_beginhps) $f_beginhps = f_beginhps;
-	if (!$f_beginhps_c) $f_beginhps_c = f_beginhps_c;
 	if (!$e_beginhps) $e_beginhps = e_beginhps;
-	if (!$e_beginhps_c) $e_beginhps_c = e_beginhps_c;
-	$guess_win_rank = guess_win_rank(f_nowhps, f_maxhps, $f_beginhps, e_nowhps, e_maxhps, $e_beginhps, f_nowhps_c, f_maxhps_c, $f_beginhps_c, e_nowhps_c, e_maxhps_c, $e_beginhps_c, battle_api_name);
+	$guess_win_rank = guess_win_rank(f_nowhps, f_maxhps, $f_beginhps, e_nowhps, e_maxhps, $e_beginhps, battle_api_name);
 	req.push('戦闘被害:' + $guess_info_str);
 	req.push('勝敗推定:' + $guess_win_rank);
 
@@ -2598,7 +2553,7 @@ function on_battle(json, battle_api_name) {
 				if (dtnext && dtnext.title) continue;	// タイトルのみで戦闘記録なしの場合（例：敵潜水艦のみの航空戦空爆）は、タイトルを除去する.
 				msg.push(dt.title); continue;
 			}
-			if (dt.damage && dt.target != null) dt.damage += ':' + damage_name(dt.hp, (dt.ae ? (dt.target >= f_maxhps.length ? f_maxhps_c[dt.target-6] : f_maxhps[dt.target]) : (dt.target >= 6 ? e_maxhps_c[dt.target-6] : e_maxhps[dt.target])));
+			if (dt.damage && dt.target != null) dt.damage += ':' + damage_name(dt.hp, dt.ae ? f_maxhps[dt.target] : e_maxhps[dt.target]);
 			msg.push('\t' + dt.ty
 				+ '\t' + ship_name_lv(dt.at, dt.ae)
 				+ '\t' + ship_name_lv(dt.target, !dt.ae)
@@ -2612,9 +2567,9 @@ function on_battle(json, battle_api_name) {
 	}
 
 	req.push('## friend damage');
-	push_fdeck_status(req, fdeck, f_maxhps, f_nowhps, f_beginhps);
+	push_fdeck_status(req, fdeck, f_maxhps, f_nowhps, f_beginhps, 0, d.api_f_maxhps.length);
 	if ($combined_flag) {
-		push_fdeck_status(req, $fdeck_list[2], f_maxhps, f_nowhps, f_beginhps); // 連合第二艦隊は二番固定です.
+		push_fdeck_status(req, $fdeck_list[2], f_maxhps, f_nowhps, f_beginhps, f_nowhps.idx2nd, f_nowhps.length); // 連合第二艦隊は二番固定です.
 	}
 	req.push('被撃墜数: ' + result.f_air_lostcount);
 	req.push('## enemy damage');
@@ -2624,8 +2579,8 @@ function on_battle(json, battle_api_name) {
 	var eSlot   = d.api_eSlot;
 	var eParam  = d.api_eParam;
 	var eKyouka = d.api_eKyouka;
-	var ec = d.api_ship_ke_combined; if (ec) ship_ke = ship_ke.concat(ec.slice(1));
-	var ec = d.api_ship_lv_combined; if (ec) ship_lv = ship_lv.concat(ec.slice(1));
+	var ec = d.api_ship_ke_combined; if (ec) ship_ke = ship_ke.concat(ec);
+	var ec = d.api_ship_lv_combined; if (ec) ship_lv = ship_lv.concat(ec);
 	var ec = d.api_eParam_combined;  if (ec) eParam  = eParam.concat(ec);
 	var ec = d.api_eSlot_combined;   if (ec) eSlot   = eSlot.concat(ec);
 	var ec = d.api_eKyouka_combined; if (ec) eKyouka = eKyouka.concat(ec);
@@ -2634,12 +2589,8 @@ function on_battle(json, battle_api_name) {
 		if (ke == -1 || ke == null) continue;
 		var name = ship_name(ke) + 'Lv' + ship_lv[i];
 		$enemy_ship_names.push(name);
-		if (i >= 6)
-			req.push('\t' + (i+1) + '(' + name + ').\t'
-				+ hp_status_on_battle(e_nowhps_c[i-6], e_maxhps_c[i-6], e_beginhps_c[i-6]) + '\t');
-		else
-			req.push('\t' + (i+1) + '(' + name + ').\t'
-				+ hp_status_on_battle(e_nowhps[i], e_maxhps[i], e_beginhps[i]) + '\t');
+		req.push('\t' + (i+1) + '(' + name + ').\t'
+			+ hp_status_on_battle(e_nowhps[i], e_maxhps[i], e_beginhps[i]) + '\t');
 
 		var msg = ['YPS_enemy_detail' + i];
 		var enemy_slot = eSlot[i];
@@ -2929,8 +2880,6 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			if (!$debug_battle_json.api_data.api_hougeki) {
 				$f_beginhps = null;
 				$e_beginhps = null;
-				$f_beginhps_s = null;
-				$e_beginhps_s = null;
 			}
 			$battle_log = [];
 			func = function(json) {
@@ -3142,6 +3091,8 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 	}
 	else if (api_name == '/api_get_member/practice') {
 		// 演習メニュー.
+		// 演習出撃APIの流れ:
+		// practice -> 一覧から演習相手を選ぶ -> get_practice_enemyinfo -> 相手艦隊構成を見て出撃艦隊と陣形を選ぶ -> battle -> midnight_battle -> battle_result
 		func = function(json) { // 演習任務の受諾をチェックする.
 			on_mission_check(3);
 			// 演習遂行数を数える.
@@ -3185,7 +3136,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 	}
 	else if (api_name == '/api_req_map/start') {
 		// 海域初戦陣形選択.
-		// 出撃パケットの流れ：
+		// 出撃APIの流れ：
 		//	mapinfo -> mapcell -> start -> 陣形選択 -> battle -> battle_result -> 進撃/撤退/帰還
 		//	[進撃] ship_deck -> next -> 陣形選択 -> battle -> battle_result -> 進撃/撤退/帰還
 		//	[撤退/帰還] port -> slot_item -> unsetslot -> useitem
@@ -3215,8 +3166,6 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		$battle_count++;
 		$f_beginhps = null;
 		$e_beginhps = null;
-		$f_beginhps_s = null;
-		$e_beginhps_s = null;
 		func = on_battle;
 	}
 	else if (api_name == '/api_req_battle_midnight/battle'
@@ -3232,8 +3181,6 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		$battle_count++;
 		$f_beginhps = null;
 		$e_beginhps = null;
-		$f_beginhps_s = null;
-		$e_beginhps_s = null;
 		func = on_battle;
 	}
 	else if (api_name == '/api_req_sortie/night_to_day'
@@ -3242,17 +3189,15 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		$battle_count++;
 		$f_beginhps = null;
 		$e_beginhps = null;
-		$f_beginhps_s = null;
-		$e_beginhps_s = null;
 		func = on_battle;
 	}
 	else if (api_name == '/api_req_practice/battle') {
 		// 演習開始.
+		var params = decode_postdata_params(request.request.postData.params);
+		$battle_deck_id = params.api_deck_id;
 		$battle_count = 1;
 		$f_beginhps = null;
 		$e_beginhps = null;
-		$f_beginhps_s = null;
-		$e_beginhps_s = null;
 		$battle_log = [];
 		func = on_battle;
 	}
