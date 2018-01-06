@@ -2510,7 +2510,7 @@ function on_battle(json, battle_api_name) {
 	// --- print out ----
 	//
 	var req = [request_date_time()];
-	var msg = ['YPS_debug_battle',
+	var dbg = ['YPS_debug_battle',
 		'```',
 		'$debug_battle_json = '+JSON.stringify(json),
 		'$f_beginhps      = '+JSON.stringify($f_beginhps),
@@ -2519,7 +2519,7 @@ function on_battle(json, battle_api_name) {
 		'$battle_count  = '+JSON.stringify($battle_count),
 		'$next_mapinfo  = '+JSON.stringify($next_mapinfo),
 		'```'];
-	req.push(msg);
+	req.push(dbg);
 	req.push('# ' + map_name() + ' battle' + $battle_count);
 	if (!/^演習/.test(map_name())) req.push(req.pop() + boss_next_name());
 	push_listform(req, $battle_log);
@@ -2533,7 +2533,7 @@ function on_battle(json, battle_api_name) {
 		var t1 = result.touch[1]; if (t1 != -1) req.push('被触接中: ' + slotitem_name(t1));
 	}
 	if ($f_beginhps) {
-		req.push('緒戦被害:' + $guess_info_str + ', 推定:' + $guess_win_rank);
+		dbg.push('緒戦被害:' + $guess_info_str + ', 推定:' + $guess_win_rank);
 		$battle_info += '/追撃';
 	} else {
 		$battle_info = fmt;
@@ -2541,7 +2541,7 @@ function on_battle(json, battle_api_name) {
 	if (!$f_beginhps) $f_beginhps = f_beginhps;
 	if (!$e_beginhps) $e_beginhps = e_beginhps;
 	$guess_win_rank = guess_win_rank(f_nowhps, f_maxhps, $f_beginhps, e_nowhps, e_maxhps, $e_beginhps, battle_api_name);
-	req.push('戦闘被害:' + $guess_info_str);
+	dbg.push('戦闘被害:' + $guess_info_str);
 	req.push('勝敗推定:' + $guess_win_rank);
 
 	if (result.detail.length) {
