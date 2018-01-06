@@ -13,6 +13,7 @@ var $enemy_db		= load_storage('enemy_db');
 var $weekly			= load_storage('weekly');
 var $logbook		= load_storage('logbook', []);
 var $debug_battle_json = null;
+var $debug_ship_names = [];
 var $tmp_ship_id = -1000;	// ドロップ艦の仮ID.
 var $tmp_slot_id = -1000;	// ドロップ艦装備の仮ID.
 var $max_ship = 0;
@@ -1911,6 +1912,27 @@ function add_ship_escape(idx) {
 		$ship_escape[$fdeck_list[1].api_ship[idx-1]] = 1; // 第一艦隊から退避.
 }
 
+function debug_ship_name(idx) {
+	var s = $debug_ship_names[idx];
+	if (s == null) s = 'friend' + (idx+1);
+	return s;
+}
+
+function make_debug_ship_names() {
+	$debug_ship_names = [];
+	var list = $fdeck_list[$battle_deck_id].api_ship;
+	for (var i = 0; i < list.length; ++i) {
+		var ship = $ship_list[list[i]]; // 艦隊が６隻以下の場合は -1 が埋草になっている.
+		if (ship != null) $debug_ship_names.push(ship.fleet_name_lv());
+	}
+	if (!$combined_flag) return;
+	var list = $fdeck_list[2].api_ship;
+	for (var i = 0; i < list.length; ++i) {
+		var ship = $ship_list[list[i]];
+		if (ship != null) $debug_ship_names.push(ship.fleet_name_lv());
+	}
+}
+
 /// 艦隊番号とLv付き艦名を生成する. idx = 0..5:第一艦隊, 6..11:第二艦隊. ae = 0/null/false:自軍, 1/true:敵軍
 function ship_name_lv(idx, ae) {
 	if (ae) {
@@ -1931,10 +1953,12 @@ function ship_name_lv(idx, ae) {
 	}
 	else {
 		if ($combined_flag && idx >= 6) {
+			if ($debug_battle_json) return debug_ship_name(idx);
 			var fdeck = $fdeck_list[2];
 			return $ship_list[fdeck.api_ship[idx-6]].fleet_name_lv(); // 連合第二艦隊.
 		}
 		else if (idx >= 0) {
+			if ($debug_battle_json) return debug_ship_name(idx);
 			var fdeck = $fdeck_list[$battle_deck_id];
 			return $ship_list[fdeck.api_ship[idx]].fleet_name_lv(); // 味方艦隊.
 		}
@@ -2196,7 +2220,7 @@ function calc_damage(result, title, battle, fhp, ehp, active_deck) {
 		}
 	}
 	// 緊急ダメコン発動によるhp補正を行う.
-	if (! /^演習/.test($next_enemy)) {
+	if (! /^演習/.test($next_enemy) && ! $debug_battle_json) {
 		for (var i = 0; i < fhp.length; ++i) {
 			if ($f_maxhps[i] == -1) continue;
 			var sid = $fdeck_list[$battle_deck_id].api_ship[i];
@@ -2259,10 +2283,15 @@ function calc_kouku_damage(result, title, kouku, fhp, ehp) {
 }
 
 function push_fdeck_status(req, fdeck, maxhps, nowhps, beginhps, idx, end) {
-	req.push(fdeck.api_name);
+	req.push($debug_battle_json ? 'unknown' : fdeck.api_name);
 	for (var i = idx; i < end; ++i) {
 		if (maxhps[i] == -1) continue;
 		var name = '?';
+		if ($debug_battle_json) {
+			name = debug_ship_name(i).replace(/^\(艦隊\d\)/, "");
+			req.push('\t' + (i+1) + '(' + name + ').\t' + hp_status_on_battle(nowhps[i], maxhps[i], beginhps[i]));
+			continue;
+		}
 		var ship = $ship_list[fdeck.api_ship[i-idx]];
 		if (ship) {
 			name = ship.name_lv();
@@ -2505,13 +2534,13 @@ function on_battle(json, battle_api_name) {
 		if (result.seiku != null) fmt += '/' + seiku_name(result.seiku);
 		$enemy_formation = formation_name(d.api_formation[1]);
 	}
-	if (!fdeck) return; // for debug.
 	//
 	// --- print out ----
 	//
 	var req = [request_date_time()];
 	var dbg = ['YPS_debug_battle',
 		'```',
+		'$debug_ship_names  = '+JSON.stringify($debug_ship_names),
 		'$debug_battle_json = '+JSON.stringify(json),
 		'$f_beginhps      = '+JSON.stringify($f_beginhps),
 		'$e_beginhps      = '+JSON.stringify($e_beginhps),
@@ -2609,6 +2638,7 @@ function on_battle(json, battle_api_name) {
 		}
 		req.push(msg);
 	}
+	if (!fdeck) return req; // for on-battle-test.html.
 	chrome.runtime.sendMessage(req);
 }
 
@@ -2876,12 +2906,8 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			print_port();
 		};
 		if ($debug_battle_json) {
-			$battle_count = 1;
-			if (!$debug_battle_json.api_data.api_hougeki) {
-				$f_beginhps = null;
-				$e_beginhps = null;
-			}
 			$battle_log = [];
+			$battle_deck_id = $debug_battle_json.api_data.api_deck_id;
 			func = function(json) {
 				on_battle($debug_battle_json, 'debug');
 			}
@@ -3145,10 +3171,12 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		$battle_count = 0;
 		$battle_log = [];
 		$is_boss = false;
+		make_debug_ship_names();
 		func = on_next_cell;
 	}
 	else if (api_name == '/api_req_map/next') {
 		// 海域次戦陣形選択.
+		make_debug_ship_names();
 		func = on_next_cell;
 	}
 	else if (api_name == '/api_req_sortie/battle'
@@ -3199,6 +3227,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		$f_beginhps = null;
 		$e_beginhps = null;
 		$battle_log = [];
+		make_debug_ship_names();
 		func = on_battle;
 	}
 	else if (api_name == '/api_req_practice/midnight_battle') {
