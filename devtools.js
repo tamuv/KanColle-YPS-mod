@@ -793,7 +793,8 @@ function msec_name(msec) {
 	return sec.toFixed() + '秒';
 }
 
-function damage_name(nowhp, maxhp) {
+function damage_name(nowhp, maxhp, damage) {
+	if (damage != null && nowhp + damage <= 0) return '撃沈済';
 	var r = nowhp / maxhp;
 	return (r <= 0) ? '撃沈---'
 		: (r <= 0.25) ? '大破!!!'
@@ -2141,6 +2142,8 @@ function calc_damage(result, title, battle, fhp, ehp, active_deck) {
 			}
 		}
 	}
+	var fhp_save = fhp.concat();
+	var ehp_save = ehp.concat();
 	if (battle.api_fdam) {
 		// 航空戦/雷撃戦:自軍ダメージ集計.
 		for (var i = 0; i < battle.api_fdam.length; ++i) {
@@ -2179,7 +2182,7 @@ function calc_damage(result, title, battle, fhp, ehp, active_deck) {
 			var target = battle.api_frai[i];
 			var damage = battle.api_fydam[i];
 			if (target >= 0) {
-				var target_hp = ehp[target];
+				var target_hp = (ehp_save[target] -= Math.floor(damage));
 				var at = i + fidx;	///@todo check this
 				result.detail.push({ty:"雷撃", at: at, target: target, ae: 0, cl: battle_cl_name(battle.api_fcl[i]), damage: damage, hp: target_hp});
 			}
@@ -2191,7 +2194,7 @@ function calc_damage(result, title, battle, fhp, ehp, active_deck) {
 			var target = battle.api_erai[i];
 			var damage = battle.api_eydam[i];
 			if (target >= 0) {
-				var target_hp = fhp[target];
+				var target_hp = (fhp_save[target] -= Math.floor(damage));
 				var at = i + eidx;	///@todo check this
 				result.detail.push({ty:"雷撃", at: at, target: target, ae: 1, cl: battle_cl_name(battle.api_ecl[i]), damage: damage, hp: target_hp});
 			}
@@ -2203,7 +2206,7 @@ function calc_damage(result, title, battle, fhp, ehp, active_deck) {
 			var damage = battle.api_fdam[i];
 			if (battle.api_frai_flag[i] || battle.api_fbak_flag[i]) {
 				var target = i + fidx;
-				var target_hp = fhp[target];
+				var target_hp = (fhp_save[target] -= Math.floor(damage));
 				result.detail.push({ty:"空爆", target: target, ae: 1, cl: battle_cl_name(damage ? battle.api_fcl_flag[i]+1 : 0), damage: damage, hp: target_hp});
 			}
 		}
@@ -2214,7 +2217,7 @@ function calc_damage(result, title, battle, fhp, ehp, active_deck) {
 			var damage = battle.api_edam[i];
 			if (battle.api_erai_flag[i] || battle.api_ebak_flag[i]) {
 				var target = i + eidx;
-				var target_hp = ehp[target];
+				var target_hp = (ehp_save[target] -= Math.floor(damage));
 				result.detail.push({ty: (battle.api_fdam ? "空爆" : "支援空爆"), target: target, ae: 0, cl: battle_cl_name(damage ? battle.api_ecl_flag[i]+1 : 0), damage: damage, hp: target_hp});
 			}
 		}
@@ -2582,7 +2585,7 @@ function on_battle(json, battle_api_name) {
 				if (dtnext && dtnext.title) continue;	// タイトルのみで戦闘記録なしの場合（例：敵潜水艦のみの航空戦空爆）は、タイトルを除去する.
 				msg.push(dt.title); continue;
 			}
-			if (dt.damage && dt.target != null) dt.damage += ':' + damage_name(dt.hp, dt.ae ? f_maxhps[dt.target] : e_maxhps[dt.target]);
+			if (dt.damage && dt.target != null) dt.damage += ':' + damage_name(dt.hp, dt.ae ? f_maxhps[dt.target] : e_maxhps[dt.target], Math.floor(dt.damage));
 			msg.push('\t' + dt.ty
 				+ '\t' + ship_name_lv(dt.at, dt.ae)
 				+ '\t' + ship_name_lv(dt.target, !dt.ae)
