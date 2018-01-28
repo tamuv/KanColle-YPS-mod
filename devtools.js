@@ -3068,6 +3068,29 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			print_port();
 		};
 	}
+	else if (api_name == '/api_req_air_corps/supply') {
+		// 基地航空隊の補給実施.
+		func = function(json) {
+			var d = json.api_data;
+			var now = $material.now.concat();
+			now[0] = d.api_after_fuel;		// 補給後の燃料値.
+			now[3] = d.api_after_bauxite;	// 補給後のボーキサイト値.
+			update_material(now, $material.charge);
+			print_port();
+		};
+	}
+	else if (api_name == '/api_req_air_corps/set_plane') {
+		// 基地航空隊の配備実施.
+		func = function(json) {
+			var d = json.api_data;
+			if (d.api_after_bauxite > 0) {
+				var now = $material.now.concat();
+				now[3] = d.api_after_bauxite;	// 配備後のボーキサイト値.
+				update_material(now, $material.charge);
+				print_port();
+			}
+		};
+	}
 	else if (api_name == '/api_req_quest/clearitemget') {
 		// 任務クリア.
 		var params = decode_postdata_params(request.request.postData.params);
