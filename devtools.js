@@ -73,6 +73,7 @@ var $newship_slots = null;
 var $enemy_formation = '';
 var $enemy_ship_names = [];
 var $log_daily = 0;
+var $kaizou_list_orig = null;
 
 //-------------------------------------------------------------------------
 // Ship クラス.
@@ -1592,6 +1593,8 @@ function print_port() {
 	}
 	//
 	// 改造可能一覧、近代化改修一可能覧を表示する.
+	if ($kaizou_list_orig == null) $kaizou_list_orig = kaizou_list;
+	if ($kaizou_list_orig.length < kaizou_list.length) req.push('### @!!改造可能艦が増えました!!@'); // 警告表示.
 	req.push('改造可能艦数:' + kaizou_list.length
 			+ ', 近代化改修可能艦数('
 			+   '火力:' + lock_kyoukalist[0].length
