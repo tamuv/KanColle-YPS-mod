@@ -1231,7 +1231,7 @@ function fleet_brief_status(deck, deck2) {
 		+ (drumcan.sum ? ' ドラム缶' + drumcan.sum + '個' + drumcan.ships + '隻' : '')
 		+ (daihatu.up  ? ' 大発' + daihatu.sum + '個'+ daihatu.calc_up() + '%遠征UP' : '')
 		+ (slot_seiku  ? ' 制空値' + slot_seiku : '')
-		+ ' 2-5索敵値' + slot_sakuteki_25.toFixed(2);
+		+ ' 2-5索敵値' + slot_sakuteki_25.toFixed(2)
 		+ (blank_slot_num ? ' 空スロット' + blank_slot_num : '')
 		+ akashi
 		;
