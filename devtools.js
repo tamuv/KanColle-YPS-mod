@@ -215,24 +215,6 @@ Ship.prototype.slot_seiku = function() {	///< 制空値.
 	return a;
 };
 
-Ship.prototype.sakuteki33 = function(c) {	///< 索敵スコア判定式(33)の各艦部分.
-	///@param c ::= 分岐点係数. 海域2-5:1, 海域1-6:3, 海域3-5:4, 海域6-1:4, 海域6-2:3, 海域6-5:3
-	/// @return sqrt(各艦素索敵値) + 分岐点係数c *  (装備係数k * (装備素索敵値raw + 装備改修による索敵強化値s))
-	var slot = this.slot;
-	var onslot = this.onslot;
-	var raw = this.sakuteki[0];
-	var s33 = 0;
-	for (var i = 0; i < slot.length; ++i) {
-		var value = $slotitem_list[slot[i]];
-		if (value) {
-			var r = slotitem_sakuteki(value.item_id, value.level);
-			s33 += r.saku33;
-			raw -= r.raw; // 艦娘の素索敵値を計算する。this.sakuteki[1]はケッコンカッコカリ前の索敵値なので使えない。
-		}
-	}
-	return Math.sqrt(raw) + c * s33;
-};
-
 Ship.prototype.blank_slot_num = function() {	///< 通常スロットの空き数を返す(補強スロットは対象外とする)
 	var num = 0;
 	var slot = this.slot;
@@ -844,7 +826,8 @@ function slotitem_sakuteki(id, lv) { // 装備の素索敵値と索敵スコア�
 			k = 1.1;
 			break;
 	}
-	return {raw: raw, saku33: k * (raw + s) };
+	this.raw = raw;
+	this.score33 = k * (raw + s);
 }
 
 function slotitem_names(idlist) {
@@ -1198,6 +1181,40 @@ Daihatu.prototype.calc_up = function() {
 	return u + u2;
 }
 
+function Sakuteki33(name, ships, fleet_max) {
+	// 索敵スコア判定式(33) ::= Σ sqrt(各艦素索敵値) + 分岐点係数c * Σ (装備係数k * (装備素索敵値raw + 装備改修による索敵強化値s)) - ceil(0.4*司令部レベル) + 2*艦隊空き数.
+	var c = 1;
+	var score = 0;
+	var m = null;
+	if      (/^1-6/.test(name)) { c = 3; }
+	else if (/^2-5/.test(name)) { c = 1; }
+	else if (/^3-5/.test(name)) { c = 4; }
+	else if (/^6-1/.test(name)) { c = 4; }
+	else if (/^6-2/.test(name)) { c = 3; }
+	else if (/^6-5/.test(name)) { c = 3; }
+	else if (m = /^(\d);/.exec(name)) { c = m[1]; }
+	// 各艦の索敵スコアを合計する.
+	for (var i in ships) {
+		var slot = ships[i].slot;
+		var raw  = ships[i].sakuteki[0];
+		var s33 = 0;
+		for (var i = 0; i < slot.length; ++i) {
+			var value = $slotitem_list[slot[i]];
+			if (value) {
+				var r = new slotitem_sakuteki(value.item_id, value.level);
+				s33 += r.score33;
+				raw -= r.raw; // 艦娘の素索敵値を計算する。sakuteki[1]はケッコンカッコカリ前の索敵値なので使えない.
+			}
+		}
+		score += Math.sqrt(raw) + c * s33;
+	}
+	// 司令部レベルと艦隊空き数による補正値を算入する.
+	score -= Math.ceil(0.4 * $command_lv);
+	score += 2 * (fleet_max - ships.length);
+	this.score = score;
+	this.msg = score.toFixed(2) + "(分岐点係数" + c + ")";
+}
+
 function fleet_brief_status(deck, deck2) {
 	var cond_list = [];
 	var esc = 0, sunk = 0;
@@ -1210,11 +1227,10 @@ function fleet_brief_status(deck, deck2) {
 	var bull = 0, bull_max = 0;
 	var drumcan = {ships:0, sum:0};
 	var daihatu = new Daihatu();
+	var ships = [];
 	var akashi = '';
 	var blank_slot_num = 0;
 	var slot_seiku = 0;
-	var sakuteki33 = 0; // 索敵スコア判定式(33) ::= Σ sqrt(各艦素索敵値) + 分岐点係数c * Σ (装備係数k * (装備素索敵値raw + 装備改修による索敵強化値s)) - ceil(0.4*司令部レベル) + 2*艦隊空き数.
-	var fleet_ships = 0;
 	var list = deck.api_ship;
 	if (deck2) list = list.concat(deck2.api_ship);
 	for (var i in list) {
@@ -1242,8 +1258,7 @@ function fleet_brief_status(deck, deck2) {
 			});
 			blank_slot_num += ship.blank_slot_num();
 			slot_seiku     += ship.slot_seiku();
-			sakuteki33     += ship.sakuteki33(1); // 海域2-5:1, 海域3-5:4, 海域6-1:4
-			fleet_ships++;
+			ships.push(ship);
 			// 明石検出.
 			var name = ship.name_lv();
 			if (/明石/.test(name)) {
@@ -1253,8 +1268,7 @@ function fleet_brief_status(deck, deck2) {
 			daihatu.count_up(ship);
 		}
 	}
-	sakuteki33 -= Math.ceil(0.4 * $command_lv);
-	sakuteki33 += 2 * (list.length - fleet_ships);
+	var sakuteki = new Sakuteki33(deck.api_name, ships, list.length);
 	var ret = kira_names(cond_list)
 		+ ' 燃料' + fuel + percent_name_unless100(fuel, fuel_max)
 		+ ' 弾薬' + bull + percent_name_unless100(bull, bull_max)
@@ -1268,7 +1282,7 @@ function fleet_brief_status(deck, deck2) {
 		+ (drumcan.sum ? ' ドラム缶' + drumcan.sum + '個' + drumcan.ships + '隻' : '')
 		+ (daihatu.up  ? ' 大発' + daihatu.sum + '個'+ daihatu.calc_up() + '%遠征UP' : '')
 		+ (slot_seiku  ? ' 制空値' + slot_seiku : '')
-		+ (sakuteki33 > 0 ? ' 索敵スコア' + sakuteki33.toFixed(2) : '')
+		+ (sakuteki.score > 0 ? ' 索敵スコア' + sakuteki.msg : '')
 		+ (blank_slot_num ? ' 空スロット' + blank_slot_num : '')
 		+ akashi
 		;
