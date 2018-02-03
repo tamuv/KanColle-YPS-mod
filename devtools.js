@@ -215,22 +215,22 @@ Ship.prototype.slot_seiku = function() {	///< 制空値.
 	return a;
 };
 
-Ship.prototype.slot_sakuteki_25 = function() {	///< 2-5索敵値.
+Ship.prototype.sakuteki33 = function(c) {	///< 索敵スコア判定式(33)の各艦部分.
+	///@param c ::= 分岐点係数. 海域2-5:1, 海域1-6:3, 海域3-5:4, 海域6-1:4, 海域6-2:3, 海域6-5:3
+	/// @return sqrt(各艦素索敵値) + 分岐点係数c *  (装備係数k * (装備素索敵値raw + 装備改修による索敵強化値s))
 	var slot = this.slot;
 	var onslot = this.onslot;
 	var raw = this.sakuteki[0];
-	var a = 0;
+	var s33 = 0;
 	for (var i = 0; i < slot.length; ++i) {
 		var value = $slotitem_list[slot[i]];
 		if (value) {
-			a += slotitem_sakuteki(value.item_id, value.level);
-			// 艦娘の素索敵値を計算する。this.sakuteki[1]はケッコンカッコカリ前の索敵値なので使えない。
-			raw -= $mst_slotitem[value.item_id].api_saku;
+			var r = slotitem_sakuteki(value.item_id, value.level);
+			s33 += r.saku33;
+			raw -= r.raw; // 艦娘の素索敵値を計算する。this.sakuteki[1]はケッコンカッコカリ前の索敵値なので使えない。
 		}
 	}
-	// 索敵スコアの「＋√(各艦娘の素索敵)」の部分
-	a += Math.sqrt(raw);
-	return a;
+	return Math.sqrt(raw) + c * s33;
 };
 
 Ship.prototype.blank_slot_num = function() {	///< 通常スロットの空き数を返す(補強スロットは対象外とする)
@@ -794,30 +794,26 @@ function slotitem_intercept_bonus(id){
 	}
 }
 
-function slotitem_sakuteki(id, lv){
-	// sakuteki (per_item) ::= M * S *(raw_saku + K * sqrt(lv)) 
-	// M ::= 海域分岐点係数：2-5ボス前(H,Iマス)＝1、6-2(F,Hマス)・6-3ボス前(Hマス)＝3、3-5(Gマス)・6-1(E、Fマス)＝4。
-	// 普通は2-5索敵値が一番厳しいので、分岐点係数は1に固定。(暫定)
-	// raw_saku ::= 装備素索敵値
-	// lv ::= 改修レベル:0-10
-	// S ::= 装備倍率
-	// K ::= 装備改修による索敵強化倍率
+function slotitem_sakuteki(id, lv) { // 装備の素索敵値と索敵スコア判定式(33)値を返す.
 	var item = $mst_slotitem[id];
-	var sakuteki = 0;
-	var raw_saku = item.api_saku;
+	var raw = item.api_saku; // 装備素索敵値.
+	var k = 0; // 装備係数.
+	var s = 0; // 改修による索敵強化値.
+
 	// 改修による索敵強化値
 	switch (item.api_type[2]) {
 		case 12:// 小型電探.
-			raw_saku += 1.25*Math.sqrt(lv);
+			s = 1.25 * Math.sqrt(lv);
 			break;
 		case 13:// 大型電探.
-			raw_saku += 1.40*Math.sqrt(lv);
+			s = 1.40*Math.sqrt(lv);
 			break;
 		case 9:	// 艦上偵察機.
 		case 10:// 水上偵察機.
-			raw_saku += 1.20*Math.sqrt(lv);
+			s = 1.20*Math.sqrt(lv);
 			break;
 	}
+	// 装備係数.
 	switch (item.api_type[2]) {
 		case 7:	// 艦上爆撃機.
 		case 12:// 小型電探.
@@ -833,22 +829,22 @@ function slotitem_sakuteki(id, lv){
 		case 26:// 対潜哨戒機.
 		case 34:// 艦隊司令部施設.
 		case 51:// 潜水艦装備.
-			sakuteki += 0.6 * raw_saku;
+			k = 0.6;
 			break;
 		case 8:	// 艦上攻撃機.
-			sakuteki += 0.8 * raw_saku;
+			k = 0.8;
 			break;
 		case 9:	// 艦上偵察機.
-			sakuteki += 1.0 * raw_saku;
+			k = 1.0;
 			break;
 		case 10:// 水上偵察機.
-			sakuteki += 1.2 * raw_saku;
+			k = 1.2;
 			break;
 		case 11:// 水上爆撃機.
-			sakuteki += 1.1 * raw_saku;
+			k = 1.1;
 			break;
 	}
-	return sakuteki;
+	return {raw: raw, saku33: k * (raw + s) };
 }
 
 function slotitem_names(idlist) {
@@ -1217,7 +1213,7 @@ function fleet_brief_status(deck, deck2) {
 	var akashi = '';
 	var blank_slot_num = 0;
 	var slot_seiku = 0;
-	var slot_sakuteki_25 = 0;
+	var sakuteki33 = 0; // 索敵スコア判定式(33) ::= Σ sqrt(各艦素索敵値) + 分岐点係数c * Σ (装備係数k * (装備素索敵値raw + 装備改修による索敵強化値s)) - ceil(0.4*司令部レベル) + 2*艦隊空き数.
 	var fleet_ships = 0;
 	var list = deck.api_ship;
 	if (deck2) list = list.concat(deck2.api_ship);
@@ -1246,7 +1242,7 @@ function fleet_brief_status(deck, deck2) {
 			});
 			blank_slot_num += ship.blank_slot_num();
 			slot_seiku     += ship.slot_seiku();
-			slot_sakuteki_25 += ship.slot_sakuteki_25();
+			sakuteki33     += ship.sakuteki33(1); // 海域2-5:1, 海域3-5:4, 海域6-1:4
 			fleet_ships++;
 			// 明石検出.
 			var name = ship.name_lv();
@@ -1257,7 +1253,8 @@ function fleet_brief_status(deck, deck2) {
 			daihatu.count_up(ship);
 		}
 	}
-	slot_sakuteki_25 += (2 * (6 - fleet_ships) - Math.ceil(0.4 * $command_lv));
+	sakuteki33 -= Math.ceil(0.4 * $command_lv);
+	sakuteki33 += 2 * (list.length - fleet_ships);
 	var ret = kira_names(cond_list)
 		+ ' 燃料' + fuel + percent_name_unless100(fuel, fuel_max)
 		+ ' 弾薬' + bull + percent_name_unless100(bull, bull_max)
@@ -1271,7 +1268,7 @@ function fleet_brief_status(deck, deck2) {
 		+ (drumcan.sum ? ' ドラム缶' + drumcan.sum + '個' + drumcan.ships + '隻' : '')
 		+ (daihatu.up  ? ' 大発' + daihatu.sum + '個'+ daihatu.calc_up() + '%遠征UP' : '')
 		+ (slot_seiku  ? ' 制空値' + slot_seiku : '')
-		+ ' 2-5索敵値' + slot_sakuteki_25.toFixed(2)
+		+ (sakuteki33 > 0 ? ' 索敵スコア' + sakuteki33.toFixed(2) : '')
 		+ (blank_slot_num ? ' 空スロット' + blank_slot_num : '')
 		+ akashi
 		;
