@@ -1,8 +1,8 @@
 {
 	"manifest_version": 2,
 	"name": "KanColle-YPS",
-	"version": "1.7.4",
-	"version_name": "v1.7.4 基地航空隊情報、2-5索敵値&対潜値、改造可能艦数の増加通知",
+	"version": "1.7.5",
+	"version_name": "v1.7.5 各海域の索敵スコア対応",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"permissions": [
