@@ -680,7 +680,7 @@ function slotitem_seiku(id, lv, alv, n, airbase) {
 	// https://gist.github.com/YSRKEN/4cdecc6e8a1c2c75b13b08126c94f4cf の制空値計算式を採用する.
 	// http://kancollecalc.web.fc2.com/air_supremacy.html の計算結果に合うように計算式を修正する.
 	// seiku(attack)    ::= floor((P + Ga * lv + 1.5 * In)    * sqrt(n) + sqrt(v/10) + Vc)
-	// seiku(intercept) ::= floor((P + Ga * lv + In + 2 * Ba) * sqrt(n) + sqrt(v/10) + Vc) 
+	// seiku(intercept) ::= floor((P + Ga * lv + In + 2 * Ba) * sqrt(n) + sqrt(v/10) + Vc)
 	// lv ::= 改修レベル:0-10
 	// alv::= 熟練度:0-7
 	// n  ::= 搭載機数.
@@ -788,11 +788,11 @@ function slotitem_sakuteki(id, lv) { // 装備の素索敵値と索敵スコア�
 			s = 1.25 * Math.sqrt(lv);
 			break;
 		case 13:// 大型電探.
-			s = 1.40*Math.sqrt(lv);
+			s = 1.40 * Math.sqrt(lv);
 			break;
 		case 9:	// 艦上偵察機.
 		case 10:// 水上偵察機.
-			s = 1.20*Math.sqrt(lv);
+			s = 1.20 * Math.sqrt(lv);
 			break;
 	}
 	// 装備係数.
@@ -1182,7 +1182,7 @@ Daihatu.prototype.calc_up = function() {
 }
 
 function Sakuteki33(name, ships, fleet_max) {
-	// 索敵スコア判定式(33) ::= Σ sqrt(各艦素索敵値) + 分岐点係数c * Σ (装備係数k * (装備素索敵値raw + 装備改修による索敵強化値s)) - ceil(0.4*司令部レベル) + 2*艦隊空き数.
+	// 索敵スコア判定式(33) ::= Σ sqrt(各艦素索敵値) + 分岐点係数c * Σ (装備係数k * (装備素索敵値raw + 装備改修による索敵強化値s)) - ceil(0.4 * 司令部レベル) + 2 * 艦隊空き数.
 	var c = 1;
 	var score = 0;
 	var m = null;
