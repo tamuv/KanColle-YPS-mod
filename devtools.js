@@ -1992,7 +1992,7 @@ function on_mission_check(category) {
 	var req = ['## 任務'];
 	for (var id in $quest_list) {
 		var quest = $quest_list[id];
-		if (quest.api_category == category) {	// 1:編成, 2:出撃, 3:演習, 4:遠征, 5:補給入渠, 6:工廠.
+		if (quest.api_category == category || category == null) {	// 1:編成, 2:出撃, 3:演習, 4:遠征, 5:補給入渠, 6:工廠.
 			var progress = (quest.api_state == 3) ? '達成!!'
 				:         (quest.api_state == 1) ? '@!!未チェック!!@'
 				: (quest.api_progress_flag == 2) ? '遂行80%'
@@ -3101,7 +3101,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 					get_weekly().quest_state = data.api_state; // あ号任務ならば、遂行状態を記録する(1:未遂行, 2:遂行中, 3:達成)
 				}
 			});
-			print_port();
+			on_mission_check();
 		};
 		if ($debug_battle_json) {
 			$battle_log = [];
