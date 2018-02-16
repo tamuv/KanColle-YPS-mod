@@ -4,7 +4,7 @@
 var div = document.createElement('div');
 div.style.whiteSpace = 'pre-wrap';
 div.style.position = 'absolute';
-div.style.top = '90px'; // NaviBar 39px + margin 20px + spacer 31px
+div.style.top = '75px'; // NaviBar 39px + margin 20px + spacer 16px
 div.style.left = '850px';
 div.innerHTML = "<h2>艦これ余所見プレイ支援</h2>"
 	+ version_banner()
@@ -269,12 +269,6 @@ function version_banner() {
 	return ' <a href="http://hkuno9000.github.io/KanColle-YPS/" target="KanColle-YPS-website">KanColle-YPS ' + ver_name + '</a>';
 }
 
-function news_banner() {
-	var e = document.getElementById('incnews');
-	if (e == null) return '';
-	return e.innerHTML;
-}
-
 //------------------------------------------------------------------------
 // 表示内容受信.
 //
@@ -282,7 +276,7 @@ chrome.runtime.onMessage.addListener(function (req) {
 	if (!div.parentNode) document.body.replaceChild(div, hst); // 履歴表示を中断する.
 	if (req instanceof Array) {
 		div.innerHTML = parse_markdown(req);
-		navi.innerHTML = all_close_button() + history_buttons() + version_banner() + news_banner();
+		navi.innerHTML = all_close_button() + history_buttons() + version_banner();
 	}
 	else if (req.appendData) {
 		pop_history();
