@@ -2128,8 +2128,8 @@ function make_debug_ship_names() {
 	}
 }
 
-/// 艦隊番号とLv付き艦名を生成する. idx = 0..5:第一艦隊, 6..11:第二艦隊. ae = 0/null/false:自軍, 1/true:敵軍
-function ship_name_lv(idx, ae) {
+/// 艦隊番号とLv付き艦名を生成する. idx = 0..5:第一艦隊, 6..11:第二艦隊. ae = 0/null/false:自軍, 1/true:敵軍. ff = 友軍艦隊情報.
+function ship_name_lv(idx, ae, ff) {
 	if (ae) {
 		var d = $battle_api_data;
 		if (idx >= 6) { // 敵護衛艦隊.
@@ -2147,6 +2147,14 @@ function ship_name_lv(idx, ae) {
 		}
 	}
 	else {
+		if (ff) { // 友軍艦隊.
+			var i = idx;	// 0..5
+			var s = '(友軍艦隊' + (i+1) + ')';
+			var f = $battle_api_data.api_friendly_info;
+			if (f.api_ship_id) s += ship_name(f.api_ship_id[i]);
+			if (f.api_ship_lv) s +=    'Lv' + f.api_ship_lv[i];
+			return s;
+		}
 		if ($combined_flag && idx >= 6) {
 			if ($debug_battle_json) return debug_ship_name(idx);
 			var fdeck = $fdeck_list[2];
@@ -2300,12 +2308,13 @@ function on_battle_result(json) {
 	chrome.runtime.sendMessage({ appendData: req });
 }
 
-function calc_damage(result, title, battle, fhp, ehp, active_deck) {
+function calc_damage(result, title, battle, fhp, ehp, active_deck, ff) {
 	// fhp ::= [friend1..N] 0base, if 2nd fleet exists, "fhp.has2nd == true" and "fhp.idx2nd > 0".
 	// ehp ::= [enemy1..N] 0base,  if 2nd fleet exists. "ehp.has2nd == ttue" and "ehp.idx2nd > 0".
 	// active_deck[0] ::= active friend fleet: 1:1st, 2:2nd, 3:1st and 2nd.
 	// active_deck[1] ::= active enemy  fleet: 1:1st, 2:2nd, 3:1st and 2nd.
 	// !active_deck   ::= normal 6vs6, support attack, etc...
+	// ff ::= 1:friendlyFleet
 	if (!battle) return;
 	var fidx = 0; if (active_deck && active_deck[0] == 2 && fhp.has2nd) fidx = fhp.idx2nd;
 	var eidx = 0; if (active_deck && active_deck[1] == 2 && ehp.has2nd) eidx = ehp.idx2nd;
@@ -2333,7 +2342,7 @@ function calc_damage(result, title, battle, fhp, ehp, active_deck) {
 					target_hp = (ehp[target] -= Math.floor(damage));
 				}
 				// 砲撃戦:敵味方砲撃詳報収集.
-				result.detail.push({ty: ty, at: at, target: target, ae: ae[i], si: si, cl: battle_cl_name(cl[j]), damage: damage, hp: target_hp});
+				result.detail.push({ty: ty, at: at, target: target, ae: ae[i], ff: ff, si: si, cl: battle_cl_name(cl[j]), damage: damage, hp: target_hp});
 			}
 		}
 	}
@@ -2641,6 +2650,13 @@ function on_battle(json, battle_api_name) {
 		var t0 = d.api_flare_pos[0]; if (t0 != -1) result.detail.push({ty:'照明弾(夜戦)',   at: t0+act0, ae: 0})
 		var t1 = d.api_flare_pos[1]; if (t1 != -1) result.detail.push({ty:'敵照明弾(夜戦)', at: t1+act1, ae: 1});
 	}
+	// 友軍艦隊(NPC). @since 2018.Feb WinterEvent
+	var ff = d.api_friendly_battle;
+	var fi = d.api_friendly_info;
+	if (ff && fi) {
+		///@todo ff.api_flare_pos;
+		calc_damage(result, "友軍艦隊", ff.api_hougeki, fi.api_nowhps.concat(), e_nowhps, null, 1);
+	}
 	// calc_damage() の呼び出し順序は、下記資料の戦闘の流れに従っている.
 	// @see http://wikiwiki.jp/kancolle/?%C0%EF%C6%AE%A4%CB%A4%C4%A4%A4%A4%C6
 	// @see http://wikiwiki.jp/kancolle/?%CF%A2%B9%E7%B4%CF%C2%E2
@@ -2780,10 +2796,13 @@ function on_battle(json, battle_api_name) {
 				if (dtnext && dtnext.title) continue;	// タイトルのみで戦闘記録なしの場合（例：敵潜水艦のみの航空戦空爆）は、タイトルを除去する.
 				msg.push(dt.title); continue;
 			}
-			if (dt.damage && dt.target != null) dt.damage += ':' + damage_name(dt.hp, dt.ae ? f_maxhps[dt.target] : e_maxhps[dt.target], Math.floor(dt.damage));
+			if (dt.damage && dt.target != null) {
+				var maxhps = dt.ae ? (dt.ff ? d.api_friendly_info.api_maxhps : f_maxhps) : e_maxhps;
+				dt.damage += ':' + damage_name(dt.hp, maxhps[dt.target], Math.floor(dt.damage));
+			}
 			msg.push('\t' + dt.ty
-				+ '\t' + ship_name_lv(dt.at, dt.ae)
-				+ '\t' + ship_name_lv(dt.target, !dt.ae)
+				+ '\t' + ship_name_lv(dt.at, dt.ae, dt.ff)
+				+ '\t' + ship_name_lv(dt.target, !dt.ae, dt.ff)
 				+ '\t' + (dt.cl || dt.ek || "")	// 命中判定 または 敵撃墜率.
 				+ '\t' + (dt.damage || dt.fk || "")	// ダメージ または 被撃墜率.
 				+ '\t' + slotitem_names(dt.si)
