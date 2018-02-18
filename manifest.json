@@ -1,8 +1,8 @@
 {
 	"manifest_version": 2,
 	"name": "KanColle-YPS",
-	"version": "1.7.6",
-	"version_name": "v1.7.6 2018冬イベント対応1(海域難易度：丁)",
+	"version": "1.7.7",
+	"version_name": "v1.7.7 2018冬イベント対応2(友軍艦隊)",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"permissions": [
