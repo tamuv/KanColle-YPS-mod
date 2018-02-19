@@ -1325,7 +1325,7 @@ function push_fleet_status(msg, deck) {
 			+ '\t' + ship.next_level()
 			);
 	}
-	msg.push('合計' + fleet_ships +'隻:\tLv' + lv_sum + ' 索敵:' + sakuteki_sum + ' 対空:' + taiku_sum + ' 対潜:' + taisen_sum);
+	msg.push('\t合計' + fleet_ships +'隻:\tLv' + lv_sum + '\t索敵:' + sakuteki_sum + '\t対空:' + taiku_sum + '\t対潜:' + taisen_sum);
 }
 
 function update_material(material, sum) {
