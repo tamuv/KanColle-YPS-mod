@@ -601,6 +601,7 @@ function support_name(id) {	///@param id	支援タイプ api_support_flag
 		case 1: return '航空支援';
 		case 2: return '支援射撃';
 		case 3: return '支援長距離雷撃';
+		case 4: return '対潜支援哨戒';
 		default: return to_string(id);
 	}
 }
@@ -2667,6 +2668,7 @@ function on_battle(json, battle_api_name) {
 		if (d.api_n_support_flag == 1) calc_damage(result, "夜戦航空支援", dns.api_support_airatack.api_stage3, f_nowhps, e_nowhps);
 		if (d.api_n_support_flag == 2) calc_damage(result, "夜戦支援射撃", dns.api_support_hourai,              f_nowhps, e_nowhps);
 		if (d.api_n_support_flag == 3) calc_damage(result, "夜戦支援長距離雷撃", dns.api_support_hourai,        f_nowhps, e_nowhps);
+		if (d.api_n_support_flag == 4) calc_damage(result, "夜戦対潜支援哨戒", dns.api_support_airatack.api_stage3, f_nowhps, e_nowhps);
 	}
 	calc_damage(result, "夜戦砲撃",         d.api_hougeki,    f_nowhps, e_nowhps, /*d.api_active_deck*/);	// 追撃夜戦.
 	calc_damage(result, "夜戦砲撃(敵護衛)", d.api_n_hougeki1, f_nowhps, e_nowhps);	// ec_night_to_day: 6vs12払暁戦 夜戦砲撃(友軍 vs 敵護衛艦隊 対全体).
@@ -2689,6 +2691,7 @@ function on_battle(json, battle_api_name) {
 		if (d.api_support_flag == 1) calc_damage(result, "航空支援", ds.api_support_airatack.api_stage3, f_nowhps, e_nowhps);
 		if (d.api_support_flag == 2) calc_damage(result, "支援射撃", ds.api_support_hourai,              f_nowhps, e_nowhps);
 		if (d.api_support_flag == 3) calc_damage(result, "支援長距離雷撃", ds.api_support_hourai,        f_nowhps, e_nowhps);
+		if (d.api_support_flag == 4) calc_damage(result, "対潜支援哨戒", ds.api_support_airatack.api_stage3, f_nowhps, e_nowhps);
 	}
 	calc_damage(result, "先制対潜", d.api_opening_taisen, f_nowhps, e_nowhps);	// 対潜先制爆雷攻撃.　2016-06-30メンテ明けから追加.
 	calc_damage(result, "開幕雷撃", d.api_opening_atack,  f_nowhps, e_nowhps);	// 開幕雷撃.
