@@ -63,6 +63,7 @@ var $last_mission = {};
 var $f_maxhps = null;
 var $f_beginhps = null;
 var $e_beginhps = null;
+var $e_prevhps = null;
 var $f_damage = 0;
 var $e_lost_count = 0;
 var $e_leader_lost = false;
@@ -2656,7 +2657,7 @@ function on_battle(json, battle_api_name) {
 	var fi = d.api_friendly_info;
 	if (ff && fi) {
 		///@todo ff.api_flare_pos;
-		calc_damage(result, "友軍艦隊", ff.api_hougeki, fi.api_nowhps.concat(), e_nowhps, null, 1);
+		calc_damage(result, "友軍艦隊", ff.api_hougeki, fi.api_nowhps.concat(), $e_prevhps || e_nowhps, null, 1);
 	}
 	// calc_damage() の呼び出し順序は、下記資料の戦闘の流れに従っている.
 	// @see http://wikiwiki.jp/kancolle/?%C0%EF%C6%AE%A4%CB%A4%C4%A4%A4%A4%C6
@@ -2767,6 +2768,7 @@ function on_battle(json, battle_api_name) {
 		'$debug_battle_json = '+JSON.stringify(json),
 		'$f_beginhps      = '+JSON.stringify($f_beginhps),
 		'$e_beginhps      = '+JSON.stringify($e_beginhps),
+		'$e_prevhps       = '+JSON.stringify($e_prevhps),
 		'$combined_flag = '+JSON.stringify($combined_flag),
 		'$battle_count  = '+JSON.stringify($battle_count),
 		'$next_mapinfo  = '+JSON.stringify($next_mapinfo),
@@ -2792,6 +2794,7 @@ function on_battle(json, battle_api_name) {
 	}
 	if (!$f_beginhps) $f_beginhps = f_beginhps;
 	if (!$e_beginhps) $e_beginhps = e_beginhps;
+	if (!$e_prevhps)  $e_prevhps  = e_nowhps;
 	$guess_win_rank = guess_win_rank(f_nowhps, f_maxhps, $f_beginhps, e_nowhps, e_maxhps, $e_beginhps, battle_api_name);
 	dbg.push('戦闘被害:' + $guess_info_str);
 	req.push('勝敗推定:' + $guess_win_rank);
@@ -3499,6 +3502,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		$battle_count++;
 		$f_beginhps = null;
 		$e_beginhps = null;
+		$e_prevhps  = null;
 		func = on_battle;
 	}
 	else if (api_name == '/api_req_battle_midnight/battle'
@@ -3514,6 +3518,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		$battle_count++;
 		$f_beginhps = null;
 		$e_beginhps = null;
+		$e_prevhps  = null;
 		func = on_battle;
 	}
 	else if (api_name == '/api_req_sortie/night_to_day'
@@ -3522,6 +3527,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		$battle_count++;
 		$f_beginhps = null;
 		$e_beginhps = null;
+		$e_prevhps  = null;
 		func = on_battle;
 	}
 	else if (api_name == '/api_req_practice/battle') {
@@ -3531,6 +3537,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		$battle_count = 1;
 		$f_beginhps = null;
 		$e_beginhps = null;
+		$e_prevhps  = null;
 		$battle_log = [];
 		make_debug_ship_names();
 		func = on_battle;
