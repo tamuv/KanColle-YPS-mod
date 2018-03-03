@@ -2347,7 +2347,8 @@ function calc_damage(result, title, battle, fhp, ehp, active_deck, ff) {
 					target_hp = (ehp[target] -= Math.floor(damage));
 				}
 				// 砲撃戦:敵味方砲撃詳報収集.
-				result.detail.push({ty: ty, at: at, target: target, ae: ae[i], ff: ff, si: si, cl: battle_cl_name(cl[j]), damage: damage, hp: target_hp});
+				var si2 = (/^連撃/.test(ty) && j < si.length) ? [si[j]] : si;
+				result.detail.push({ty: ty, at: at, target: target, ae: ae[i], ff: ff, si: si2, cl: battle_cl_name(cl[j]), damage: damage, hp: target_hp});
 			}
 		}
 	}
