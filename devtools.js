@@ -2063,7 +2063,7 @@ function on_next_cell(json) {
 		$battle_log.push(msg);
 		print_next('next loss' + boss_next_name(), msg);
 	}
-	else if (d.api_event_id == 6) {	// 非戦闘マス.
+	else if (d.api_event_id == 1 || d.api_event_id == 6) {	// 非戦闘マス.
 		var msg = area;
 		msg += ':' + event_kind_name(d.api_event_kind);
 		$battle_log.push(msg);
