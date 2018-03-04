@@ -3337,6 +3337,17 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			}
 		};
 	}
+	else if (api_name == '/api_req_kaisou/slot_exchange_index') {
+		// 改装:装備順番入れ替え.
+		func = function(json) { // 保有艦、艦隊一覧を更新してcond表示する.
+			var sid = decode_postdata_params(request.request.postData.params).api_id;
+			var ship = $ship_list[sid];
+			if (ship) {
+				ship.slot = json.api_data.api_slot;
+				print_port();
+			}
+		};
+	}
 	else if (api_name == '/api_get_member/mission') {
 		// 遠征メニュー.
 		func = function(json) { // 遠征任務の受諾をチェックする.
