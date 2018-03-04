@@ -3496,6 +3496,15 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		// 海域難易度の初回選択／変更.
 		var params = decode_postdata_params(request.request.postData.params);
 		$mapinfo_rank[params.api_maparea_id * 10 + params.api_map_no] = params.api_rank;	// 1:丁, 2:丙, 3:乙, 4:甲.
+		func = function(json) { // 海域HPを記録する.
+			var evm = json.api_data.api_maphp;
+			var mst = $mst_mapinfo[params.api_maparea_id * 10 + params.api_map_no];
+			if (evm) {
+				var now = evm.api_now_maphp;
+				var max = evm.api_max_maphp;
+				mst.yps_opt_name = (evm.api_gauge_type == 3 ? 'TP' : 'HP') + fraction_percent_name(now, max);
+			}
+		};
 	}
 	else if (api_name == '/api_req_map/start') {
 		// 海域初戦陣形選択.
