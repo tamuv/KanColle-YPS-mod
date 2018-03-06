@@ -1314,7 +1314,9 @@ function push_fleet_status(msg, deck) {
 	var taiku_sum = 0;
 	var taisen_sum = 0;
 	var fleet_ships = 0;
-	for (var i = 0, ship, s_id; ship = $ship_list[s_id = deck.api_ship[i]]; ++i) {
+	for (let s_id of deck.api_ship) {
+		let ship = $ship_list[s_id];
+		if (!ship) continue;
 		fleet_ships++;
 		lv_sum += ship.lv;
 		sakuteki_sum += ship.sakuteki[0];
