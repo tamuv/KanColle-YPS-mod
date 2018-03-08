@@ -633,6 +633,10 @@ function search_name(id) {	///@param id	索敵結果 api_search[]
 	}
 }
 
+function event_sally_tag_name(id) {	///@param id	イベント札番号 api_sally_area.
+	return $event_sally_tag_names[id] || '札'+to_string(id);
+}
+
 function event_kind_name(id) {	///@param id	非戦闘マスのメッセージ api_event_kind.
 	switch (id) {
 		case 0: return '気のせいだった';
@@ -642,26 +646,7 @@ function event_kind_name(id) {	///@param id	非戦闘マスのメッセージ ap
 		case 4: return '穏やかな海峡です';
 		case 5: return '警戒が必要です';
 		case 6: return '静かな海です';
-		case 7: return '艦隊は対潜警戒進撃中。引き続き、対潜対空警戒を厳とせよ。';								// 2018冬イベント E-2:L
-		case 8: return '敵哨戒機らしき機影認む。空襲の恐れあり。対空警戒を厳とせよ！';							// 2018冬イベント E-2:J,Q
-		case 9: return '1YB第一第二部隊栗田艦隊はパラワン水道を進撃中。現海域に敵影なし。警戒を厳とせよ！';		// 2018秋イベント E-2:B
-		case 10: return '1YB第三部隊、西村艦隊は堂々と進撃中。遊撃部隊主力栗田艦隊を援護せよ！進め！';			// 2018冬イベント E-2:D
-		case 11: return '1YB第三部隊西村艦隊はこれよりスリガオ海峡方面へ突入。主力栗田艦隊を援護する！進め！';	// 2018冬イベント E-2:O
-		case 12: return '艦隊はシブヤン海に突入する。対空見張り、厳とせよ！';									// 2018冬イベント E-2:P
-		case 13: return '前線航空基地への航空資材輸送作戦は失敗せり。';											// 2018冬イベント.
-		case 14: return '1YB第一第二部隊栗田艦隊はシブヤン海を進撃中。敵艦載機空襲が予測される。対空警戒を厳とせよ！';		// 2018冬イベント.
-		case 15: return '1YB第一第二部隊栗田艦隊はサマール沖を進撃中。敵機動部隊を発見！全艦突撃せよ！';		// 2018冬イベント.
-		case 16: return '1YB第三部隊西村艦隊はスリガオ海峡に突入せり。栗田艦隊を援護する！天祐を確認し、全艦突撃せよ！';	// 2018冬イベント. typo 確信?
-		case 17: return 'KdMB機動部隊本隊小沢艦隊は敵機動部隊主力を北方に誘引、好機を捉えこれを捕捉撃破せよ！';	// 2018冬イベント E-3:L
-		case 18: return '艦隊左舷にパナイ島を見ゆ……。対空警戒を厳とせよ！';										// 2018冬イベント.
-		case 19: return '艦隊右舷にミンダナオ島を認む。入港準備…－－始めッ！';									// 2018冬イベント.
-		case 20: return '2YB遊撃第二部隊志摩艦隊、出撃！敵残存艦隊を索敵捕捉、掃射せよ！';						// 2018冬イベント.
-		case 21: return '2YB遊撃第二部隊、敵哨戒機を発見す！敵機空襲が予測される。対空警戒、厳とせよ！';		// 2018冬イベント.
-		case 22: return '2YB遊撃第二部隊、戦場海域に突入す！対空、そして対潜警戒も厳とせよ！';					// 2018冬イベント.
-		case 23: return '1YB遊撃第一部隊より高速艦艇を抽出。敵残存艦隊の捜索撃滅に出撃す！';					// 2018冬イベント.
-		case 24: return '連合艦隊機動部隊本隊、出撃！敵機動部隊を撃滅する！続け！';								// 2018冬イベント.
-		case 25: return '艦隊、増速！これより連合艦隊は艦隊決戦を行う！我に続け！';								// 2018冬イベント.
-		default: return '??'+to_string(id);
+		default: return $event_kind_names[id] || '??'+to_string(id);
 	}
 }
 
@@ -1730,7 +1715,7 @@ function print_port() {
 	}
 	msg.push('---');
 	if (msg.length > 2) req.push(msg);
-	
+	//
 	// お札のついた艦を表示する.
 	var sally_area_list = Object.keys(sally_area);
 	if (sally_area_list.length > 0) {
@@ -1738,14 +1723,13 @@ function print_port() {
 		msg.push('\t==札\t==艦名'); // 表ヘッダ
 		var title = [];
 		for (var area of sally_area_list) {
-			title.push('札' + area + ' ' + sally_area[area].length);
-			msg.push('\t札' + area + '\t|' + shiplist_names(sally_area[area]));
+			title.push(event_sally_tag_name(area) + '(' + sally_area[area].length + ')');
+			msg.push('\t' + event_sally_tag_name(area) + '\t|' + shiplist_names(sally_area[area]));
 		}
-		req.push('イベント限定: お札情報: ' + title.join(', '));
+		req.push('イベント札情報: ' + title.join(', '));
 		msg.push('---');
 		req.push(msg);
 	}
-	
 	//
 	// 入渠(修理)一覧表示する.
 	var ndocks = Object.keys($ndock_list).length;
