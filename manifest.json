@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 	"name": "KanColle-YPS",
 	"version": "1.7.8",
-	"version_name": "v1.7.8pre 2018冬イベント対応3",
+	"version_name": "v1.7.8pre 2018冬イベント対応3, Chrome65対応",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"permissions": [
