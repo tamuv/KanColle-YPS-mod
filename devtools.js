@@ -2650,6 +2650,17 @@ function guess_win_rank(f_nowhps, f_maxhps, f_beginhps, e_nowhps, e_maxhps, e_be
 }
 
 function on_battle(json, battle_api_name) {
+	const dbg = ['YPS_debug_battle',
+		'```',
+		'$debug_ship_names  = '+JSON.stringify($debug_ship_names),
+		'$debug_battle_json = '+JSON.stringify(json),
+		'$f_beginhps      = '+JSON.stringify($f_beginhps),
+		'$e_beginhps      = '+JSON.stringify($e_beginhps),
+		'$e_prevhps       = '+JSON.stringify($e_prevhps),
+		'$combined_flag = '+JSON.stringify($combined_flag),
+		'$battle_count  = '+JSON.stringify($battle_count),
+		'$next_mapinfo  = '+JSON.stringify($next_mapinfo),
+		'```'];
 	var d = $battle_api_data = json.api_data;
 	var fidx2nd = 0;
 	var eidx2nd = 0;
@@ -2694,7 +2705,7 @@ function on_battle(json, battle_api_name) {
 	var fi = d.api_friendly_info;
 	if (ff && fi) {
 		if ($e_prevhps) {
-			e_nowhps = $e_prevhps.concat();	// e_nowhps には友軍艦隊攻撃後の敵ダメージが入っているので、昼戦終了時のダメージを初期値として使う.
+			e_nowhps = $e_prevhps; // e_nowhps には友軍艦隊攻撃後の敵ダメージが入っているので、昼戦終了時のダメージを初期値として使う.
 			e_beginhps = e_nowhps.concat();
 		}
 		var t0 = ff.api_flare_pos[0]; if (t0 != -1) result.detail.push({ty:'友軍照明弾(夜戦)',   at: t0, ae: 0, ff: 1});
@@ -2815,17 +2826,6 @@ function on_battle(json, battle_api_name) {
 	// --- print out ----
 	//
 	var req = [request_date_time()];
-	var dbg = ['YPS_debug_battle',
-		'```',
-		'$debug_ship_names  = '+JSON.stringify($debug_ship_names),
-		'$debug_battle_json = '+JSON.stringify(json),
-		'$f_beginhps      = '+JSON.stringify($f_beginhps),
-		'$e_beginhps      = '+JSON.stringify($e_beginhps),
-		'$e_prevhps       = '+JSON.stringify($e_prevhps),
-		'$combined_flag = '+JSON.stringify($combined_flag),
-		'$battle_count  = '+JSON.stringify($battle_count),
-		'$next_mapinfo  = '+JSON.stringify($next_mapinfo),
-		'```'];
 	req.push(dbg);
 	req.push('# ' + map_name() + ' battle' + $battle_count);
 	if (!/^演習/.test(map_name())) req.push(req.pop() + boss_next_name());
