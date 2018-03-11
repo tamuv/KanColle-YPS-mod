@@ -962,12 +962,22 @@ function battle_cl_name(a) {
 	}
 }
 
-function map_name(mst) { // "演習 5", "1-1: 鎮守府正面海域", "40-2: 台湾沖/ルソン島沖 TP363/400(90%)" etc..
+function map_name(mst) { // "演習 5", "1-1: 鎮守府正面海域", "40-2甲: 台湾沖/ルソン島沖 TP363/400(90%)" etc..
 	if (!mst) mst = $next_mapinfo;
-	var s = mst.api_name;
-	if (mst.api_no) s = mst.api_maparea_id + '-' + mst.api_no + ': ' + s;
+	let s = mst.api_name;
+	if (mst.api_no) s = mst.api_maparea_id + '-' + mst.api_no + map_rank_name($mapinfo_rank[mst.api_id]) + ': ' + s;
 	if (mst.yps_opt_name) s +=  ' ' + mst.yps_opt_name;
 	return s;
+}
+
+function map_rank_name(a) {
+	switch (a) {
+	case 1: return '丁';
+	case 2: return '丙';
+	case 3: return '乙';
+	case 4: return '甲';
+	default: return '';
+	}
 }
 
 function get_maparea_name(id) {
@@ -2248,11 +2258,8 @@ function on_battle_result(json) {
 	if (e) {
 		if ($next_mapinfo) {
 			var map_rank = $mapinfo_rank[$next_mapinfo.api_id];
-			switch (map_rank) {	// 難度選択海域ならば、艦隊名に難度表記を付加する.
-			case 1: e.api_deck_name += '@丁'; break;
-			case 2: e.api_deck_name += '@丙'; break;
-			case 3: e.api_deck_name += '@乙'; break;
-			case 4: e.api_deck_name += '@甲'; break;
+			if (map_rank) {		// 難度選択海域ならば、艦隊名に難度表記を付加する.
+				e.api_deck_name += '@' + map_rank_name(map_rank);
 			}
 		}
 		var rank = d.api_win_rank;
