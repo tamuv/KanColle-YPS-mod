@@ -2169,24 +2169,18 @@ function add_ship_escape(idx) {
 	}
 }
 
-function debug_ship_name(idx) {
-	var s = $debug_ship_names[idx];
-	if (s == null) s = 'friend' + (idx+1);
-	return s;
-}
-
 function make_debug_ship_names() {
 	$debug_ship_names = [];
 	let list = $fdeck_list[$battle_deck_id].api_ship;
-	for (let id of list) {
-		let ship = $ship_list[id]; // 艦隊が６隻以下の場合は -1 が埋草になっている.
-		$debug_ship_names.push(ship ? ship.fleet_name_lv() : null);
+	for (let id of list) { // list.length は6 or 7. 艦隊が６隻以下の場合は -1 が埋草になっている.
+		let ship = $ship_list[id];
+		$debug_ship_names.push(ship ? ship.name_lv() : null);
 	}
 	if (!$combined_flag) return;
 	list = $fdeck_list[2].api_ship;
 	for (let id of list) {
 		let ship = $ship_list[id];
-		$debug_ship_names.push(ship ? ship.fleet_name_lv() : null);
+		$debug_ship_names.push(ship ? ship.name_lv() : null);
 	}
 }
 
@@ -2218,14 +2212,16 @@ function ship_name_lv(idx, ae, ff) {
 			return s;
 		}
 		if ($combined_flag && idx >= 6) {
-			if ($debug_battle_json) return debug_ship_name(idx);
-			var fdeck = $fdeck_list[2];
-			return $ship_list[fdeck.api_ship[idx-6]].fleet_name_lv(); // 連合第二艦隊.
+			let s = '(第二艦隊' + (idx-6+1) + ')';
+			if ($debug_battle_json) return s + $debug_ship_names[idx];
+			let fdeck = $fdeck_list[2];
+			return s + $ship_list[fdeck.api_ship[idx-6]].name_lv();
 		}
 		else if (idx >= 0) {
-			if ($debug_battle_json) return debug_ship_name(idx);
-			var fdeck = $fdeck_list[$battle_deck_id];
-			return $ship_list[fdeck.api_ship[idx]].fleet_name_lv(); // 味方艦隊.
+			let s = '(主力艦隊' + (idx+1) + ')';
+			if ($debug_battle_json) return s + $debug_ship_names[idx];
+			let fdeck = $fdeck_list[$battle_deck_id];
+			return s + $ship_list[fdeck.api_ship[idx]].name_lv();
 		}
 	}
 	return ''; // idx: NaN, undefined, null, < 0
@@ -2551,7 +2547,7 @@ function push_fdeck_status(req, fdeck, maxhps, nowhps, beginhps, idx, end) {
 		if (maxhps[i] == -1) continue;
 		var name = '?';
 		if ($debug_battle_json) {
-			name = debug_ship_name(i).replace(/^\(艦隊\d\)/, "");
+			name = $debug_ship_names[i];
 			req.push('\t' + (i+1) + '(' + name + ').\t' + hp_status_on_battle(nowhps[i], maxhps[i], beginhps[i]));
 			continue;
 		}
