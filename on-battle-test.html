@@ -12,10 +12,14 @@ function parse_input() {
 	$svDateTime = $pcDateTime = new Date();
 	$debug_ship_names  = [];
 	$debug_battle_json = null;
+	$debug_api_name    = 'debug';
 	$f_beginhps    = null;
 	$e_beginhps    = null;
+	$e_prevhps     = null;
 	$combined_flag = null;
 	$battle_count  = 1;
+	$is_boss       = 0;
+	$is_next       = 1;
 	$next_mapinfo  = { api_name: 'DebugArea' };
 	// 入力を解析する.
 	var output = [];
@@ -26,7 +30,7 @@ function parse_input() {
 	}
 	else {
 		$battle_deck_id = $debug_battle_json.api_data.api_deck_id;
-		out = on_battle($debug_battle_json, 'debug');
+		out = on_battle($debug_battle_json, $debug_api_name);
 	}
 	var result = document.getElementById('result');
 	result.innerHTML = parse_markdown(out);

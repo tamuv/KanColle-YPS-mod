@@ -15,6 +15,7 @@ var $weekly			= load_storage('weekly');
 var $logbook		= load_storage('logbook', []);
 var $debug_battle_json = null;
 var $debug_ship_names = [];
+var $debug_api_name = '';
 var $tmp_ship_id = -1000;	// ドロップ艦の仮ID.
 var $tmp_slot_id = -1000;	// ドロップ艦装備の仮ID.
 var $max_ship = 0;
@@ -2665,12 +2666,15 @@ function on_battle(json, battle_api_name) {
 		'```',
 		'$debug_ship_names  = '+JSON.stringify($debug_ship_names),
 		'$debug_battle_json = '+JSON.stringify(json),
+		'$debug_api_name  = '+JSON.stringify(battle_api_name),
 		'$f_beginhps      = '+JSON.stringify($f_beginhps),
 		'$e_beginhps      = '+JSON.stringify($e_beginhps),
 		'$e_prevhps       = '+JSON.stringify($e_prevhps),
-		'$combined_flag = '+JSON.stringify($combined_flag),
-		'$battle_count  = '+JSON.stringify($battle_count),
-		'$next_mapinfo  = '+JSON.stringify($next_mapinfo),
+		'$combined_flag   = '+JSON.stringify($combined_flag),
+		'$battle_count    = '+JSON.stringify($battle_count),
+		'$is_boss         = '+JSON.stringify($is_boss),
+		'$is_next         = '+JSON.stringify($is_next),
+		'$next_mapinfo    = '+JSON.stringify($next_mapinfo),
 		'```'];
 	var d = $battle_api_data = json.api_data;
 	var f_maxhps = concat_hps(d.api_f_maxhps, d.api_f_maxhps_combined); // 通常艦隊[0..5], 増強第三艦隊[0..6], 第一/第二連合艦隊[0..5,6..11]
@@ -3214,7 +3218,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			$battle_log = [];
 			$battle_deck_id = $debug_battle_json.api_data.api_deck_id;
 			func = function(json) {
-				on_battle($debug_battle_json, 'debug');
+				on_battle($debug_battle_json, $debug_api_name);
 			}
 		}
 	}
