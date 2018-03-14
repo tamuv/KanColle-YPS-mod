@@ -656,6 +656,27 @@ function event_kind_name(id) {	///@param id	非戦闘マスのメッセージ ap
 	}
 }
 
+function battle_kind_name(id) { ///@param id	戦闘マスのメッセージ api_event_kind.
+	switch (id) {
+		case 1: return ''; // 通常戦.
+		case 2: return '夜戦';
+		case 3: return '払暁戦'; // 夜昼戦.
+		case 4: return '航空戦';
+		case 5: return '通常戦(敵連合)';
+		case 6: return '空襲戦';
+		case 7: return '払暁戦(敵連合)'; // 夜昼戦(敵連合).
+		default: return '??'+to_string(id);
+	}
+}
+
+function battle_api_kind_name(name) { ///@param name	battle_api_name.
+	if (/midnight/.test(name))     return '夜戦';
+	if (/night_to_day/.test(name)) return '払暁戦'; // 夜昼戦.
+	if (/ld_airbattle/.test(name)) return '空襲戦';
+	if (/airbattle/.test(name))    return '航空戦';
+	return '';
+}
+
 function mission_clear_name(cr) {	///@param c	遠征クリア api_clear_result
 	switch (cr) {
 		case 1: return '成功';
@@ -2153,7 +2174,7 @@ function on_next_cell(json) {
 				req.push('### @!!潜水艦注意!!@ ' + fraction_percent_name(sum_ss, sum_all));
 			}
 		}
-		print_next('next enemy' + ($battle_count + 1) + boss_next_name(), req);
+		print_next('next enemy' + ($battle_count + 1) + boss_next_name() + ' ' + battle_kind_name(d.api_event_kind), req);
 	}
 }
 
@@ -2833,6 +2854,7 @@ function on_battle(json, battle_api_name) {
 	//
 	req.push('# ' + map_name() + ' battle' + $battle_count);
 	if (!/^演習/.test(map_name())) req.push(req.pop() + boss_next_name());
+	req.push(req.pop() + ' ' + battle_api_kind_name(battle_api_name));
 	push_listform(req, $battle_log);
 	push_listform(req, $next_enemy);
 	if (fmt) req.push(fmt);
