@@ -2247,6 +2247,7 @@ function on_battle_result(json) {
 	var mvp_c = d.api_mvp_combined;
 //	var lost  = d.api_lost_flag;
 	var req = ['## battle result'];
+  try {
 	var drop_ship_name = g ? g.api_ship_type + ':' + g.api_ship_name : null;
 	var drop_ship_log  = g ? g.api_ship_name : null;
 	var drop_item_name = h ? $mst_useitem[h.api_useitem_id].api_name : null;
@@ -2354,7 +2355,12 @@ function on_battle_result(json) {
 	if (drop_item_name) {
 		req.push('## drop item', drop_item_name);
 	}
+  } catch (ex) {
+	req.push('# @!!' + ex.toString() + '!!@');
+	console.error(ex);
+  } finally {
 	chrome.runtime.sendMessage({ appendData: req });
+  }
 }
 
 function calc_damage(result, title, battle, fhp, ehp, active_deck, ff) {
@@ -2662,6 +2668,7 @@ function concat_hps(a, c) {
 }
 
 function on_battle(json, battle_api_name) {
+	const req = [request_date_time()];
 	const dbg = ['YPS_debug_battle',
 		'```',
 		'$debug_ship_names  = '+JSON.stringify($debug_ship_names),
@@ -2676,6 +2683,8 @@ function on_battle(json, battle_api_name) {
 		'$is_next         = '+JSON.stringify($is_next),
 		'$next_mapinfo    = '+JSON.stringify($next_mapinfo),
 		'```'];
+	req.push(dbg);
+  try {
 	var d = $battle_api_data = json.api_data;
 	var f_maxhps = concat_hps(d.api_f_maxhps, d.api_f_maxhps_combined); // 通常艦隊[0..5], 増強第三艦隊[0..6], 第一/第二連合艦隊[0..5,6..11]
 	var f_nowhps = concat_hps(d.api_f_nowhps, d.api_f_nowhps_combined);
@@ -2826,8 +2835,6 @@ function on_battle(json, battle_api_name) {
 	//
 	// --- print out ----
 	//
-	var req = [request_date_time()];
-	req.push(dbg);
 	req.push('# ' + map_name() + ' battle' + $battle_count);
 	if (!/^演習/.test(map_name())) req.push(req.pop() + boss_next_name());
 	push_listform(req, $battle_log);
@@ -2922,8 +2929,13 @@ function on_battle(json, battle_api_name) {
 		}
 		req.push(msg);
 	}
+  } catch (ex) {
+	req.push('# @!!' + ex.toString() + '!!@');
+	console.error(ex);
+  } finally {
 	if (!fdeck) return req; // for on-battle-test.html.
 	chrome.runtime.sendMessage(req);
+  }
 }
 
 chrome.devtools.network.onRequestFinished.addListener(function (request) {
