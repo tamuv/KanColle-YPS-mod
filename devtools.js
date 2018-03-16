@@ -2670,18 +2670,25 @@ function guess_win_rank(f_nowhps, f_maxhps, f_beginhps, e_nowhps, e_maxhps, e_be
 	return 'E'; // 検証中!!! 上記以外、つまり敵旗艦生存かつ自艦隊旗艦以外轟沈ならば、E敗北.
 }
 
-function concat_hps(a, c) {
-	var r = a.concat();	// 元のJSONデータを破壊しないようにするため、連合艦隊以外でも複製を作る.
+function concat_2nd_at6(a, c, filler) {	///< a の複製を作り、c が存在すれば a[6]の位置にcを結合する. a[a.length..5] は filler で埋める.
+	if (a == null) a = [];
+	let r = a.concat();
 	if (c) {
-		// 戦闘JSONデータの攻撃/防御の艦番号は、通常艦隊:0..5, 第三遊撃艦隊:0..6, 連合第一艦隊:0..5, 連合第二艦隊:6..11 である.
-		// 連合第一艦隊の編成が5隻以下の場合は、hps[6]が連合第二艦隊の旗艦のHPを保持するように間に埋草を入れる.
-		// guess_win_rank のダメージ集計時に埋草を除外するため maxhps の埋草は -1 でなければならない.
-		r.length = 6; r.fill(-1, a.length, 6);
+		r.length = 6;
+		if (a.length < 6) r.fill(filler, a.length, 6);
 		r = r.concat(c);
 		r.has2nd = true;
 		r.idx2nd = 6;
 	}
 	return r;
+}
+
+function concat_hps(a, c) {
+	// 元のJSONデータを破壊しないようにするため、連合艦隊以外でも複製を作る.
+	// 戦闘JSONデータの攻撃/防御の艦番号は、通常艦隊:0..5, 第三遊撃艦隊:0..6, 連合第一艦隊:0..5, 連合第二艦隊:6..11 である.
+	// 連合第一艦隊の編成が5隻以下の場合は、hps[6]が連合第二艦隊の旗艦のHPを保持するように間に埋草を入れる.
+	// guess_win_rank のダメージ集計時に埋草を除外するため maxhps の埋草は -1 でなければならない.
+	return concat_2nd_at6(a, c, -1);
 }
 
 function on_battle(json, battle_api_name) {
@@ -2912,16 +2919,11 @@ function on_battle(json, battle_api_name) {
 	req.push('被撃墜数: ' + result.f_air_lostcount);
 	req.push('## enemy damage');
 	$enemy_ship_names = [];
-	var ship_ke = d.api_ship_ke;
-	var ship_lv = d.api_ship_lv;
-	var eSlot   = d.api_eSlot;
-	var eParam  = d.api_eParam;
-	var eKyouka = d.api_eKyouka;
-	var ec = d.api_ship_ke_combined; if (ec) ship_ke = ship_ke.concat(ec);
-	var ec = d.api_ship_lv_combined; if (ec) ship_lv = ship_lv.concat(ec);
-	var ec = d.api_eParam_combined;  if (ec) eParam  = eParam.concat(ec);
-	var ec = d.api_eSlot_combined;   if (ec) eSlot   = eSlot.concat(ec);
-	var ec = d.api_eKyouka_combined; if (ec) eKyouka = eKyouka.concat(ec);
+	let ship_ke = concat_2nd_at6(d.api_ship_ke, d.api_ship_ke_combined, -1);
+	let ship_lv = concat_2nd_at6(d.api_ship_lv, d.api_ship_lv_combined, 0);
+	let eSlot   = concat_2nd_at6(d.api_eSlot,   d.api_eSlot_combined,   null);
+	let eParam  = concat_2nd_at6(d.api_eParam,  d.api_eParam_combined,  null);
+	let eKyouka = concat_2nd_at6(d.api_eKyouka, d.api_eKyouka_combined, null);
 	for (var i = 0; i < ship_ke.length; ++i) {
 		var ke = ship_ke[i];
 		if (ke == -1 || ke == null) continue;
@@ -2934,7 +2936,7 @@ function on_battle(json, battle_api_name) {
 		var enemy_slot = eSlot[i];
 		var param_name = ['火力', '雷装', '対空', '装甲'];
 		var enemy_param = eParam[i];
-		var enemy_kyouka = eKyouka ? eKyouka[i] : [0,0,0,0];
+		var enemy_kyouka = eKyouka[i] || [0,0,0,0];
 		var param = [];
 		for(var j = 0; j < 4; ++j){
 			param[j] = param_name[j] + ' ' + enemy_param[j] + diff_name(enemy_kyouka[j], 0);
