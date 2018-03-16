@@ -1,8 +1,8 @@
 {
 	"manifest_version": 2,
 	"name": "KanColle-YPS",
-	"version": "1.7.8",
-	"version_name": "v1.7.8 2018冬イベント対応3(札表示、単艦退避、連合第二ダメージ計算訂正), Chrome65対応",
+	"version": "1.7.9",
+	"version_name": "v1.7.9 2018冬イベント対応4(海域難易度、戦闘種別をタイトル表示)",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"permissions": [
