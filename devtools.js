@@ -13,6 +13,7 @@ var $remodel_slotweek = load_storage('remodel_slotweek');
 var $enemy_db		= load_storage('enemy_db');
 var $weekly			= load_storage('weekly');
 var $logbook		= load_storage('logbook', []);
+var $quest_list		= load_storage('quest_list');
 var $debug_battle_json = null;
 var $debug_ship_names = [];
 var $debug_api_name = '';
@@ -51,7 +52,6 @@ var $material = {
 var $material_sum = null;
 var $quest_count = -1;
 var $quest_exec_count = 0;
-var $quest_list = {};
 var $battle_count = 0;
 var $ndock_list = {};
 var $do_print_port_on_ndock = false;
@@ -1969,9 +1969,8 @@ function slotitem_levellist(mstid) {
 
 //------------------------------------------------------------------------
 function push_quests(req) {
-	var quests = Object.keys($quest_list).length;
-	if (quests > 0) {
-		var msg = ['YPS_quest_list'];
+		let msg = ['YPS_quest_list'];
+		let clear = ['YPS_quest_clear'];
 		var q_count = { daily:0, weekly:0, monthly:0 };
 		var p_count = { daily:0, weekly:0, monthly:0 };
 		for (var id in $quest_list) {
@@ -1980,13 +1979,16 @@ function push_quests(req) {
 			switch (quest.api_type) {
 			case 1:	// デイリー.
 				if (quest.api_state > 1) p_count.daily++;
-				q_count.daily++; q_type = '(毎日)'; break;
+				if (!quest.yps_clear)    q_count.daily++;
+				q_type = '(毎日)'; break;
 			case 2:	// ウィークリー.
 				if (quest.api_state > 1) p_count.weekly++;
-				q_count.weekly++; q_type = '(毎週)'; break;
+				if (!quest.yps_clear)    q_count.weekly++;
+				q_type = '(毎週)'; break;
 			case 3:	// マンスリー.
 				if (quest.api_state > 1) p_count.monthly++;
-				q_count.monthly++; q_type = '(毎月)'; break;
+				if (!quest.yps_clear)    q_count.monthly++;
+				q_type = '(毎月)'; break;
 			case 4:	// 単発.
 				q_type = '(単)'; break;
 			case 5:	// 他.
@@ -2001,19 +2003,25 @@ function push_quests(req) {
 				if (quest.api_no == 214) title += weekly_name();
 				msg.push(progress + ':' + q_type + title);
 			}
+			else if (quest.yps_clear) {
+				quest.yps_clear = to_date(quest.yps_clear); // load_storage() で復帰した値は Date ではなく string なので、Date へ戻す.
+				if (quest.api_type == 4 && quest.yps_clear.getTime() + 7*24*3600*1000 < Date.now()) continue; // 単発任務はクリア後7日経過したら非表示とする.
+				clear.push('* ' + quest.yps_clear.toLocaleString() + ':' + q_type + quest.api_title);
+			}
 		}
 		if (msg.length > 1) {
-			req.push('任務遂行数:' + $quest_exec_count + '/' + $quest_count
+			req.push('任務遂行数:' + $quest_exec_count
 				+ '(毎日:'  + p_count.daily   + '/' + q_count.daily
 				+ ', 毎週:' + p_count.weekly  + '/' + q_count.weekly
 				+ ', 毎月:' + p_count.monthly + '/' + q_count.monthly
 				+ ')'
 				);
 			req.push(msg);
+			if (clear.length > 1) {
+				msg.push('クリア済', clear);
+			}
 			msg.push('---');
 		}
-	}
-	if (quests != $quest_count) req.push('### 任務リストを先頭から最終ページまでめくってください');
 }
 
 function push_all_fleets(req) {
@@ -2074,14 +2082,14 @@ function on_mission_check(category) {
 		if (quest.api_category == category || category == null) {	// 1:編成, 2:出撃, 3:演習, 4:遠征, 5:補給入渠, 6:工廠.
 			var progress = (quest.api_state == 3) ? '達成!!'
 				:         (quest.api_state == 1) ? '@!!未チェック!!@'
+				:         (quest.api_state != 2) ? '@!!??!!@'
 				: (quest.api_progress_flag == 2) ? '遂行80%'
 				: (quest.api_progress_flag == 1) ? '遂行50%'
 				: '遂行中';
+			if (quest.yps_clear) progress = 'クリア済';
 			req.push('\t' + progress + '\t' + quest.api_title);
 		}
 	}
-	var quests = Object.keys($quest_list).length;
-	if (quests != $quest_count) req.push('### 任務リストを先頭から最終ページまでめくってください');
 	if (req.length > 1) {
 		push_all_fleets(req);
 		chrome.runtime.sendMessage(req);
@@ -3231,19 +3239,26 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 	else if (api_name == '/api_get_member/questlist') {
 		// 任務一覧.
 		func = function(json) { // 任務総数と任務リストを記録する.
-			var list = json.api_data.api_list;
-			$quest_count = json.api_data.api_count;
-			$quest_exec_count = json.api_data.api_exec_count;
-			if (json.api_data.api_disp_page == 1 && $quest_count != Object.keys($quest_list).length) {
-				$quest_list = {}; // 任務総数が変わったらリストをクリアする.
-			}
-			if (list) list.forEach(function(data) {
-				if (data == -1) return; // 最終ページには埋草で-1 が入っているので除外する.
-				$quest_list[data.api_no] = data;
-				if (data.api_no == 214) {
-					get_weekly().quest_state = data.api_state; // あ号任務ならば、遂行状態を記録する(1:未遂行, 2:遂行中, 3:達成)
+			if ($quest_count == -1) {
+				// 任務一覧の初回は、前回保存した遂行状態をすべてリセットする.
+				// 他のPCでクリアした任務はapi_listから消えるので遂行状態が永遠に更新できない. この不具合を避けるため.
+				for (let id in $quest_list) {
+					$quest_list[id].api_state = -1;
 				}
-			});
+			}
+			let d = json.api_data;
+			$quest_count = d.api_count;
+			$quest_exec_count = d.api_exec_count;
+			if (d.api_list) {
+				for (let data of d.api_list) {
+					if (data == -1) continue; // 最終ページには埋草で-1 が入っているので除外する.
+					$quest_list[data.api_no] = data;
+					if (data.api_no == 214) {
+						get_weekly().quest_state = data.api_state; // あ号任務ならば、遂行状態を記録する(1:未遂行, 2:遂行中, 3:達成)
+					}
+				}
+				save_storage('quest_list', $quest_list);
+			}
 			on_mission_check();
 		};
 		if ($debug_battle_json) {
@@ -3295,9 +3310,13 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 	else if (api_name == '/api_req_quest/clearitemget') {
 		// 任務クリア.
 		var params = decode_postdata_params(request.request.postData.params);
-		delete $quest_list[params.api_quest_id]; // 任務リストから外す.
+		let quest = $quest_list[params.api_quest_id];
+		if (quest) {
+			quest.api_state = -1; // クリア済みをマークする.
+			quest.yps_clear = $svDateTime;
+			save_storage('quest_list', $quest_list);
+		}
 		$quest_exec_count--;
-		$quest_count--;
 		func = function(json) { // 任務報酬を記録する.
 			var d = json.api_data;
 			for (var i = 0; i < d.api_material.length; ++i) {
