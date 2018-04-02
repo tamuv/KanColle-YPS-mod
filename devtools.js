@@ -3307,13 +3307,24 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			}
 		};
 	}
+	else if (api_name == '/api_req_quest/stop') {
+		// 任務解除.
+		var params = decode_postdata_params(request.request.postData.params);
+		let quest = $quest_list[params.api_quest_id];
+		if (quest) {
+			quest.api_state = 1; // 未遂行に戻す. 任務リスト表示が「推敲中のみモード」の場合、直後の任務リストから消えて更新されないのでこれが必要である.
+			save_storage('quest_list', $quest_list);
+		}
+		$quest_exec_count--;
+		// 直後に /api_get_member/questlist が来るので再表示は不要.
+	}
 	else if (api_name == '/api_req_quest/clearitemget') {
 		// 任務クリア.
 		var params = decode_postdata_params(request.request.postData.params);
 		let quest = $quest_list[params.api_quest_id];
 		if (quest) {
-			quest.api_state = -1; // クリア済みをマークする.
-			quest.yps_clear = $svDateTime;
+			quest.api_state = -1; // 達成をリセットする.
+			quest.yps_clear = $svDateTime; // クリア時刻を記録し、クリア済みをマークする.
 			save_storage('quest_list', $quest_list);
 		}
 		$quest_exec_count--;
