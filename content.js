@@ -170,6 +170,7 @@ function parse_markdown(a) {
 		s = s.replace(/:(小破)/g, ':<span style="text-shadow:0 0 0.5em yellow">$1</span>');
 		s = s.replace(/^出撃中:/g, '<span style="text-shadow:0 0 1em lime">$&</span>');
 		s = s.replace(/^遠征\d+/g, '<span style="text-shadow:0 0 1em cyan">$&</span>');
+		s = s.replace(/^\t(クリア済)\t(.+)/, '\t<span style="color:slategray">$1</span>\t<span style="color:slategray">$2</span>');
 		s = s.replace(/@!!(輸送.級)!!@/g, '<span style="color:limegreen">$1</span>');
 		s = s.replace(/@!!(空母.[級姫鬼])!!@/g, '<span style="color:darkorange">$1</span>');
 		s = s.replace(/@!!(軽母.[級姫鬼])!!@/g, '<span style="color:orange">$1</span>');
