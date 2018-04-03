@@ -2080,12 +2080,13 @@ function on_mission_check(category) {
 	for (var id in $quest_list) {
 		var quest = $quest_list[id];
 		if (quest.api_category == category || category == null) {	// 1:編成, 2:出撃, 3:演習, 4:遠征, 5:補給入渠, 6:工廠.
-			var progress = (quest.api_state == 3) ? '達成!!'
-				:         (quest.api_state == 1) ? '@!!未チェック!!@'
-				:         (quest.api_state != 2) ? '@!!??!!@'
-				: (quest.api_progress_flag == 2) ? '遂行80%'
-				: (quest.api_progress_flag == 1) ? '遂行50%'
-				: '遂行中';
+			let percent = (quest.api_progress_flag == 2) ? '80%'
+						: (quest.api_progress_flag == 1) ? '50%'
+						: null;
+			let progress = (quest.api_state == 3) ? '達成!!'
+						: (quest.api_state == 2) ? '遂行' + (percent || '中')
+						: (quest.api_state == 1) ? '@!!未チェック' + (percent || '') + '!!@'
+						: '@!!??!!@';
 			if (quest.yps_clear) progress = 'クリア済';
 			req.push('\t' + progress + '\t' + quest.api_title);
 		}
