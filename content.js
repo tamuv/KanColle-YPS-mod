@@ -259,8 +259,8 @@ function history_buttons() {
 		update_button_target();
 		update_histinfo();
 	};
-	return ' <input id="YPS_rev" type="button" value="←"/>'
-		+ ' <input id="YPS_fwd" type="button" value="→"/>'
+	return ' <input id="YPS_rev" type="button" value="◀"/>'
+		+ ' <input id="YPS_fwd" type="button" value="▶"/>'
 		+ ' 履歴<span id="YPS_histinfo"></span>'
 		;
 }
