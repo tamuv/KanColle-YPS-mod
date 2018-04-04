@@ -447,6 +447,7 @@ function get_weekly() {
 	}
 	if ($weekly.daily != dn) {
 		$weekly.daily = dn;
+		$quest_count = -1; // 日替わりで任務リストが更新されるので、任務のリセットを予約する.
 	}
 	if ($weekly.halfdaily != hn) {
 		$weekly.halfdaily = hn;
@@ -2022,6 +2023,7 @@ function push_quests(req) {
 			}
 			msg.push('---');
 		}
+		if ($quest_count == -1) req.push("## 任務リストを更新してください");
 }
 
 function push_all_fleets(req) {
@@ -2091,6 +2093,7 @@ function on_mission_check(category) {
 			req.push('\t' + progress + '\t' + quest.api_title);
 		}
 	}
+	if ($quest_count == -1) req.push("### 任務リストを更新してください");
 	if (req.length > 1) {
 		push_all_fleets(req);
 		chrome.runtime.sendMessage(req);
@@ -3258,8 +3261,8 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 						get_weekly().quest_state = data.api_state; // あ号任務ならば、遂行状態を記録する(1:未遂行, 2:遂行中, 3:達成)
 					}
 				}
-				save_storage('quest_list', $quest_list);
 			}
+			save_storage('quest_list', $quest_list);
 			on_mission_check();
 		};
 		if ($debug_battle_json) {
