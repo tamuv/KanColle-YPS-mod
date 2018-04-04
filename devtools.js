@@ -1847,8 +1847,7 @@ function print_port() {
 	}
 	//
 	// 遂行中任務を一覧表示する.
-	var w = get_weekly();
-	if (w.practice_done < 5) req.push('### @!!演習可能です(' + w.practice_done + '/5)!!@' ); // 警告表示.
+	if (weekly.practice_done < 5) req.push('### @!!演習可能です(' + weekly.practice_done + '/5)!!@' ); // 警告表示.
 	push_quests(req);
 	//
 	// 各艦隊の情報を一覧表示する.
