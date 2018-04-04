@@ -1969,60 +1969,60 @@ function slotitem_levellist(mstid) {
 
 //------------------------------------------------------------------------
 function push_quests(req) {
-		let msg = ['YPS_quest_list'];
-		let clear = ['YPS_quest_clear'];
-		var q_count = { daily:0, weekly:0, monthly:0 };
-		var p_count = { daily:0, weekly:0, monthly:0 };
-		for (var id in $quest_list) {
-			var quest = $quest_list[id];
-			var q_type = '';
-			switch (quest.api_type) {
-			case 1:	// デイリー.
-				if (quest.api_state > 1) p_count.daily++;
-				if (!quest.yps_clear)    q_count.daily++;
-				q_type = '(毎日)'; break;
-			case 2:	// ウィークリー.
-				if (quest.api_state > 1) p_count.weekly++;
-				if (!quest.yps_clear)    q_count.weekly++;
-				q_type = '(毎週)'; break;
-			case 3:	// マンスリー.
-				if (quest.api_state > 1) p_count.monthly++;
-				if (!quest.yps_clear)    q_count.monthly++;
-				q_type = '(毎月)'; break;
-			case 4:	// 単発.
-				q_type = '(単)'; break;
-			case 5:	// 他.
-				q_type = '(他)'; break;
-			}
-			if (quest.api_state > 1) {
-				var progress = (quest.api_state == 3) ? '* 達成!!'
-					: (quest.api_progress_flag == 2) ? '* 遂行80%'
-					: (quest.api_progress_flag == 1) ? '* 遂行50%'
-					: '* 遂行中';
-				var title = quest.api_title;
-				if (quest.api_no == 214) title += weekly_name();
-				msg.push(progress + ':' + q_type + title);
-			}
-			else if (quest.yps_clear) {
-				quest.yps_clear = to_date(quest.yps_clear); // load_storage() で復帰した値は Date ではなく string なので、Date へ戻す.
-				if (quest.api_type == 4 && quest.yps_clear.getTime() + 7*24*3600*1000 < Date.now()) continue; // 単発任務はクリア後7日経過したら非表示とする.
-				clear.push('* ' + quest.yps_clear.toLocaleString() + ':' + q_type + quest.api_title);
-			}
+	let msg = ['YPS_quest_list'];
+	let clear = ['YPS_quest_clear'];
+	var q_count = { daily:0, weekly:0, monthly:0 };
+	var p_count = { daily:0, weekly:0, monthly:0 };
+	for (var id in $quest_list) {
+		var quest = $quest_list[id];
+		var q_type = '';
+		switch (quest.api_type) {
+		case 1:	// デイリー.
+			if (quest.api_state > 1) p_count.daily++;
+			if (!quest.yps_clear)    q_count.daily++;
+			q_type = '(毎日)'; break;
+		case 2:	// ウィークリー.
+			if (quest.api_state > 1) p_count.weekly++;
+			if (!quest.yps_clear)    q_count.weekly++;
+			q_type = '(毎週)'; break;
+		case 3:	// マンスリー.
+			if (quest.api_state > 1) p_count.monthly++;
+			if (!quest.yps_clear)    q_count.monthly++;
+			q_type = '(毎月)'; break;
+		case 4:	// 単発.
+			q_type = '(単)'; break;
+		case 5:	// 他.
+			q_type = '(他)'; break;
 		}
-		if (msg.length > 1) {
-			req.push('任務遂行数:' + $quest_exec_count
-				+ '(毎日:'  + p_count.daily   + '/' + q_count.daily
-				+ ', 毎週:' + p_count.weekly  + '/' + q_count.weekly
-				+ ', 毎月:' + p_count.monthly + '/' + q_count.monthly
-				+ ')'
-				);
-			req.push(msg);
-			if (clear.length > 1) {
-				msg.push('クリア済', clear);
-			}
-			msg.push('---');
+		if (quest.api_state > 1) {
+			var progress = (quest.api_state == 3) ? '* 達成!!'
+				: (quest.api_progress_flag == 2) ? '* 遂行80%'
+				: (quest.api_progress_flag == 1) ? '* 遂行50%'
+				: '* 遂行中';
+			var title = quest.api_title;
+			if (quest.api_no == 214) title += weekly_name();
+			msg.push(progress + ':' + q_type + title);
 		}
-		if ($quest_count == -1) req.push("## 任務リストを更新してください");
+		else if (quest.yps_clear) {
+			quest.yps_clear = to_date(quest.yps_clear); // load_storage() で復帰した値は Date ではなく string なので、Date へ戻す.
+			if (quest.api_type == 4 && quest.yps_clear.getTime() + 7*24*3600*1000 < Date.now()) continue; // 単発任務はクリア後7日経過したら非表示とする.
+			clear.push('* ' + quest.yps_clear.toLocaleString() + ':' + q_type + quest.api_title);
+		}
+	}
+	if (msg.length > 1) {
+		req.push('任務遂行数:' + $quest_exec_count
+			+ '(毎日:'  + p_count.daily   + '/' + q_count.daily
+			+ ', 毎週:' + p_count.weekly  + '/' + q_count.weekly
+			+ ', 毎月:' + p_count.monthly + '/' + q_count.monthly
+			+ ')'
+			);
+		req.push(msg);
+		if (clear.length > 1) {
+			msg.push('クリア済', clear);
+		}
+		msg.push('---');
+	}
+	if ($quest_count == -1) req.push("## 任務リストを更新してください");
 }
 
 function push_all_fleets(req) {
