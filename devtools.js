@@ -1969,6 +1969,7 @@ function slotitem_levellist(mstid) {
 
 //------------------------------------------------------------------------
 function push_quests(req) {
+	let quests = 0;
 	let msg = ['YPS_quest_list'];
 	let clear = ['YPS_quest_clear'];
 	var q_count = { daily:0, weekly:0, monthly:0 };
@@ -1994,6 +1995,7 @@ function push_quests(req) {
 		case 5:	// 他.
 			q_type = '(他)'; break;
 		}
+		if (quest.api_state > 0) quests++;
 		if (quest.api_state > 1) {
 			var progress = (quest.api_state == 3) ? '* 達成!!'
 				: (quest.api_progress_flag == 2) ? '* 遂行80%'
@@ -2009,8 +2011,9 @@ function push_quests(req) {
 			clear.push('* ' + quest.yps_clear.toLocaleString() + ':' + q_type + quest.api_title);
 		}
 	}
+	if (quests != $quest_count) req.push("### @!!任務リストを先頭から最終ページまでめくって、内容を更新してください!!@");
 	if (msg.length > 1) {
-		req.push('任務遂行数:' + $quest_exec_count
+		req.push('任務遂行数:' + $quest_exec_count + '/' + $quest_count
 			+ '(毎日:'  + p_count.daily   + '/' + q_count.daily
 			+ ', 毎週:' + p_count.weekly  + '/' + q_count.weekly
 			+ ', 毎月:' + p_count.monthly + '/' + q_count.monthly
@@ -2022,7 +2025,6 @@ function push_quests(req) {
 		}
 		msg.push('---');
 	}
-	if ($quest_count == -1) req.push("## 任務リストを更新してください");
 }
 
 function push_all_fleets(req) {
@@ -2077,9 +2079,11 @@ function push_all_fleets(req) {
 // イベントハンドラ.
 //
 function on_mission_check(category) {
+	let quests = 0;
 	var req = ['## 任務'];
 	for (var id in $quest_list) {
 		var quest = $quest_list[id];
+		if (quest.api_state > 0) quests++;
 		if (quest.api_category == category || category == null) {	// 1:編成, 2:出撃, 3:演習, 4:遠征, 5:補給入渠, 6:工廠.
 			let percent = (quest.api_progress_flag == 2) ? '80%'
 						: (quest.api_progress_flag == 1) ? '50%'
@@ -2092,7 +2096,7 @@ function on_mission_check(category) {
 			req.push('\t' + progress + '\t' + quest.api_title);
 		}
 	}
-	if ($quest_count == -1) req.push("### 任務リストを更新してください");
+	if (quests != $quest_count) req.unshift("### @!!任務リストを先頭から最終ページまでめくって、内容を更新してください!!@");
 	if (req.length > 1) {
 		push_all_fleets(req);
 		chrome.runtime.sendMessage(req);
@@ -3241,6 +3245,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 	}
 	else if (api_name == '/api_get_member/questlist') {
 		// 任務一覧.
+		let tab_id = decode_postdata_params(request.request.postData.params).api_tab_id;
 		func = function(json) { // 任務総数と任務リストを記録する.
 			if ($quest_count == -1) {
 				// 任務一覧の初回は、前回保存した遂行状態をすべてリセットする.
@@ -3250,7 +3255,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 				}
 			}
 			let d = json.api_data;
-			$quest_count = d.api_count;
+			if (tab_id == 0) $quest_count = d.api_count; // 絞り込み無しの任務一覧の場合にのみ任務総数が得られる.
 			$quest_exec_count = d.api_exec_count;
 			if (d.api_list) {
 				for (let data of d.api_list) {
@@ -3316,9 +3321,9 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		let quest = $quest_list[params.api_quest_id];
 		if (quest) {
 			quest.api_state = 1; // 未遂行に戻す. 任務リスト表示が「推敲中のみモード」の場合、直後の任務リストから消えて更新されないのでこれが必要である.
-			save_storage('quest_list', $quest_list);
+//			save_storage('quest_list', $quest_list);	直後に api_get_member/questlist が来るので、ここでの保存とカウンタ更新は冗長.
+//			$quest_exec_count--;
 		}
-		$quest_exec_count--;
 		// 直後に /api_get_member/questlist が来るので再表示は不要.
 	}
 	else if (api_name == '/api_req_quest/clearitemget') {
@@ -3328,9 +3333,10 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		if (quest) {
 			quest.api_state = -1; // 達成をリセットする.
 			quest.yps_clear = $svDateTime; // クリア時刻を記録し、クリア済みをマークする.
-			save_storage('quest_list', $quest_list);
+//			save_storage('quest_list', $quest_list);	直後に api_get_member/questlist が来るので、ここでの保存とカウンタ更新は冗長.
+//			$quest_exec_count--;
+			$quest_count--;		// 絞り込み任務リストの場合は, 直後の api_get_member/questlist では任務総数が得られないのでここで更新する.
 		}
-		$quest_exec_count--;
 		func = function(json) { // 任務報酬を記録する.
 			var d = json.api_data;
 			for (var i = 0; i < d.api_material.length; ++i) {
