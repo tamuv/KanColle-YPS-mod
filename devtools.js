@@ -429,7 +429,8 @@ function update_mst_maparea(list) {
 }
 
 function get_weekly() {
-	var ms = Date.now() - Date.UTC(2013, 4-1, 22, 5-9, 0); // 2013-4-22 05:00 JST からの経過ミリ秒数.
+	const now = Date.now();
+	const ms = now - Date.UTC(2013, 4-1, 22, 5-9, 0); // 2013-4-22 05:00 JST からの経過ミリ秒数.
 	var dn = Math.floor(ms / (24*60*60*1000)); // 経過日数に変換する.
 	var wn = Math.floor(dn / 7); // 経過週数に変換する.
 	var hn = Math.floor((ms + 2*60*60*1000) / (12*60*60*1000)); // 演習更新数(03:00JST起点の半日周期)に変換する.
@@ -446,6 +447,8 @@ function get_weekly() {
 		};
 	}
 	if ($weekly.daily != dn) {
+		const date = new Date(now + 9*60*60*1000);
+		$weekly.month = date.getUTCMonth();	// 実行環境のタイムゾーンに関係なくJSTの月番号が必要なので, タイムゾーン分ずらした世界時で月番号を得る.
 		$weekly.daily = dn;
 		$quest_count = -1; // 日替わりで任務リストが更新されるので、任務のリセットを予約する.
 	}
@@ -457,6 +460,10 @@ function get_weekly() {
 		$weekly.monday_material = $material.now.concat(); save_weekly();
 	}
 	return $weekly;
+}
+
+function month_to_quarter(m) {	///< m 0(Jan)..11(Dec) ->  1:Dec,Jan,Feb, 2:Mar,Apr,May, 3:Jun,Jul,Aug, 4:Sep,Oct,Nov.
+	return Math.floor(((m+1)%12)/3)+1;
 }
 
 function save_weekly() {
@@ -1972,27 +1979,33 @@ function push_quests(req) {
 	let quests = 0;
 	let msg = ['YPS_quest_list'];
 	let clear = ['YPS_quest_clear'];
-	var q_count = { daily:0, weekly:0, monthly:0 };
-	var p_count = { daily:0, weekly:0, monthly:0 };
+	let q_count = { daily:0, weekly:0, monthly:0 };
+	let p_count = { daily:0, weekly:0, monthly:0 };
+	const w = get_weekly();
 	for (var id in $quest_list) {
 		var quest = $quest_list[id];
 		var q_type = '';
 		switch (quest.api_type) {
 		case 1:	// デイリー.
+			if (quest.yps_daily != w.daily) continue; // 期限切れ任務を非表示とする.
 			if (quest.api_state > 1) p_count.daily++;
 			if (!quest.yps_clear)    q_count.daily++;
 			q_type = '(毎日)'; break;
 		case 2:	// ウィークリー.
+			if (quest.yps_week != w.week) continue; // 期限切れ任務を非表示とする.
 			if (quest.api_state > 1) p_count.weekly++;
 			if (!quest.yps_clear)    q_count.weekly++;
 			q_type = '(毎週)'; break;
 		case 3:	// マンスリー.
+			if (quest.yps_month != w.month) continue; // 期限切れ任務を非表示とする.
 			if (quest.api_state > 1) p_count.monthly++;
 			if (!quest.yps_clear)    q_count.monthly++;
 			q_type = '(毎月)'; break;
 		case 4:	// 単発.
 			q_type = '(単)'; break;
 		case 5:	// 他.
+			if (month_to_quarter(quest.yps_month) != month_to_quarter(w.month)) continue; // 期限切れ任務を非表示とする.
+			///@todo 空母3や輸送5など特殊周期は個別対応が必要となる.
 			q_type = '(他)'; break;
 		}
 		if (quest.api_state > 0) quests++;
@@ -2081,6 +2094,7 @@ function push_all_fleets(req) {
 function on_mission_check(category) {
 	let quests = 0;
 	var req = ['## 任務'];
+	const w = get_weekly();
 	for (var id in $quest_list) {
 		var quest = $quest_list[id];
 		if (quest.api_state > 0) quests++;
@@ -2093,7 +2107,24 @@ function on_mission_check(category) {
 						: (quest.api_state == 1) ? '@!!未チェック' + (percent || '') + '!!@'
 						: '@!!??!!@';
 			if (quest.yps_clear) progress = 'クリア済';
-			req.push('\t' + progress + '\t' + quest.api_title);
+			let q_type = '';
+			switch (quest.api_type) {
+			case 1:	// デイリー.
+				if (quest.yps_daily != w.daily) continue; // 期限切れ任務を非表示とする.
+				q_type = '(毎日)'; break;
+			case 2:	// ウィークリー.
+				if (quest.yps_week != w.week) continue; // 期限切れ任務を非表示とする.
+				q_type = '(毎週)'; break;
+			case 3:	// マンスリー.
+				if (quest.yps_month != w.month) continue; // 期限切れ任務を非表示とする.
+				q_type = '(毎月)'; break;
+			case 4:	// 単発.
+				q_type = '(単)'; break;
+			case 5:	// 他.
+				///@todo 期限切れ任務を非表示とする. 空母3や輸送5など特殊周期のもの、四半期周期のものがあり個別対応が必要となる.
+				q_type = '(他)'; break;
+			}
+			req.push('\t' + progress + '\t' + id + ':' + q_type + quest.api_title);
 		}
 	}
 	if (quests != $quest_count) req.unshift("### @!!任務リストを先頭から最終ページまでめくって、内容を更新してください!!@");
@@ -3258,11 +3289,15 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			if (tab_id == 0) $quest_count = d.api_count; // 絞り込み無しの任務一覧の場合にのみ任務総数が得られる.
 			$quest_exec_count = d.api_exec_count;
 			if (d.api_list) {
+				const w = get_weekly();
 				for (let data of d.api_list) {
 					if (data == -1) continue; // 最終ページには埋草で-1 が入っているので除外する.
+					data.yps_daily = w.daily;
+					data.yps_week  = w.week;
+					data.yps_month = w.month;
 					$quest_list[data.api_no] = data;
 					if (data.api_no == 214) {
-						get_weekly().quest_state = data.api_state; // あ号任務ならば、遂行状態を記録する(1:未遂行, 2:遂行中, 3:達成)
+						w.quest_state = data.api_state; // あ号任務ならば、遂行状態を記録する(1:未遂行, 2:遂行中, 3:達成)
 					}
 				}
 			}
