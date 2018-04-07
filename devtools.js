@@ -3356,10 +3356,8 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		let quest = $quest_list[params.api_quest_id];
 		if (quest) {
 			quest.api_state = 1; // 未遂行に戻す. 任務リスト表示が「推敲中のみモード」の場合、直後の任務リストから消えて更新されないのでこれが必要である.
-//			save_storage('quest_list', $quest_list);	直後に api_get_member/questlist が来るので、ここでの保存とカウンタ更新は冗長.
-//			$quest_exec_count--;
+			// 直後に来る /api_get_member/questlist の処理にて、遂行中任務カウンタ更新とデータ保存と再表示が行われるので、ここではそれらの処理は不要である.
 		}
-		// 直後に /api_get_member/questlist が来るので再表示は不要.
 	}
 	else if (api_name == '/api_req_quest/clearitemget') {
 		// 任務クリア.
@@ -3368,9 +3366,8 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		if (quest) {
 			quest.api_state = -1; // 達成をリセットする.
 			quest.yps_clear = $svDateTime; // クリア時刻を記録し、クリア済みをマークする.
-//			save_storage('quest_list', $quest_list);	直後に api_get_member/questlist が来るので、ここでの保存とカウンタ更新は冗長.
-//			$quest_exec_count--;
 			$quest_count--;		// 絞り込み任務リストの場合は, 直後の api_get_member/questlist では任務総数が得られないのでここで更新する.
+			// 直後に来る /api_get_member/questlist の処理にて、遂行中任務カウンタ更新とデータ保存と再表示が行われるので、ここではそれらの処理は不要である.
 		}
 		func = function(json) { // 任務報酬を記録する.
 			var d = json.api_data;
