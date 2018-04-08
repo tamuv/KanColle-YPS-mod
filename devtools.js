@@ -1979,8 +1979,8 @@ function push_quests(req) {
 	let quests = 0;
 	let msg = ['YPS_quest_list'];
 	let clear = ['YPS_quest_clear'];
-	let q_count = { daily:0, weekly:0, monthly:0 };
-	let p_count = { daily:0, weekly:0, monthly:0 };
+	let q_count = { daily:0, weekly:0, monthly:0, others:0 };
+	let p_count = { daily:0, weekly:0, monthly:0, others:0 };
 	const w = get_weekly();
 	for (var id in $quest_list) {
 		var quest = $quest_list[id];
@@ -2007,6 +2007,8 @@ function push_quests(req) {
 			if (month_to_quarter(quest.yps_month) != month_to_quarter(w.month)) continue; // 期限切れ任務を非表示とする.
 			if (id == 211 && quest.yps_daily != w.daily) continue;	// 期限切れの"空母3隻撃破"任務を非表示とする.
 			if (id == 212 && quest.yps_daily != w.daily) continue;	// 期限切れの"輸送艦5隻撃破"任務を非表示とする.
+			if (quest.api_state > 1) p_count.others++;
+			if (!quest.yps_clear)    q_count.others++;
 			q_type = '(他)'; break;
 		}
 		if (quest.api_state > 0) quests++;
@@ -2031,6 +2033,7 @@ function push_quests(req) {
 			+ '(日:'  + p_count.daily   + '/' + q_count.daily
 			+ ', 週:' + p_count.weekly  + '/' + q_count.weekly
 			+ ', 月:' + p_count.monthly + '/' + q_count.monthly
+			+ ', 他:' + p_count.others + '/' + q_count.others
 			+ ')'
 			);
 		req.push(msg);
