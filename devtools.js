@@ -1990,17 +1990,17 @@ function push_quests(req) {
 			if (quest.yps_daily != w.daily) continue; // 期限切れ任務を非表示とする.
 			if (quest.api_state > 1) p_count.daily++;
 			if (!quest.yps_clear)    q_count.daily++;
-			q_type = '(毎日)'; break;
+			q_type = '(日)'; break;
 		case 2:	// ウィークリー.
 			if (quest.yps_week != w.week) continue; // 期限切れ任務を非表示とする.
 			if (quest.api_state > 1) p_count.weekly++;
 			if (!quest.yps_clear)    q_count.weekly++;
-			q_type = '(毎週)'; break;
+			q_type = '(週)'; break;
 		case 3:	// マンスリー.
 			if (quest.yps_month != w.month) continue; // 期限切れ任務を非表示とする.
 			if (quest.api_state > 1) p_count.monthly++;
 			if (!quest.yps_clear)    q_count.monthly++;
-			q_type = '(毎月)'; break;
+			q_type = '(月)'; break;
 		case 4:	// 単発.
 			q_type = '(単)'; break;
 		case 5:	// 他.
@@ -2024,12 +2024,12 @@ function push_quests(req) {
 			clear.push('* ' + quest.yps_clear.toLocaleString() + ':' + q_type + quest.api_title);
 		}
 	}
-	if (quests != $quest_count) req.push("### @!!任務リストを先頭から最終ページまでめくって、内容を更新してください!!@");
+	if (quests != $quest_count) req.push("### @!!任務リスト(全All)を先頭から最終ページまでめくって、内容を更新してください!!@");
 	if (msg.length > 1) {
 		req.push('任務遂行数:' + $quest_exec_count + '/' + $quest_count
-			+ '(毎日:'  + p_count.daily   + '/' + q_count.daily
-			+ ', 毎週:' + p_count.weekly  + '/' + q_count.weekly
-			+ ', 毎月:' + p_count.monthly + '/' + q_count.monthly
+			+ '(日:'  + p_count.daily   + '/' + q_count.daily
+			+ ', 週:' + p_count.weekly  + '/' + q_count.weekly
+			+ ', 月:' + p_count.monthly + '/' + q_count.monthly
 			+ ')'
 			);
 		req.push(msg);
@@ -2111,13 +2111,13 @@ function on_mission_check(category) {
 			switch (quest.api_type) {
 			case 1:	// デイリー.
 				if (quest.yps_daily != w.daily) continue; // 期限切れ任務を非表示とする.
-				q_type = '(毎日)'; break;
+				q_type = '(日)'; break;
 			case 2:	// ウィークリー.
 				if (quest.yps_week != w.week) continue; // 期限切れ任務を非表示とする.
-				q_type = '(毎週)'; break;
+				q_type = '(週)'; break;
 			case 3:	// マンスリー.
 				if (quest.yps_month != w.month) continue; // 期限切れ任務を非表示とする.
-				q_type = '(毎月)'; break;
+				q_type = '(月)'; break;
 			case 4:	// 単発.
 				q_type = '(単)'; break;
 			case 5:	// 他.
@@ -2127,7 +2127,7 @@ function on_mission_check(category) {
 			req.push('\t' + progress + '\t' + id + ':' + q_type + quest.api_title);
 		}
 	}
-	if (quests != $quest_count) req.unshift("### @!!任務リストを先頭から最終ページまでめくって、内容を更新してください!!@");
+	if (quests != $quest_count) req.unshift("### @!!任務リスト(全All)を先頭から最終ページまでめくって、内容を更新してください!!@");
 	if (req.length > 1) {
 		push_all_fleets(req);
 		chrome.runtime.sendMessage(req);
