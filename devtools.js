@@ -2005,7 +2005,8 @@ function push_quests(req) {
 			q_type = '(単)'; break;
 		case 5:	// 他.
 			if (month_to_quarter(quest.yps_month) != month_to_quarter(w.month)) continue; // 期限切れ任務を非表示とする.
-			///@todo 空母3や輸送5など特殊周期は個別対応が必要となる.
+			if (id == 211 && quest.yps_daily != w.daily) continue;	// 期限切れの"空母3隻撃破"任務を非表示とする.
+			if (id == 212 && quest.yps_daily != w.daily) continue;	// 期限切れの"輸送艦5隻撃破"任務を非表示とする.
 			q_type = '(他)'; break;
 		}
 		if (quest.api_state > 0) quests++;
@@ -2121,7 +2122,9 @@ function on_mission_check(category) {
 			case 4:	// 単発.
 				q_type = '(単)'; break;
 			case 5:	// 他.
-				///@todo 期限切れ任務を非表示とする. 空母3や輸送5など特殊周期のもの、四半期周期のものがあり個別対応が必要となる.
+				if (month_to_quarter(quest.yps_month) != month_to_quarter(w.month)) continue; // 期限切れ任務を非表示とする.
+				if (id == 211 && quest.yps_daily != w.daily) continue;	// 期限切れの"空母3隻撃破"任務を非表示とする.
+				if (id == 212 && quest.yps_daily != w.daily) continue;	// 期限切れの"輸送艦5隻撃破"任務を非表示とする.
 				q_type = '(他)'; break;
 			}
 			req.push('\t' + progress + '\t' + id + ':' + q_type + quest.api_title);
