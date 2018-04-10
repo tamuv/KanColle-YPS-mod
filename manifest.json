@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 	"name": "KanColle-YPS",
 	"version": "1.8.0",
-	"version_name": "v1.8.0pre 任務一覧の表示方法改善",
+	"version_name": "v1.8.0 任務一覧の表示方法改善",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"permissions": [
