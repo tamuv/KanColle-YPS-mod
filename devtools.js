@@ -2024,6 +2024,7 @@ function push_quests(req) {
 			var title = quest.api_title;
 			if (quest.api_no == 214) title += weekly_name();
 			msg.push(progress + ':' + q_type + title);
+			msg.push(['tooltip'].concat(quest.api_detail.split('<br>')));
 		}
 		else if (quest.yps_clear) {
 			quest.yps_clear = to_date(quest.yps_clear); // load_storage() で復帰した値は Date ではなく string なので、Date へ戻す.
