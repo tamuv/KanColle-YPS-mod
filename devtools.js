@@ -2987,9 +2987,9 @@ function on_battle(json, battle_api_name) {
 		var name = ship_name(ke) + 'Lv' + ship_lv[i];
 		$enemy_ship_names.push(name);
 		req.push('\t' + (i+1) + '(' + name + ').\t'
-			+ hp_status_on_battle(e_nowhps[i], e_maxhps[i], e_beginhps[i]) + '\t');
+			+ hp_status_on_battle(e_nowhps[i], e_maxhps[i], e_beginhps[i]));
 
-		var msg = ['YPS_enemy_detail' + i];
+		var msg = ['tooltip'];
 		var enemy_slot = eSlot[i];
 		var param_name = ['火力', '雷装', '対空', '装甲'];
 		var enemy_param = eParam[i];
