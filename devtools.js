@@ -450,15 +450,19 @@ function get_weekly() {
 		const date = new Date(now + 9*60*60*1000);
 		$weekly.month = date.getUTCMonth();	// 実行環境のタイムゾーンに関係なくJSTの月番号が必要なので, タイムゾーン分ずらした世界時で月番号を得る.
 		$weekly.daily = dn;
+		$weekly.saveime = 0;
 		$quest_count = -1; // 日替わりで任務リストが更新されるので、任務のリセットを予約する.
 	}
 	if ($weekly.halfdaily != hn) {
 		$weekly.halfdaily = hn;
-		$weekly.practice_done = 0; save_weekly();
+		$weekly.practice_done = 0;
+		$weekly.saveime = 0;
 	}
 	if ($weekly.monday_material == null) {
-		$weekly.monday_material = $material.now.concat(); save_weekly();
+		$weekly.monday_material = $material.now.concat();
+		$weekly.saveime = 0;
 	}
+	if ($weekly.saveime == 0) save_weekly();
 	return $weekly;
 }
 
