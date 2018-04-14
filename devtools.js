@@ -82,6 +82,7 @@ var $kaizou_list_orig = null;
 // Ship クラス.
 function Ship(data, ship) {
 	this.p_cond	= (ship) ? ship.c_cond : 49;
+	this.sortie_dn	= (ship) ? ship.sortie_dn : 0;
 	this.c_cond	= data.api_cond;
 	this.maxhp	= data.api_maxhp;
 	this.nowhp	= data.api_nowhp;
@@ -1475,6 +1476,11 @@ function print_port() {
 	var lock_condlist = {};
 	var lock_kyoukalist = {};
 	var lock_beginlist = {};
+	var lock_standby3  = [];
+	var lock_standby10 = [];
+	var lock_standby30 = [];
+	var lock_standby90 = [];
+	var lock_standbyxx = [];
 	var lock_repairlist = [];
 	var unowned_names = [];
 	var owned_ship_idset = {};
@@ -1499,6 +1505,7 @@ function print_port() {
 	var drumcan_cond50 = [];
 	var drumcan_condxx = [];
 	var sally_area = {};
+	const weekly = get_weekly();
 	//
 	// ロック装備を種類毎に集計する.
 	for (var id in $slotitem_list) {
@@ -1571,6 +1578,12 @@ function print_port() {
 			}
 			if (!lock_beginlist[begin_id]) lock_beginlist[begin_id] = [];
 			lock_beginlist[begin_id].push(ship);
+			let days = weekly.daily - ship.sortie_dn;
+			if      (days < 3)  lock_standby3.push(ship);
+			else if (days < 10) lock_standby10.push(ship);
+			else if (days < 30) lock_standby30.push(ship);
+			else if (days < 90) lock_standby90.push(ship);
+			else                lock_standbyxx.push(ship);
 		}
 		if (ship.slot) {
 			ship.slot.forEach(function(id) {
@@ -1623,7 +1636,6 @@ function print_port() {
 		, '\t==改修'
 		, '\t==破棄'
 	];
-	var weekly = get_weekly();
 	for (var i = 0; i < 8; ++i) {
 		var j = 1;
 		msg[j++] += '\t==' + material_name(i + 1);
@@ -1680,6 +1692,12 @@ function print_port() {
 			if (a.length > 1) msg.push('\t|' + shiplist_names(a));
 		}
 	}
+	msg.push('## ロック艦待機日数');
+	var a = lock_standby3;  if (a.length > 0) msg.push('### 3日以内',  '\t|' + shiplist_names(a));
+	var a = lock_standby10; if (a.length > 0) msg.push('### 10日以内', '\t|' + shiplist_names(a));
+	var a = lock_standby30; if (a.length > 0) msg.push('### 30日以内', '\t|' + shiplist_names(a));
+	var a = lock_standby90; if (a.length > 0) msg.push('### 90日以内', '\t|' + shiplist_names(a));
+	var a = lock_standbyxx; if (a.length > 0) msg.push('### 90日以上', '\t|' + shiplist_names(a));
 	msg.push('---');
 	if (msg.length > 2) req.push(msg);
 	//
@@ -2244,6 +2262,16 @@ function add_ship_escape(idx) {
 			$ship_escape[$fdeck_list[1].api_ship[idx-1]] = 1; // 第一艦隊から退避.
 	} else {
 		$ship_escape[$fdeck_list[$battle_deck_id].api_ship[idx-1]] = 1; // 単艦退避
+	}
+}
+
+function update_sortie_dn(deck_id) {
+	const fdeck = $fdeck_list[deck_id];
+	if (!fdeck) return;
+	const weekly = get_weekly();
+	for (let id of fdeck.api_ship) { // fdeck.api_ship.length は6 or 7. 艦隊が６隻以下の場合は -1 が埋草になっている.
+		const ship = $ship_list[id];
+		if (ship) ship.sortie_dn = weekly.daily;
 	}
 }
 
@@ -3538,6 +3566,11 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			on_mission_check(4);
 		};
 	}
+	else if (api_name == '/api_req_mission/start') {
+		// 遠征開始.
+		var params = decode_postdata_params(request.request.postData.params);
+		update_sortie_dn(params.api_deck_id);
+	}
 	else if (api_name == '/api_get_member/deck') {
 		// 遠征出発.
 		func = function(json) { // 艦隊一覧を更新してcond表示する.
@@ -3686,6 +3719,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		$battle_log = [];
 		$is_boss = false;
 		make_debug_ship_names();
+		update_sortie_dn($battle_deck_id); if ($combined_flag) update_sortie_dn(2);
 		func = on_next_cell;
 	}
 	else if (api_name == '/api_req_map/next') {
@@ -3746,6 +3780,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		$e_prevhps  = null;
 		$battle_log = [];
 		make_debug_ship_names();
+		update_sortie_dn($battle_deck_id);
 		func = on_battle;
 	}
 	else if (api_name == '/api_req_practice/midnight_battle') {
