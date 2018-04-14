@@ -38,6 +38,9 @@ style.textContent = "ul.markdown {list-style:disc inside;}" // 箇条書き頭�
 	+ "h3.markdown { margin:1em 0px 0.3em 0px;}"
 	+ "h4.markdown { margin:0px 1em;}"
 	+ "h5.markdown { margin:0px 1em;}"
+	+ ".toolmain       .tooltip { display:none; }" // 通常時は非表示.
+	+ ".toolmain:hover .tooltip { display:inline; font-weight:normal; position:absolute; margin-left:1ex; padding:0.5ex; border:1px solid; background:lightyellow; }" // hover時に枠付きで表示.
+	+ ".toolmain:hover          {                 font-weight:bold; }" // hover時に太字.
 	;
 
 document.getElementsByTagName('head')[0].appendChild(style);
@@ -124,6 +127,18 @@ function toggle_li(id){
 	return toggle_node('li', id);
 }
 
+function tooltip_span(a) {
+	return '<span class="tooltip">' + parse_markdown(a) + '</span>';
+}
+
+function update_tooltip() {
+	for (let e of document.getElementsByClassName('tooltip')) {
+		let pe = e.parentElement;
+		if (/toolmain/.test(pe.className)) continue;
+		pe.className += " toolmain"; // tooltipクラスの親ノードに、toolmainクラスを設定する.
+	}
+}
+
 //------------------------------------------------------------------------
 // markdown -> html 変換.
 //
@@ -137,6 +152,13 @@ function parse_markdown(a) {
 		if (s instanceof Array) {	// 入れ子ブロック. [id, line1, line2, line3...]
 			var id = s.shift();
 			var end_tag = html.match(/<\/\w+>$/);
+			if (id == 'tooltip') {
+				if (end_tag != null)
+					html = insert_string(html, html.length - end_tag[0].length, tooltip_span(s)); // 直前の終了タグの内側にツールチップ内容を入れる.
+				else
+					html += tooltip_span(s);
+				continue;
+			}
 			if (end_tag != null)
 				html = insert_string(html, html.length - end_tag[0].length, toggle_button(id)); // 直前の終了タグの内側にトグルボタンを入れる.
 			else
@@ -183,7 +205,8 @@ function parse_markdown(a) {
 		else if (/^## /.test(s))	t = s.replace(/^#+ (.+)/, '<h3 class="markdown">$1</h3>');
 		else if (/^# /.test(s))		t = s.replace(/^#+ (.+)/, '<h2 class="markdown">$1</h2>');
 		else if (/^\* /.test(s))	{ t = s.replace(/^. (.+)/, "<li>$1</li>"); li_count++; }
-		else if (/^\t/.test(s))		{ t = "<tr>" + s.replace(/\t/g, "<td>") + "</tr>"; tr_count++;
+		else if (/^\t/.test(s))		{ t = '<tr>' + s.replace(/\t/g, '</td><td>') + '</tr>'; tr_count++;
+									  t = t.replace(/<tr><\/td>/, '<tr>');
 									  t = t.replace(/<td>\|(.*)(?=<td|<\/tr)/g, function(match, p1) {	// "\t|" は :,で折り返し有とする.
 										return '<td>' + p1.replace(/[,:] /g, '$&<wbr>');
 									  });
@@ -287,6 +310,7 @@ chrome.runtime.onMessage.addListener(function (req) {
 		pop_history();
 		div.innerHTML += parse_markdown([req]);
 	}
+	update_tooltip();
 	push_history(div.innerHTML);	// 履歴に追加する.
 	update_button_target();			// 更新したHTMLに対して、ターゲット表示/非表示を反映する.
 	update_histinfo();				// 履歴個数表示を更新する.
