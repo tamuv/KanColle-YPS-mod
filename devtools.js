@@ -1097,6 +1097,13 @@ function count_unless(a, value) {
 		return (a != value) ? 1 : 0;
 }
 
+function array_push(obj, id, value) {
+	if (obj[id] instanceof Array)
+		obj[id].push(value);
+	else
+		obj[id] = [value];
+}
+
 function add_slotitem_list(data, prev) {
 	if (!data) return;
 	if (data instanceof Array) {
@@ -1476,11 +1483,7 @@ function print_port() {
 	var lock_condlist = {};
 	var lock_kyoukalist = {};
 	var lock_beginlist = {};
-	var lock_standby3  = [];
-	var lock_standby10 = [];
-	var lock_standby30 = [];
-	var lock_standby90 = [];
-	var lock_standbyxx = [];
+	var lock_standby = {};
 	var lock_repairlist = [];
 	var unowned_names = [];
 	var owned_ship_idset = {};
@@ -1579,11 +1582,9 @@ function print_port() {
 			if (!lock_beginlist[begin_id]) lock_beginlist[begin_id] = [];
 			lock_beginlist[begin_id].push(ship);
 			let days = weekly.daily - ship.sortie_dn;
-			if      (days < 3)  lock_standby3.push(ship);
-			else if (days < 10) lock_standby10.push(ship);
-			else if (days < 30) lock_standby30.push(ship);
-			else if (days < 90) lock_standby90.push(ship);
-			else                lock_standbyxx.push(ship);
+			if      (days <= 10) array_push(lock_standby, days, ship);
+			else if (days <= 90) array_push(lock_standby, Math.ceil(days/10)*10, ship);
+			else                 array_push(lock_standby, '不明(90日以上)', ship);
 		}
 		if (ship.slot) {
 			ship.slot.forEach(function(id) {
@@ -1693,11 +1694,17 @@ function print_port() {
 		}
 	}
 	msg.push('## ロック艦待機日数');
-	var a = lock_standby3;  if (a.length > 0) msg.push('### 3日以内',  '\t|' + shiplist_names(a));
-	var a = lock_standby10; if (a.length > 0) msg.push('### 10日以内', '\t|' + shiplist_names(a));
-	var a = lock_standby30; if (a.length > 0) msg.push('### 30日以内', '\t|' + shiplist_names(a));
-	var a = lock_standby90; if (a.length > 0) msg.push('### 90日以内', '\t|' + shiplist_names(a));
-	var a = lock_standbyxx; if (a.length > 0) msg.push('### 90日以上', '\t|' + shiplist_names(a));
+	for (let days in lock_standby) {
+		let a = lock_standby[days];
+		let title = '### 不明';
+		if (days == 0)
+			title = '### 当日';
+		else if (days > 0)
+			title = '### ' + days + '日以内';
+		else if (days != null)
+			title = '### ' + days;
+		msg.push(title, '\t|' + shiplist_names(a));
+	}
 	msg.push('---');
 	if (msg.length > 2) req.push(msg);
 	//
