@@ -1481,7 +1481,7 @@ function print_port() {
 	var req = [request_date_time()];
 	var unlock_names = [];
 	var lock_condlist = {};
-	var lock_kyoukalist = {};
+	var lock_kyoukalist = { 0:[], 1:[], 2:[], 3:[], 4:[] };
 	var lock_beginlist = {};
 	var lock_standby = {};
 	var lock_repairlist = [];
@@ -1555,15 +1555,13 @@ function print_port() {
 		else {	// locked
 			$locked_ship_idset[begin_id] = true;
 			var cond = ship.c_cond;
-			if (!lock_condlist[cond]) lock_condlist[cond] = [];
-			lock_condlist[cond].push(ship);
+			array_push(lock_condlist, cond, ship);
 			if      (cond >= 85) cond85++; // 三重キラ.
 			else if (cond >= 53) cond53++; // 回避向上キラ.
 			else if (cond >  49) cond50++; // キラ.
 			var max_k = ship.max_kyouka();
 			for (var i in max_k) {
-				if (!lock_kyoukalist[i]) lock_kyoukalist[i] = [];
-				if (max_k[i] > ship.kyouka[i]) lock_kyoukalist[i].push(ship);
+				if (max_k[i] > ship.kyouka[i]) array_push(lock_kyoukalist, i, ship);
 			}
 			if (!$ndock_list[id] && ship.nowhp < ship.maxhp) {
 				var r = ship.nowhp / ship.maxhp;
@@ -1579,8 +1577,7 @@ function print_port() {
 				else if (cond > 49) drumcan_cond50.push(ship);
 				else               drumcan_condxx.push(ship);
 			}
-			if (!lock_beginlist[begin_id]) lock_beginlist[begin_id] = [];
-			lock_beginlist[begin_id].push(ship);
+			array_push(lock_beginlist, begin_id, ship);
 			let days = weekly.daily - ship.sortie_dn;
 			if      (days <= 10) array_push(lock_standby, days, ship);
 			else if (days <= 90) array_push(lock_standby, Math.ceil(days/10)*10, ship);
