@@ -211,5 +211,6 @@ $init_newship_slots = {
 544:	1,	// Gambier Bay.
 549:	1,	// Intrepid.
 551:	2,	// 日振.
-552:	2	// 大東.
+552:	2,	// 大東.
+561:  1   // Samuel B.Roberts.
 };
