@@ -1,8 +1,9 @@
 {
 	"manifest_version": 2,
 	"name": "KanColle-YPS",
-	"version": "1.8.1",
-	"version_name": "v1.8.1 ロック艦待機日数を一覧表示する",
+	"short_name": "KanColle-YPS",
+	"version": "1.8.2",
+	"version_name": "v1.8.2 WebStore公開対応",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"icons": {
