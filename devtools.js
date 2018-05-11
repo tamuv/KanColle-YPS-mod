@@ -2747,6 +2747,10 @@ function guess_win_rank(f_nowhps, f_maxhps, f_beginhps, e_nowhps, e_maxhps, e_be
 	if (e_leader_lost && f_lost_count < e_lost_count) {　// 検証中!!! 敵旗艦撃沈かつ、自轟沈数より敵撃沈数が多いならば、B勝利.
 		return 'B';
 	}
+	if (f_count == 1 && (f_hp_total - f_damage_total) / f_maxhp_total <= 0.25) { // 検証中!!! 自艦隊単艦かつ旗艦大破ならば、D敗北.
+		///@see https://github.com/andanteyk/ElectronicObserver/commit/80fc664e3d5c4223dd585882a726ecc719d15be8
+		return 'D';
+	}
 	if (10 * e_damage_percent > 25 * f_damage_percent) { // 確定. 戦果ゲージ比が2.5より大きいならば、B勝利.
 		return 'B';
 	}
