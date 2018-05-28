@@ -3445,18 +3445,8 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			$quest_count--;		// 絞り込み任務リストの場合は, 直後の api_get_member/questlist では任務総数が得られないのでここで更新する.
 			// 直後に来る /api_get_member/questlist の処理にて、遂行中任務カウンタ更新とデータ保存と再表示が行われるので、ここではそれらの処理は不要である.
 		}
-		func = function(json) { // 任務報酬を記録する.
-			var d = json.api_data;
-			for (var i = 0; i < d.api_material.length; ++i) {
-				$material.quest[i] += d.api_material[i];
-			}
-			for (var i = 0; i < d.api_bounus.length; ++i) {
-				var n  = d.api_bounus[i].api_count;
-				var id = d.api_bounus[i].api_item.api_id;
-				if (id >= 1 && id <= 8) $material.quest[id-1] += n;
-			}
-			// 直後に /api_get_member/material パケットが来るので print_port() は不要.
-		};
+		$material_sum = $material.quest;
+		// 直後に /api_get_member/material パケットが来るので print_port() は不要.
 	}
 	else if (api_name == '/api_get_member/material') {
 		// 建造後、任務クリア後など.
