@@ -1775,7 +1775,7 @@ function print_port() {
 	if ($kaizou_list_orig.length < kaizou_list.length) req.push('### @!!改造可能艦が増えました!!@'); // 警告表示.
 	if ($convert_list_orig == null) $convert_list_orig = convert_list;
 	if ($convert_list_orig.length < convert_list.length) req.push('### @!!コンバート改装可能艦が増えました!!@'); // 警告表示.
-	req.push('改造可能艦数:' + (kaizou_list.length + convert_list.length)
+	req.push('改造+コンバート改装可能艦数:' + kaizou_list.length + '+' + convert_list.length
 			+ ', 近代化改修可能艦数('
 			+   '火力:' + lock_kyoukalist[0].length
 			+ ', 雷装:' + lock_kyoukalist[1].length
@@ -1784,7 +1784,7 @@ function print_port() {
 			+ ', 運:'   + lock_kyoukalist[4].length
 			+ ')');
 	var msg = ['YPS_kai_list'];
-	if (afterlv_list.length > 0) msg.push('## 次の改造レベル', '\t|' + shiplist_names(afterlv_list, function(ship){ return ship.fleet_name_lv_afterlv(); }));
+	if (afterlv_list.length > 0) msg.push('## 改造Lv不足艦一覧', '\t|' + shiplist_names(afterlv_list, function(ship){ return ship.fleet_name_lv_afterlv(); }));
 	if (kaizou_list.length > 0) msg.push('## 改造可能艦一覧', '\t|' + shiplist_names(kaizou_list));
 	if (convert_list.length > 0) msg.push('## コンバート改装可能艦一覧', '\t|' + shiplist_names(convert_list));
 	msg.push('## 近代化改修可能艦一覧(ロック艦のみ)');
