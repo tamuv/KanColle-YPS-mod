@@ -181,12 +181,9 @@ Ship.prototype.will_kaizou = function() {
 };
 
 Ship.prototype.can_convert = function() {
-	if(!this.can_kaizou()) {
-		return false;
-	}
 	var current = $mst_ship[this.ship_id]
 	var after = $mst_ship[current.api_aftershipid];
-	return after.api_aftershipid == this.ship_id && current.api_afterlv <= this.lv && after.api_afterlv <= this.lv;
+	return after && after.api_aftershipid == this.ship_id && current.api_afterlv <= this.lv && after.api_afterlv <= this.lv;
 };
 
 Ship.prototype.max_kyouka = function() {
@@ -1615,12 +1612,10 @@ function print_port() {
 				}
 			});
 		}
-		if (ship.can_kaizou()) {
-			if (ship.can_convert()) {
-				convert_list.push(ship);
-			} else {
-				kaizou_list.push(ship);
-			}
+		if (ship.can_convert()) {
+			convert_list.push(ship);
+		} else if (ship.can_kaizou()) {
+			kaizou_list.push(ship);
 		} else if (ship.locked && ship.will_kaizou()) {
 			afterlv_list.push(ship);
 		}
