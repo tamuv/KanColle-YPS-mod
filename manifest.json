@@ -2,8 +2,8 @@
 	"manifest_version": 2,
 	"name": "KanColle-YPS",
 	"short_name": "KanColle-YPS",
-	"version": "1.8.2",
-	"version_name": "v1.8.2 WebStore公開対応",
+	"version": "1.8.3",
+	"version_name": "v1.8.3 コンバート改装可能艦表示",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"icons": {

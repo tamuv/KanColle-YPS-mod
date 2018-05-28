@@ -1,1 +1,1 @@
-zip webstore-app.zip *.json *.js devtools.html icons/*
+zip webstore-app.zip manifest.json devtools.html *.js icons/*
