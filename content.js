@@ -5,7 +5,7 @@ var div = document.createElement('div');
 div.style.whiteSpace = 'pre-wrap';
 div.style.position = 'absolute';
 div.style.top = '75px'; // NaviBar 39px + margin 20px + spacer 16px
-div.style.left = '850px';
+div.style.left = '1260px';
 div.innerHTML = "<h2>艦これ余所見プレイ支援</h2>"
 	+ version_banner()
 	+ "<h3>ロード中...</h3>"
@@ -51,9 +51,9 @@ document.body.appendChild(div);
 // ゲーム画面の配置調整.
 //
 document.getElementById('w').style.textAlign = 'left';
-document.getElementById('w').style.width = '820px';
-document.getElementById('area-game').style.textAlign = 'left';
-document.getElementById('game_frame').width = '820px';
+document.getElementById('w').style.width = '1230px';
+//document.getElementById('area-game').style.textAlign = 'left';
+//document.getElementById('game_frame').width = '820px';
 //document.getElementById('ntg-recommend').style.display = 'none';
 
 //------------------------------------------------------------------------
