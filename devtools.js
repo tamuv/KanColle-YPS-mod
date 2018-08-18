@@ -2274,6 +2274,7 @@ function on_next_cell(json) {
 			var sum_ss = 0; // 敵潜水艦隊の通算回数合計.
 			var sum_all = 0; //　全敵艦隊の通算回数合計.
 			list.forEach(function(a) {
+				if (!a.v2) return;	// 艦これ第二期にて海域の敵艦隊が一部変更されたので、一期の敵艦隊は表示しない.
 				var s = '\t  ' + a.w + '\t  ' + a.n + '\t|' + a.name + '\t' + a.lv;
 				var ss = s.replace(/潜水.[級姫鬼]/g, '@!!$&!!@');
 				if (s != ss) sum_ss += a.n;
@@ -2442,6 +2443,7 @@ function on_battle_result(json) {
 				w: 1,					// 今週回数.
 				n: 1,					// 通算回数.
 				r: (map_rank || 0),		// 海域難度. 3(甲),2(乙),1(丙),0(通常) undefinedなら0に置き換える.
+				v2: 1,					// 第二期 BLOCK1.
 				lv: d.api_member_lv		// 司令部Lv.
 			};
 			for (var i = 0; i < db.data.length; ++i) {		// db.dataに記録済みならば、その記録を更新する.
