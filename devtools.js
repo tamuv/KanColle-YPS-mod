@@ -2255,7 +2255,7 @@ function on_next_cell(json) {
 		var db = $enemy_db[$next_enemy = area];
 		if (db) {
 			req[0] += ':敵遭遇回数記録';
-			req.push('\t==今週\t==通算\t==艦隊名(陣形):編成\t==司令部Lv');
+			req.push('\t==今週\t==通算\t==艦隊名(陣形):編成\t==海域EXP\t==勝敗\t==司令部Lv');
 			if (db.fifo || db.data[0].r == null) { // 旧データならば破棄する.
 				delete db.fifo;
 				db.data = [];
@@ -2275,7 +2275,7 @@ function on_next_cell(json) {
 			var sum_all = 0; //　全敵艦隊の通算回数合計.
 			list.forEach(function(a) {
 				if (!a.v2) return;	// 艦これ第二期にて海域の敵艦隊が一部変更されたので、一期の敵艦隊は表示しない.
-				var s = '\t  ' + a.w + '\t  ' + a.n + '\t|' + a.name + '\t' + a.lv;
+				var s = '\t  ' + a.w + '\t  ' + a.n + '\t|' + a.name + '\t  ' + (a.exp || '?') + '\t' + (a.win || '?') + '\t' + a.lv;
 				var ss = s.replace(/潜水.[級姫鬼]/g, '@!!$&!!@');
 				if (s != ss) sum_ss += a.n;
 				sum_all += a.n;
@@ -2444,6 +2444,8 @@ function on_battle_result(json) {
 				n: 1,					// 通算回数.
 				r: (map_rank || 0),		// 海域難度. 3(甲),2(乙),1(丙),0(通常) undefinedなら0に置き換える.
 				v2: 1,					// 第二期 BLOCK1.
+				exp: d.api_get_base_exp,// 第二期 海域経験値.
+				win: rank,				// 第二期 勝利判定. 完S,S,A,B,C,D,E
 				lv: d.api_member_lv		// 司令部Lv.
 			};
 			for (var i = 0; i < db.data.length; ++i) {		// db.dataに記録済みならば、その記録を更新する.
@@ -2474,6 +2476,9 @@ function on_battle_result(json) {
 			api_exp: [0,100,0]
 		};
 		delta_update_ship_list([drop_ship]);
+	}
+	if (d.api_get_base_exp > 0) {
+		req.push('基本EXP: ' + d.api_get_base_exp);
 	}
 	if (mvp > 0) {
 		var id = $fdeck_list[$battle_deck_id].api_ship[mvp-1];
