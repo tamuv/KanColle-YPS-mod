@@ -2036,7 +2036,7 @@ function push_quests(req) {
 	let clear = ['YPS_quest_clear'];
 	let q_count = { daily:0, weekly:0, monthly:0, others:0 };
 	let p_count = { daily:0, weekly:0, monthly:0, others:0 };
-	const w = get_weekly();
+	const w = get_weekly();	// 5:00JSTをまたぐと、get_weekly()内で $quest_count が -1 にリセットされる.
 	for (var id in $quest_list) {
 		var quest = $quest_list[id];
 		var q_type = '';
@@ -2044,26 +2044,27 @@ function push_quests(req) {
 		case 1:	// デイリー.
 			if (quest.yps_daily != w.daily) continue; // 期限切れ任務を非表示とする.
 			if (quest.api_state > 1) p_count.daily++;
-			if (!quest.yps_clear)    q_count.daily++;
+			if (quest.api_state > 0) q_count.daily++;
 			q_type = '(日)'; break;
 		case 2:	// ウィークリー.
 			if (quest.yps_week != w.week) continue; // 期限切れ任務を非表示とする.
 			if (quest.api_state > 1) p_count.weekly++;
-			if (!quest.yps_clear)    q_count.weekly++;
+			if (quest.api_state > 0) q_count.weekly++;
 			q_type = '(週)'; break;
 		case 3:	// マンスリー.
 			if (quest.yps_month != w.month) continue; // 期限切れ任務を非表示とする.
 			if (quest.api_state > 1) p_count.monthly++;
-			if (!quest.yps_clear)    q_count.monthly++;
+			if (quest.api_state > 0) q_count.monthly++;
 			q_type = '(月)'; break;
 		case 4:	// 単発.
+			if (quest.yps_daily + 7 < w.daily) continue; // サーバから受け取る任務リストから消えて7日経過したら非表示とする.
 			q_type = '(単)'; break;
 		case 5:	// 他.
 			if (month_to_quarter(quest.yps_month) != month_to_quarter(w.month)) continue; // 期限切れ任務を非表示とする.
 			if (id == 211 && quest.yps_daily != w.daily) continue;	// 期限切れの"空母3隻撃破"任務を非表示とする.
 			if (id == 212 && quest.yps_daily != w.daily) continue;	// 期限切れの"輸送艦5隻撃破"任務を非表示とする.
 			if (quest.api_state > 1) p_count.others++;
-			if (!quest.yps_clear)    q_count.others++;
+			if (quest.api_state > 0) q_count.others++;
 			q_type = '(他)'; break;
 		}
 		if (quest.api_state > 0) quests++;
@@ -2079,7 +2080,6 @@ function push_quests(req) {
 		}
 		else if (quest.yps_clear) {
 			quest.yps_clear = to_date(quest.yps_clear); // load_storage() で復帰した値は Date ではなく string なので、Date へ戻す.
-			if (quest.api_type == 4 && quest.yps_clear.getTime() + 7*24*3600*1000 < Date.now()) continue; // 単発任務はクリア後7日経過したら非表示とする.
 			clear.push('* ' + quest.yps_clear.toLocaleString() + ':' + q_type + quest.api_title);
 		}
 	}
@@ -2179,6 +2179,7 @@ function on_mission_check(category) {
 				if (quest.yps_month != w.month) continue; // 期限切れ任務を非表示とする.
 				q_type = '(月)'; break;
 			case 4:	// 単発.
+				if (quest.yps_daily + 7 < w.daily) continue; // サーバから受け取る任務リストから消えて7日経過したら非表示とする.
 				q_type = '(単)'; break;
 			case 5:	// 他.
 				if (month_to_quarter(quest.yps_month) != month_to_quarter(w.month)) continue; // 期限切れ任務を非表示とする.
@@ -3366,6 +3367,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		// 任務一覧.
 		let tab_id = decode_postdata_params(request.request.postData.params).api_tab_id;
 		func = function(json) { // 任務総数と任務リストを記録する.
+			const w = get_weekly();	// 5:00JSTをまたぐと、get_weekly()内で $quest_count が -1 にリセットされる.
 			if ($quest_count == -1) {
 				// 任務一覧の初回は、前回保存した遂行状態をすべてリセットする.
 				// 他のPCでクリアした任務はapi_listから消えるので遂行状態が永遠に更新できない. この不具合を避けるため.
@@ -3377,7 +3379,6 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			if (tab_id == 0) $quest_count = d.api_count; // 絞り込み無しの任務一覧の場合にのみ任務総数が得られる.
 			$quest_exec_count = d.api_exec_count;
 			if (d.api_list) {
-				const w = get_weekly();
 				for (let data of d.api_list) {
 					if (data == -1) continue; // 最終ページには埋草で-1 が入っているので除外する.
 					data.yps_daily = w.daily;
