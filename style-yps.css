@@ -1,0 +1,88 @@
+/* KanColle-YPS style sheets */
+
+/* === yps panel classes === */
+.yps-body {
+	white-space: pre-wrap;
+	position: absolute;
+	top: 75px; /* NaviBar 39px + margin 20px + spacer 16px */
+	left: 1260px;
+}
+.yps-history {
+	background: silver;
+}
+.yps-navi {
+	white-space: nowrap;
+	top: 50px; /* NaviBar 39px + margin 20px - 9px */
+}
+
+/* == ul === */
+ul.markdown {
+	/* 箇条書き頭文字円盤. */
+	list-style: disc inside;
+}
+
+/* === table === */
+table.markdown {
+	/* テーブル枠線なし. 行折り返しなし. */
+	border-collapse: collapse;
+	border: 0px;
+	white-space: nowrap;
+}
+table.markdown tr td {
+	/* table cellpadding 上下0px, 左右0.5文字, 上揃え. */
+	padding: 0px 0.5em;
+	vertical-align: top;
+}
+table.markdown tr th {
+	/* table cellpadding 上下0px, 左右0.5文字. 文字サイズ70%. */
+	padding: 0px 0.5em;
+	font-size: 70%;
+}
+
+/* === header classes === */
+.markdownH3 {
+	margin: 1em 0px 0.3em 0px;
+}
+.markdownH4 {
+	margin: 0px 1em;
+}
+.markdownH5 {
+	margin: 0px 1em;
+}
+
+/* === details, summary === */
+details.markdownDIV {
+	margin: 0.2em 0px 0.2em 0px;
+}
+details > ul.markdown {
+	margin-left: 1em;
+}
+summary.markdown > * {
+	display: inline;
+}
+summary.markdown {
+	margin-bottom: 0.2em;
+}
+summary.markdown:hover {
+	background: lightblue;
+}
+
+/* === tooltip classes === */
+.toolmain .tooltip {
+	/* 通常時は非表示. */
+	display: none;
+}
+.toolmain:hover .tooltip {
+	/* hover時に枠付きで表示. */
+	display: inline;
+	font-weight: normal;
+	position: absolute;
+	margin-left: 1ex;
+	padding: 0.5ex;
+	border: 1px solid;
+	background: lightyellow;
+}
+.toolmain:hover {
+	/* hover時に太字. */
+	font-weight:bold;
+}

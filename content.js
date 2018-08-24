@@ -2,10 +2,7 @@
 // DOM生成.
 //
 var div = document.createElement('div');
-div.style.whiteSpace = 'pre-wrap';
-div.style.position = 'absolute';
-div.style.top = '75px'; // NaviBar 39px + margin 20px + spacer 16px
-div.style.left = '1260px';
+div.classList.add('yps-body');
 div.innerHTML = "<h2>艦これ余所見プレイ支援</h2>"
 	+ version_banner()
 	+ "<h3>ロード中...</h3>"
@@ -16,39 +13,15 @@ div.innerHTML = "<h2>艦これ余所見プレイ支援</h2>"
 	;
 
 var hst = document.createElement('div');
-hst.style.whiteSpace = div.style.whiteSpace;
-hst.style.position = div.style.position;
-hst.style.top = div.style.top;
-hst.style.left = div.style.left;
-hst.style.background = 'silver';
+hst.classList.add('yps-body');
+hst.classList.add('yps-history');
 hst.YPS_HTMLarray = [];	// html履歴配列.
 hst.YPS_HTMLcursor = 0;	// 履歴表示位置.
 
 var navi = document.createElement('div');
-navi.style.whiteSpace = 'nowrap';
-navi.style.position = 'absolute';
-navi.style.top = '50px'; // NaviBar 39px + margin 20px - 9px
-navi.style.left = div.style.left;
+navi.classList.add('yps-body');
+navi.classList.add('yps-navi');
 
-var style = document.createElement('style');
-style.textContent = "ul.markdown {list-style:disc inside;}" // 箇条書き頭文字円盤.
-	+ "table.markdown {border-collapse:collapse; border:0px; white-space:nowrap;}" // テーブル枠線なし. 行折り返しなし.
-	+ "table.markdown tr td {padding:0px 0.5em; vertical-align:top;}" // table cellpadding 上下0px, 左右0.5文字, 上揃え.
-	+ "table.markdown tr th {padding:0px 0.5em; font-size:70%; }" // table cellpadding 上下0px, 左右0.5文字. 文字サイズ70%.
-	+ ".markdownH3 { margin:1em 0px 0.3em 0px;}"
-	+ ".markdownH4 { margin:0px 1em;}"
-	+ ".markdownH5 { margin:0px 1em;}"
-	+ "details.markdownDIV      { margin:0.2em 0px 0.2em 0px;}"
-	+ "details > ul.markdown    { margin-left:1em;}"
-	+ "summary.markdown > *     { display:inline;}"
-	+ "summary.markdown         { margin-bottom:0.2em;}"
-	+ "summary.markdown:hover   { background:lightblue;}"
-	+ ".toolmain       .tooltip { display:none; }" // 通常時は非表示.
-	+ ".toolmain:hover .tooltip { display:inline; font-weight:normal; position:absolute; margin-left:1ex; padding:0.5ex; border:1px solid; background:lightyellow; }" // hover時に枠付きで表示.
-	+ ".toolmain:hover          {                 font-weight:bold; }" // hover時に太字.
-	;
-
-document.getElementsByTagName('head')[0].appendChild(style);
 document.body.appendChild(navi);
 document.body.appendChild(div);
 
