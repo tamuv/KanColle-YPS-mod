@@ -143,19 +143,18 @@ function parse_markdown(a) {
 		var s = a[i];
 		var t = null;
 		if (s instanceof Array) {	// 入れ子ブロック. [id, line1, line2, line3...]
-			var id = s.shift();
-			var end_tag = html.match(/<\/\w+>$/);
+			const id = s.shift();
+			const end_tag = html.match(/<\/\w+>$/);
 			if (id == 'tooltip') {
-				if (end_tag != null)
-					html = insert_string(html, html.length - end_tag[0].length, tooltip_span(s)); // 直前の終了タグの内側にツールチップ内容を入れる.
-				else
-					html += tooltip_span(s);
-				continue;
+				s = tooltip_span(s);
+			}
+			else {
+				s = toggle_details(id, s);
 			}
 			if (end_tag != null)
-				html = insert_string(html, html.length - end_tag[0].length, toggle_details(id, s)); // 直前の終了タグの内側にdetailsを入れる.
+				html = insert_string(html, html.length - end_tag[0].length, s); // 直前の終了タグの内側に入れ子内容を入れる.
 			else
-				html += toggle_details(id, s);
+				html += s;
 			continue;
 		}
 		// エスケープを行う.
