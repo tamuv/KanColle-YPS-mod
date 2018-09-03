@@ -1220,7 +1220,7 @@ function hp_status(nowhp, maxhp) {
 }
 
 function hp_status_on_battle(nowhp, maxhp, beginhp) {
-	return (nowhp < 0 ? 0 : nowhp) + '/' + maxhp + diff_name(nowhp, beginhp) + ':' + damage_name(nowhp, maxhp);
+	return (nowhp < 0 ? 0 : nowhp) + '/' + maxhp + diff_name(nowhp, beginhp) + ':' + damage_name(nowhp, maxhp, beginhp - nowhp);
 }
 
 function Daihatu() {
