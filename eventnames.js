@@ -1,10 +1,12 @@
 $event_sally_tag_names = {
-// id: 2018冬イベントname.
+// id: 2018初秋イベントname.
+// http://*/kcs2/img/common/common_event.png?version=4.1.0.0
 1: '警戒部隊',
-2: '栗田艦隊',
-3: '西村艦隊',
-4: '小沢艦隊',
-5: '志摩艦隊'
+2: '海峡派遣艦隊',
+3: '西方作戦部隊',
+4: '欧州特務艦隊',
+5: 'Force H',
+6: 'ライン演習部隊'
 };
 
 $event_kind_names = {
