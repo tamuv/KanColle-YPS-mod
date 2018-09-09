@@ -3,7 +3,7 @@
 //
 var div = document.createElement('div');
 div.classList.add('yps-body');
-div.innerHTML = "<h2>艦これ余所見プレイ支援</h2>"
+div.innerHTML = "艦これ余所見プレイ支援"
 	+ version_banner()
 	+ "<h3>ロード中...</h3>"
 	+ "ゲームスタート後に「ロード完了」が表示されない場合は[デベロッパー ツール]を起動し、画面をリロードしてゲームスタートからやり直してください\n"
