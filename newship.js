@@ -215,5 +215,8 @@ $init_newship_slots = {
 551:	2,	// 日振.
 552:	2,	// 大東.
 561:	1,	// Samuel B.Roberts.
-565:	2	// 福江.
+565:	2,	// 福江.
+571:	2,	// Nelson.
+574:	3,	// Gotland.
+575:	1	// Maestrale.
 };
