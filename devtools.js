@@ -2549,6 +2549,10 @@ function calc_damage(result, title, battle, fhp, ehp, active_deck, ff) {
 				}
 				// 砲撃戦:敵味方砲撃詳報収集.
 				var si2 = (/^連撃/.test(ty) && j < si.length) ? [si[j]] : si;
+				if (/^Nelson/.test(ty)) {
+					if (j == 1) at += 2; // change to 3rd ship
+					if (j == 2) at += 4; // change to 5th ship
+				}
 				result.detail.push({ty: ty, at: at, target: target, ae: ae[i], ff: ff, si: si2, cl: battle_cl_name(cl[j]), damage: damage, hp: target_hp});
 			}
 		}
