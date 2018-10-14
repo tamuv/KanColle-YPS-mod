@@ -1003,6 +1003,7 @@ function battle_sp_name(a, si) {
 	case 6: return '空母夜襲カットイン';
 	case 7: return '主魚電カットイン';
 	case 8: return '魚見電カットイン';
+	case 100: return 'Nelson Touch';
 	default: return a; // 不明.
 	}
 }
