@@ -988,6 +988,7 @@ function battle_type_name(a, si) {
 	case 6: return '主主カットイン';
 	case 7: return '戦爆連合カットイン';
 	case 100: return 'Nelson Touch';
+	case 101: return '長門一斉射';
 	default: return a; // 不明.
 	}
 }
@@ -1004,6 +1005,7 @@ function battle_sp_name(a, si) {
 	case 7: return '主魚電カットイン';
 	case 8: return '魚見電カットイン';
 	case 100: return 'Nelson Touch';
+	case 101: return '長門一斉射';
 	default: return a; // 不明.
 	}
 }
@@ -2552,6 +2554,9 @@ function calc_damage(result, title, battle, fhp, ehp, active_deck, ff) {
 				if (/^Nelson/.test(ty)) {
 					if (j == 1) at += 2; // change to 3rd ship
 					if (j == 2) at += 4; // change to 5th ship
+				}
+				else if (/^長門/.test(ty)) {
+					if (j == 2) at += 1; // change to 2nd ship
 				}
 				result.detail.push({ty: ty, at: at, target: target, ae: ae[i], ff: ff, si: si2, cl: battle_cl_name(cl[j]), damage: damage, hp: target_hp});
 			}
