@@ -3738,9 +3738,9 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 					air_base.push(
 						get_air_base_action_name(data.api_action_kind) + " "
 						+ data.api_name + (charged ? ' ' : ' 未補充')
-						+ " (対象海域 " + get_maparea_name(data.api_area_id)
-						+ " 戦闘行動半径" + data.api_distance
-						+ " 制空値:"  + Math.floor(slot_seiku)
+						+ " (対象海域:" + get_maparea_name(data.api_area_id)
+						+ ", 戦闘行動半径:" + data.api_distance.api_base + "+" + data.api_distance.api_bonus
+						+ ", 制空値:" + Math.floor(slot_seiku)
 						+ ")"
 					);
 					air_base.push(planes);
