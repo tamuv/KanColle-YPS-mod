@@ -1500,6 +1500,8 @@ function debug_print_as_json(data, name) {
 // 母港画面表示.
 //
 function print_port() {
+	if ($do_print_port_on_ndock) return;
+	if ($do_print_port_on_slot_item) return;
 	var req = [request_date_time()];
 	var unlock_names = [];
 	var lock_condlist = {};
@@ -3177,7 +3179,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 	else if (api_name == '/api_req_kaisou/remodeling') {
 		// 艦娘改造.
 		$material_sum = $material.createship;	// 消費資材は後続の /api_get_member/material パケットにて集計する. 従来は$mst_ship[]から消費資材を得ていたが、翔鶴改二／改二甲の相互改造における開発資材(歯車)消費値が取れないので方法を変えた.
-		// 直後に /api_get_member/ship3, /api_get_member/slot_item, /api_get_member/material パケットが来るので print_port() は不要.
+		$do_print_port_on_slot_item = true;	// 直後に /api_get_member/ship3, /api_get_member/material, /api_get_member/slot_itemパケットが来るので print_port() は不要.
 	}
 	else if (api_name == '/api_req_kousyou/createitem') {
 		// 装備開発.
