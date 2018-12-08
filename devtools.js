@@ -12,6 +12,7 @@ var $remodel_slotlist = load_storage('remodel_slotlist');
 var $remodel_slotweek = load_storage('remodel_slotweek');
 var $enemy_db		= load_storage('enemy_db');
 var $weekly			= load_storage('weekly');
+var $quest_clear	= load_storage('quest_clear');
 var $logbook		= load_storage('logbook', []);
 var $quest_list		= load_storage('quest_list');
 var $debug_battle_json = null;
@@ -256,7 +257,12 @@ Ship.prototype.next_level = function () {
 //
 function sync_cloud() {
 	chrome.storage.sync.get({weekly: $weekly}, function(a) {
-		if ($weekly.savetime < a.weekly.savetime) $weekly = a.weekly;
+		let savetime = ($weekly.savetime || 0);
+		if (savetime < a.weekly.savetime) $weekly = a.weekly;
+	});
+	chrome.storage.sync.get({quest_clear: $quest_clear}, function(a) {
+		let savetime = ($quest_clear.savetime || 0);
+		if (savetime < a.quest_clear.savetime) $quest_clear = a.quest_clear;
 	});
 }
 
@@ -491,6 +497,12 @@ function save_weekly() {
 	$weekly.savetime = Date.now();
 	chrome.storage.sync.set({weekly: $weekly});
 	save_storage('weekly', $weekly);
+}
+
+function save_quest_clear() {
+	$quest_clear.savetime = Date.now();
+	chrome.storage.sync.set({quest_clear: $quest_clear});
+	save_storage('quest_clear', $quest_clear);
 }
 
 function push_to_logbook(log) {
@@ -2085,9 +2097,9 @@ function push_quests(req) {
 			msg.push(progress + ':' + q_type + title);
 			msg.push(['tooltip'].concat(quest.api_detail.split('<br>')));
 		}
-		else if (quest.yps_clear) {
-			quest.yps_clear = to_date(quest.yps_clear); // load_storage() で復帰した値は Date ではなく string なので、Date へ戻す.
-			clear.push('* ' + quest.yps_clear.toLocaleString() + ':' + q_type + quest.api_title);
+		else if (quest.api_state < 0 && $quest_clear[id]) {
+			let yps_clear = to_date($quest_clear[id]); // load_storage() で復帰した値は Date ではなく string なので、Date へ戻す.
+			clear.push('* ' + yps_clear.toLocaleString() + ':' + q_type + quest.api_title);
 		}
 	}
 	if (quests != $quest_count) req.push("### @!!任務リスト(全All)を先頭から最終ページまでめくって、内容を更新してください!!@");
@@ -2172,8 +2184,8 @@ function on_mission_check(category) {
 			let progress = (quest.api_state == 3) ? '達成!!'
 						: (quest.api_state == 2) ? '遂行' + (percent || '中')
 						: (quest.api_state == 1) ? '@!!未チェック' + (percent || '') + '!!@'
+						: ($quest_clear[id] != null) ? 'クリア済'
 						: '@!!??!!@';
-			if (quest.yps_clear) progress = 'クリア済';
 			let q_type = '';
 			switch (quest.api_type) {
 			case 1:	// デイリー.
@@ -3396,6 +3408,8 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 				// 他のPCでクリアした任務はapi_listから消えるので遂行状態が永遠に更新できない. この不具合を避けるため.
 				for (let id in $quest_list) {
 					$quest_list[id].api_state = -1;
+					let yps_clear = $quest_list[id].yps_clear;
+					if (yps_clear != null) $quest_clear[id] = yps_clear; // $quest_clear 導入前のデータ構造に対応する.
 				}
 			}
 			let d = json.api_data;
@@ -3474,11 +3488,13 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 	else if (api_name == '/api_req_quest/clearitemget') {
 		// 任務クリア.
 		var params = decode_postdata_params(request.request.postData.params);
-		let quest = $quest_list[params.api_quest_id];
+		let id = params.api_quest_id;
+		let quest = $quest_list[id];
 		if (quest) {
 			quest.api_state = -1; // 達成をリセットする.
-			quest.yps_clear = $svDateTime; // クリア時刻を記録し、クリア済みをマークする.
+			$quest_clear[id] = $svDateTime; // クリア時刻を記録し、クリア済みをマークする.
 			$quest_count--;		// 絞り込み任務リストの場合は, 直後の api_get_member/questlist では任務総数が得られないのでここで更新する.
+			save_quest_clear();
 			// 直後に来る /api_get_member/questlist の処理にて、遂行中任務カウンタ更新とデータ保存と再表示が行われるので、ここではそれらの処理は不要である.
 		}
 		$material_sum = $material.quest;
