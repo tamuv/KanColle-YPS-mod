@@ -1,5 +1,5 @@
 # 艦これ余所見プレイ支援 KanColleYPS
-* v2.1.4 長門一斉射: 2018-11-17
+* v2.1.5 任務クリアのデバイス間同期: 2018-12-10
 * 開発サイト: https://github.com/hkuno9000/KanColle-YPS
 * 公開サイト: https://hkuno9000.github.io/KanColle-YPS
 * リリース履歴: https://github.com/hkuno9000/KanColle-YPS/releases
