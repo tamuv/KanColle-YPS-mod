@@ -255,15 +255,39 @@ Ship.prototype.next_level = function () {
 //------------------------------------------------------------------------
 // データ保存と更新.
 //
+function try_json_parse(a) {
+	try {
+		a = JSON.parse(a);
+	}
+	catch (e) {
+		// ignore parse errors.
+	}
+	return a;
+}
+
 function sync_cloud() {
 	chrome.storage.sync.get({weekly: $weekly}, function(a) {
+		let w = try_json_parse(a.weekly);
 		let savetime = ($weekly.savetime || 0);
-		if (savetime < a.weekly.savetime) $weekly = a.weekly;
+		if (savetime < w.savetime) $weekly = w;
 	});
 	chrome.storage.sync.get({quest_clear: $quest_clear}, function(a) {
+		let w = try_json_parse(a.quest_clear);
 		let savetime = ($quest_clear.savetime || 0);
-		if (savetime < a.quest_clear.savetime) $quest_clear = a.quest_clear;
+		if (savetime < w.savetime) $quest_clear = w;
 	});
+}
+
+function save_weekly() {
+	$weekly.savetime = Date.now();
+	chrome.storage.sync.set({weekly: JSON.stringify($weekly)});
+	save_storage('weekly', $weekly);
+}
+
+function save_quest_clear() {
+	$quest_clear.savetime = Date.now();
+	chrome.storage.sync.set({quest_clear: JSON.stringify($quest_clear)});
+	save_storage('quest_clear', $quest_clear);
 }
 
 function load_storage(name, def) {
@@ -491,18 +515,6 @@ function get_weekly() {
 
 function month_to_quarter(m) {	///< m 0(Jan)..11(Dec) ->  1:Dec,Jan,Feb, 2:Mar,Apr,May, 3:Jun,Jul,Aug, 4:Sep,Oct,Nov.
 	return Math.floor(((m+1)%12)/3)+1;
-}
-
-function save_weekly() {
-	$weekly.savetime = Date.now();
-	chrome.storage.sync.set({weekly: $weekly});
-	save_storage('weekly', $weekly);
-}
-
-function save_quest_clear() {
-	$quest_clear.savetime = Date.now();
-	chrome.storage.sync.set({quest_clear: $quest_clear});
-	save_storage('quest_clear', $quest_clear);
 }
 
 function push_to_logbook(log) {
