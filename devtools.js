@@ -718,6 +718,7 @@ function battle_kind_name(id) { ///@param id	戦闘マスのメッセージ api_
 		case 5: return '通常戦(敵連合)';
 		case 6: return '空襲戦';
 		case 7: return '払暁戦(敵連合)'; // 夜昼戦(敵連合).
+		case 8: return '敵レーダー射撃夜戦';
 		default: return '??'+to_string(id);
 	}
 }
@@ -726,6 +727,7 @@ function battle_api_kind_name(name) { ///@param name	battle_api_name.
 	if (/midnight/.test(name))     return '夜戦';
 	if (/night_to_day/.test(name)) return '払暁戦'; // 夜昼戦.
 	if (/ld_airbattle/.test(name)) return '空襲戦';
+	if (/ld_shooting/.test(name))  return '敵レーダー射撃夜戦';
 	if (/airbattle/.test(name))    return '航空戦';
 	return '';
 }
@@ -2805,7 +2807,7 @@ function guess_win_rank(f_nowhps, f_maxhps, f_beginhps, e_nowhps, e_maxhps, e_be
 				+ ', rate:' + Math.round(rate * 10000) / 10000
 				;
 	$guess_debug_log = false;
-	if (/ld_airbattle/.test(battle_api_name)) {
+	if (/ld_/.test(battle_api_name)) {	// ld_airbattle, ld_shooting
 		$guess_debug_log = (f_lost_count != 0) // D/E判定検証.
 			|| (f_damage_percent > 9 && f_damage_percent < 10) // A/B閾値検証.
 			|| (f_damage_percent > 19 && f_damage_percent < 22) // B/C閾値検証.
@@ -3844,7 +3846,10 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		func = on_battle;
 	}
 	else if (api_name == '/api_req_battle_midnight/sp_midnight'
-		|| api_name == '/api_req_combined_battle/sp_midnight') {
+		|| api_name == '/api_req_combined_battle/sp_midnight'
+		|| api_name == '/api_req_sortie/ld_shooting'
+		|| api_name == '/api_req_combined_battle/ld_shooting'
+		) {
 		// 夜戦開始.
 		$battle_count++;
 		$f_beginhps = null;
