@@ -1064,6 +1064,7 @@ function map_rank_name(a) {
 }
 
 function get_maparea_name(id) {
+	if (id >= 30) return "期間限定海域";	// 2018.12イベントでは, $mst_maparea[] にはイベント海域名のかわりにダミー文字列が入っている.
 	return $mst_maparea[id];
 }
 
@@ -3748,6 +3749,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			// 基地航空隊の開放前は json.api_data.api_air_base は存在しない
 			if (json.api_data.api_air_base) {
 				air_base.push('YPS_air_base_mapinfo');
+				let area_id = -1;
 				json.api_data.api_air_base.forEach(function(data) {
 					var planes = [];
 					planes.push('YPS_air_base_' + data.api_area_id + '_' + data.api_rid);
@@ -3777,12 +3779,11 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 						}
 					}
 					if (data.api_action_kind == 2) slot_seiku *= base_intercept_bonus;
-
+					if (area_id != data.api_area_id) air_base.push("### " + get_maparea_name(area_id = data.api_area_id));
 					air_base.push(
 						get_air_base_action_name(data.api_action_kind) + " "
-						+ data.api_name + (charged ? ' ' : ' 未補充')
-						+ " (対象海域:" + get_maparea_name(data.api_area_id)
-						+ ", 戦闘行動半径:" + data.api_distance.api_base + "+" + data.api_distance.api_bonus
+						+ data.api_name + (charged ? ' ' : ' @!!未補充!!@')
+						+ " (戦闘行動半径:" + data.api_distance.api_base + "+" + data.api_distance.api_bonus
 						+ ", 制空値:" + Math.floor(slot_seiku)
 						+ ")"
 					);
