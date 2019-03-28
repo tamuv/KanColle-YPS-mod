@@ -1016,6 +1016,8 @@ function battle_type_name(a, si) {
 	case 100: return 'Nelson Touch';
 	case 101: return '長門一斉射';
 	case 102: return '陸奥一斉射';
+	case 200: return '瑞雲立体攻撃';
+	case 201: return '海空立体攻撃';
 	default: return a; // 不明.
 	}
 }
