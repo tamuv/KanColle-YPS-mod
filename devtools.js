@@ -2583,9 +2583,11 @@ function calc_damage(result, title, battle, fhp, ehp, active_deck, ff) {
 				if (/^Nelson/.test(ty)) {
 					if (j == 1) at += 2; // change to 3rd ship
 					if (j == 2) at += 4; // change to 5th ship
+					result.flagship_at_type = ty;
 				}
 				else if (/^(長門|陸奥)/.test(ty)) {
 					if (j == 2) at += 1; // change to 2nd ship
+					result.flagship_at_type = ty;
 				}
 				result.detail.push({ty: ty, at: at, target: target, ae: ae[i], ff: ff, si: si2, cl: battle_cl_name(cl[j]), damage: damage, hp: target_hp});
 			}
@@ -2895,6 +2897,7 @@ function on_battle(json, battle_api_name) {
 	var result = {
 		seiku : null, 				// 制空権.
 		touch : null,				// 触接.
+		flagship_at_type : null,	// Nelson Touch, 長門陸奥一斉射, などの旗艦固有攻撃.
 		f_air_lostcount : 0,		// 非撃墜数.
 		detail : []					// 戦闘詳報.
 	};
@@ -3029,6 +3032,7 @@ function on_battle(json, battle_api_name) {
 		if (d.api_support_flag) fmt += '+' + support_name(d.api_support_flag);
 		if (d.api_n_support_flag) fmt += '+' + support_name(d.api_n_support_flag);
 		if (d.api_air_base_attack) fmt += '+基地航空隊';
+		if (result.flagship_at_type != null) fmt += '+' + result.flagship_at_type;
 		if (result.seiku != null) fmt += '/' + seiku_name(result.seiku);
 		$enemy_formation = formation_name(d.api_formation[1]);
 	}
