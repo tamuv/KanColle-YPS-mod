@@ -2,8 +2,8 @@
 	"manifest_version": 2,
 	"name": "KanColle-YPS",
 	"short_name": "KanColle-YPS",
-	"version": "2.1.9",
-	"version_name": "v2.1.9 瑞雲立体攻撃、海空立体攻撃",
+	"version": "2.1.10",
+	"version_name": "v2.1.10 春イベント2019前段作戦",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"icons": {
