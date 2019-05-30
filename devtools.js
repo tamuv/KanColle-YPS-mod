@@ -1006,6 +1006,7 @@ function battle_type_name(a, si) {
 	case 100: return 'Nelson Touch';
 	case 101: return '長門一斉射';
 	case 102: return '陸奥一斉射';
+	case 103: return 'Colorado斉射(仮)';
 	case 200: return '瑞雲立体攻撃';
 	case 201: return '海空立体攻撃';
 	default: return a; // 不明.
@@ -1026,6 +1027,7 @@ function battle_sp_name(a, si) {
 	case 100: return 'Nelson Touch';
 	case 101: return '長門一斉射';
 	case 102: return '陸奥一斉射';
+	case 103: return 'Colorado斉射(仮)';
 	default: return a; // 不明.
 	}
 }
@@ -2583,6 +2585,11 @@ function calc_damage(result, title, battle, fhp, ehp, active_deck, ff) {
 				if (/^Nelson/.test(ty)) {
 					if (j == 1) at += 2; // change to 3rd ship
 					if (j == 2) at += 4; // change to 5th ship
+					result.flagship_at_type = ty;
+				}
+				else if (/^Colorado/.test(ty)) {
+					if (j == 1) at += 1; // change to 2nd ship
+					if (j == 2) at += 2; // change to 3rd ship
 					result.flagship_at_type = ty;
 				}
 				else if (/^(長門|陸奥)/.test(ty)) {
