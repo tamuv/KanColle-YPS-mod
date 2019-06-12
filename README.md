@@ -1,10 +1,10 @@
 # 艦これ余所見プレイ支援 KanColleYPS
 * v2.1.10.1 春イベント2019後段作戦(仮): 2019-05-31
-* 開発サイト: https://github.com/hkuno9000/KanColle-YPS
 * 公開サイト: https://hkuno9000.github.io/KanColle-YPS
+* 不具合報告先: https://github.com/hkuno9000/KanColle-YPS/issues
 * リリース履歴: https://github.com/hkuno9000/KanColle-YPS/releases
-* 開発版ダウンロード: [master.zip](https://github.com/hkuno9000/KanColle-YPS/archive/master.zip) , [master.tar.gz](https://github.com/hkuno9000/KanColle-YPS/archive/master.tar.gz)
-* Chrome WebStore: https://chrome.google.com/webstore/detail/kancolle-yps/fiidhnjbokehclfcglmpgpllfdpejgof
+* 開発者twitter: https://twitter.com/hkuno9000
+* WebStore版インストーラ: https://chrome.google.com/webstore/detail/kancolle-yps/fiidhnjbokehclfcglmpgpllfdpejgof
 
 ## 開発コンセプト
 * 艦これの画面から目を離していても、ゲーム進行状況をすべて把握することが目的です。
