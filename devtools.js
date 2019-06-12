@@ -3209,7 +3209,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		now[1] -= params.api_item2;
 		now[2] -= params.api_item3;
 		now[3] -= params.api_item4;
-		now[5] -= params.api_item5;
+		now[6] -= params.api_item5;
 		if (params.api_highspeed) now[4] -= params.api_large_flag ? 20 : 1;
 		update_material(now, $material.createship);
 		// 直後に /api_get_member/kdock パケットが来るので print_port() は不要.
