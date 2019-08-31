@@ -225,8 +225,11 @@ $init_newship_slots = {
 583:	2,	// 峯雲.
 584:	2,	// 八丈.
 585:	2,	// 石垣.
+589:	undefined,	// L.d.S.D.d.Abruzzi.
 590:	1,	// G.Garibaldi.
 596:	2,	// Fletcher.
 601:	2,	// Colorado.
+611:	undefined,	// 御蔵.
+614:	undefined,	// Grecale.
 9999:	null	// dummy
 };
