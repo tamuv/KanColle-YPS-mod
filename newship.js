@@ -201,6 +201,7 @@ $init_newship_slots = {
 517:	2,	// 占守.
 518:	2,	// 国後.
 519:	1,	// Jervis.
+520:	1,	// Janus.
 521:	1,	// 春日丸.
 524:	2,	// 択捉.
 525:	2,	// 松輪.
@@ -225,11 +226,11 @@ $init_newship_slots = {
 583:	2,	// 峯雲.
 584:	2,	// 八丈.
 585:	2,	// 石垣.
-589:	undefined,	// L.d.S.D.d.Abruzzi.
+589:	1,	// L.d.S.D.d.Abruzzi.
 590:	1,	// G.Garibaldi.
 596:	2,	// Fletcher.
 601:	2,	// Colorado.
-611:	undefined,	// 御蔵.
-614:	undefined,	// Grecale.
+611:	2,	// 御蔵.
+614:	1,	// Grecale.
 9999:	null	// dummy
 };
