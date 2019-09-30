@@ -1156,7 +1156,7 @@ function add_slotitem_list(data, prev) {
 			add_slotitem_list(e, prev);
 		});
 	}
-	else if (data.api_slotitem_id) {
+	else if (data.api_slotitem_id > 0) {
 		var item = { item_id: data.api_slotitem_id, locked: data.api_locked, level: data.api_level };
 		var alv = data.api_alv;
 		if (alv != null) {
@@ -3221,18 +3221,12 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 	}
 	else if (api_name == '/api_req_kousyou/createitem') {
 		// 装備開発.
-		var params = decode_postdata_params(request.request.postData.params); // 送信した消費資材値を抜き出す.
-		$material.createitem[0] -= params.api_item1;
-		$material.createitem[1] -= params.api_item2;
-		$material.createitem[2] -= params.api_item3;
-		$material.createitem[3] -= params.api_item4;
 		func = function(json) { // 開発成功した装備をリストに加える.
 			var d = json.api_data;
 			if (d.api_create_flag) {
-				$material.createitem[6]--;	// 開発資材(歯車).
-				add_slotitem_list(d.api_slot_item);
+				add_slotitem_list(d.api_get_items);
 			}
-			update_material(d.api_material);
+			update_material(d.api_material, $material.createitem);
 			print_port();
 		};
 	}
