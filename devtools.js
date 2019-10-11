@@ -498,6 +498,10 @@ function get_weekly() {
 		$weekly.month = date.getUTCMonth();	// 実行環境のタイムゾーンに関係なくJSTの月番号が必要なので, タイムゾーン分ずらした世界時で月番号を得る.
 		$weekly.daily = dn;
 		$weekly.savetime = 0;
+		$weekly.quest303 = 0;	// 演習3回実施任務(1-3:演習実施回数).
+		$weekly.quest304 = 0;	// 演習5回勝利任務(1-5:演習勝利回数).
+		$weekly.quest402 = 0;	// 遠征3回任務(1-3:遠征成功回数).
+		$weekly.quest403 = 0;	// 遠征10回任務(1-10:遠征成功回数).
 		$quest_count = -1; // 日替わりで任務リストが更新されるので、任務のリセットを予約する.
 	}
 	if ($weekly.halfdaily != hn) {
@@ -2189,6 +2193,8 @@ function push_all_fleets(req) {
 //
 function on_mission_check(category) {
 	let quests = 0;
+	let pending_category = 0;
+	let done_category = 0;
 	var req = ['## 任務'];
 	const w = get_weekly();
 	for (var id in $quest_list) {
@@ -2204,6 +2210,10 @@ function on_mission_check(category) {
 						: ($quest_clear[id] != null) ? 'クリア済'
 						: '@!!??!!@';
 			let q_type = '';
+			if (quest.api_category == category) {
+				if (quest.api_state == 1) pending_category++; // 未チェックの任務数を数える.
+				if (quest.api_state == 3) done_category++; // 達成済の任務数を数える.
+			}
 			switch (quest.api_type) {
 			case 1:	// デイリー.
 				if (quest.yps_daily != w.daily) continue; // 期限切れ任務を非表示とする.
@@ -2227,6 +2237,8 @@ function on_mission_check(category) {
 		}
 	}
 	if (quests != $quest_count) req.unshift("### @!!任務リスト(全All)を先頭から最終ページまでめくって、内容を更新してください!!@");
+	if (pending_category > 0) req.unshift('# @!!【警告】 未チェックの任務があります.!!@');
+	if (done_category > 0)    req.unshift('# @!!【警告】 達成済みの任務があります. クリアして追加の任務をチェックしましょう!!@');
 	if (req.length > 1) {
 		push_all_fleets(req);
 		chrome.runtime.sendMessage(req);
@@ -3699,6 +3711,17 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			};
 			add_mission_item(d.api_useitem_flag[0], d.api_get_item1);
 			add_mission_item(d.api_useitem_flag[1], d.api_get_item2);
+			const w = get_weekly();
+			if ($quest_list[402].api_state == 2 && d.api_clear_result > 0) {
+				// 遠征３回任務中:遠征成功３回なら任務状態を達成(3)に変更する.
+				if (++w.quest402 >= 3) $quest_list[402].api_state = 3;
+				save_weekly();
+			}
+			if ($quest_list[403].api_state == 2 && d.api_clear_result > 0) {
+				// 遠征10回任務中:遠征成功10回なら任務状態を達成(3)に変更する.
+				if (++w.quest403 >= 10) $quest_list[403].api_state = 3;
+				save_weekly();
+			}
 			// 直後に /api_port/port パケットが来るので print_port() は不要.
 		};
 	}
@@ -3914,7 +3937,17 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		// 演習結果.
 		func = function(json) {
 			on_battle_result(json);
-			get_weekly().practice_done++;
+			const r = json.api_data.api_win_rank;
+			const w = get_weekly();
+			w.practice_done++; // 演習実施回数を更新する.
+			if ($quest_list[303].api_state == 2) {
+				// 演習3回任務中:演習実施回数を更新する. 3回目なら任務状態を達成(3)に変更する.
+				if (++w.quest303 >= 3) $quest_list[303].api_state = 3;
+			}
+			if ($quest_list[304].api_state == 2 && (r == 'S' || r == 'A' || r == 'B')) {
+				// 演習5回勝利任務中:演習勝利回数を更新する. 5回目なら任務状態を達成(3)に変更する.
+				if (++w.quest304 >= 5) $quest_list[304].api_state = 3;
+			}
 			save_weekly();
 		}
 	}
