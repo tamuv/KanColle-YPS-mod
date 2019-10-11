@@ -1409,7 +1409,7 @@ function fleet_brief_status(deck, deck2) {
 		+ (ndockin ? ' 修理中' + ndockin : '')
 		+ (unlock ? ' 未ロック' + unlock : '')
 		+ (drumcan.sum ? ' ドラム缶' + drumcan.sum + '個' + drumcan.ships + '隻' : '')
-		+ (daihatu.up  ? ' 大発' + daihatu.sum + '個'+ daihatu.calc_up() + '%遠征UP' : '')
+		+ (daihatu.up  ? ' 大発' + daihatu.sum + '個(+'+ daihatu.calc_up() + '%)' : '')
 		+ (slot_seiku  ? ' 制空値' + slot_seiku : '')
 		+ (sakuteki.score > 0 ? ' 索敵スコア' + sakuteki.msg : '')
 		+ (blank_slot_num ? ' 空スロット' + blank_slot_num : '')
