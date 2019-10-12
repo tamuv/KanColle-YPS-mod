@@ -2,8 +2,8 @@
 	"manifest_version": 2,
 	"name": "KanColle-YPS",
 	"short_name": "KanColle-YPS",
-	"version": "2.1.14",
-	"version_name": "v2.1.14 装備三連開発対応",
+	"version": "2.1.15",
+	"version_name": "v2.1.15 演習、遠征任務カウンタ追加",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"icons": {
