@@ -502,6 +502,15 @@ function get_weekly() {
 		$weekly.quest304 = 0;	// 演習5回勝利任務(1-5:演習勝利回数).
 		$weekly.quest402 = 0;	// 遠征3回任務(1-3:遠征成功回数).
 		$weekly.quest403 = 0;	// 遠征10回任務(1-10:遠征成功回数).
+		for (let id in $quest_list) {
+			switch (id) {
+			case 303:
+			case 304:
+			case 402:
+			case 403:
+				$quest_list[id].api_state = -1; break; // $weekly.quest* カウンタのリセットと同時に、任務遂行状態をリセットする.
+			}
+		}
 		$quest_count = -1; // 日替わりで任務リストが更新されるので、任務のリセットを予約する.
 	}
 	if ($weekly.halfdaily != hn) {
@@ -3440,8 +3449,6 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 				// 他のPCでクリアした任務はapi_listから消えるので遂行状態が永遠に更新できない. この不具合を避けるため.
 				for (let id in $quest_list) {
 					$quest_list[id].api_state = -1;
-					let yps_clear = $quest_list[id].yps_clear;
-					if (yps_clear != null) $quest_clear[id] = yps_clear; // $quest_clear 導入前のデータ構造に対応する.
 				}
 			}
 			let d = json.api_data;
@@ -3513,7 +3520,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		var params = decode_postdata_params(request.request.postData.params);
 		let quest = $quest_list[params.api_quest_id];
 		if (quest) {
-			quest.api_state = 1; // 未遂行に戻す. 任務リスト表示が「推敲中のみモード」の場合、直後の任務リストから消えて更新されないのでこれが必要である.
+			quest.api_state = 1; // 未遂行に戻す. 任務リスト表示が「遂行中のみモード」の場合、直後の任務リストから消えて更新されないのでこれが必要である.
 			// 直後に来る /api_get_member/questlist の処理にて、遂行中任務カウンタ更新とデータ保存と再表示が行われるので、ここではそれらの処理は不要である.
 		}
 	}
@@ -3712,14 +3719,16 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			add_mission_item(d.api_useitem_flag[0], d.api_get_item1);
 			add_mission_item(d.api_useitem_flag[1], d.api_get_item2);
 			const w = get_weekly();
-			if ($quest_list[402].api_state == 2 && d.api_clear_result > 0) {
+			var quest = $quest_list[402];
+			if (quest && quest.api_state == 2 && d.api_clear_result > 0) {
 				// 遠征３回任務中:遠征成功３回なら任務状態を達成(3)に変更する.
-				if (++w.quest402 >= 3) $quest_list[402].api_state = 3;
+				if (++w.quest402 >= 3) quest.api_state = 3;
 				save_weekly();
 			}
-			if ($quest_list[403].api_state == 2 && d.api_clear_result > 0) {
+			var quest = $quest_list[403];
+			if (quest && quest.api_state == 2 && d.api_clear_result > 0) {
 				// 遠征10回任務中:遠征成功10回なら任務状態を達成(3)に変更する.
-				if (++w.quest403 >= 10) $quest_list[403].api_state = 3;
+				if (++w.quest403 >= 10) quest.api_state = 3;
 				save_weekly();
 			}
 			// 直後に /api_port/port パケットが来るので print_port() は不要.
@@ -3940,13 +3949,15 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			const r = json.api_data.api_win_rank;
 			const w = get_weekly();
 			w.practice_done++; // 演習実施回数を更新する.
-			if ($quest_list[303].api_state == 2) {
+			var quest = $quest_list[303];
+			if (quest && quest.api_state == 2) {
 				// 演習3回任務中:演習実施回数を更新する. 3回目なら任務状態を達成(3)に変更する.
-				if (++w.quest303 >= 3) $quest_list[303].api_state = 3;
+				if (++w.quest303 >= 3) quest.api_state = 3;
 			}
-			if ($quest_list[304].api_state == 2 && (r == 'S' || r == 'A' || r == 'B')) {
+			var quest = $quest_list[304];
+			if (quest && quest.api_state == 2 && (r == 'S' || r == 'A' || r == 'B')) {
 				// 演習5回勝利任務中:演習勝利回数を更新する. 5回目なら任務状態を達成(3)に変更する.
-				if (++w.quest304 >= 5) $quest_list[304].api_state = 3;
+				if (++w.quest304 >= 5) quest.api_state = 3;
 			}
 			save_weekly();
 		}
