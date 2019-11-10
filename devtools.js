@@ -3115,7 +3115,6 @@ function on_battle(json, battle_api_name) {
 				+ '\t' + slotitem_names(dt.si)
 			);
 		}
-		req.push('戦闘詳報');
 		req.push(msg);
 	}
 
