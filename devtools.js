@@ -503,7 +503,7 @@ function get_weekly() {
 		$weekly.quest402 = 0;	// 遠征3回任務(1-3:遠征成功回数).
 		$weekly.quest403 = 0;	// 遠征10回任務(1-10:遠征成功回数).
 		for (let id in $quest_list) {
-			switch (id) {
+			switch (parseInt(id, 10)) {
 			case 303:
 			case 304:
 			case 402:
