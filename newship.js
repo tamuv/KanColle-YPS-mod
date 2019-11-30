@@ -228,9 +228,13 @@ $init_newship_slots = {
 585:	2,	// 石垣.
 589:	1,	// L.d.S.D.d.Abruzzi.
 590:	1,	// G.Garibaldi.
+595:	undefined,	// Houston.
 596:	2,	// Fletcher.
 601:	2,	// Colorado.
+604:	undefined,	// De Ruyter.
 611:	2,	// 御蔵.
+613:	undefined,	// Perth.
 614:	1,	// Grecale.
+621:	undefined,	// 神州丸.
 9999:	null	// dummy
 };
