@@ -219,6 +219,7 @@ $init_newship_slots = {
 561:	1,	// Samuel B.Roberts.
 562:	2,	// Johnston.
 565:	2,	// 福江.
+570:	undefined,	// 平戸.
 571:	2,	// Nelson.
 574:	3,	// Gotland.
 575:	1,	// Maestrale.
@@ -228,13 +229,15 @@ $init_newship_slots = {
 585:	2,	// 石垣.
 589:	1,	// L.d.S.D.d.Abruzzi.
 590:	1,	// G.Garibaldi.
-595:	undefined,	// Houston.
+595:	1,	// Houston.
 596:	2,	// Fletcher.
+597:	undefined,	// Atlanta.
 601:	2,	// Colorado.
-604:	undefined,	// De Ruyter.
+604:	1,	// De Ruyter.
 611:	2,	// 御蔵.
-613:	undefined,	// Perth.
+613:	1,	// Perth.
 614:	1,	// Grecale.
-621:	undefined,	// 神州丸.
+621:	1,	// 神州丸.
+625:	undefined,	// 秋霜.
 9999:	null	// dummy
 };
