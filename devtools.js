@@ -3280,8 +3280,9 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 	}
 	else if (api_name == '/api_req_kaisou/powerup') {
 		// 近代化改修.
+		var dest = decode_postdata_params(request.request.postData.params).api_slot_dest_flag;
 		var ids = decode_postdata_params(request.request.postData.params).api_id_items;
-		if (ids) ship_delete(/,/.test(ids) ? ids.split(',') : [ids]);		// 素材として使った艦娘が持つ装備を、リストから抜く.
+		if (ids) ship_delete(/,/.test(ids) ? ids.split(',') : [ids], dest==0);		// 素材として使った艦娘が持つ装備を、リストから抜く.
 		func = function(json) {
 			var d = json.api_data;
 			if (d.api_ship) delta_update_ship_list([d.api_ship]);
