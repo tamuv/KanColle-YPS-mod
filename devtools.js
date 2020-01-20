@@ -3271,8 +3271,9 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 	else if (api_name == '/api_req_kousyou/destroyship') {
 		// 艦娘解体.
 		func = function(json) {
-			var dest = decode_postdata_params(request.request.postData.params).api_slot_dest_flag;
-			var ids = decode_postdata_params(request.request.postData.params).api_ship_id;
+			let params = decode_postdata_params(request.request.postData.params);
+			let dest = params.api_slot_dest_flag;
+			let ids =  params.api_ship_id;
 			if (ids) ship_delete(/,/.test(ids) ? ids.split(',') : [ids], dest==0);	// 解体した艦娘を、リストから抜く.
 			update_material(json.api_data.api_material, $material.destroyship); /// 解体による資材増加を記録する.
 			print_port();
@@ -3280,8 +3281,9 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 	}
 	else if (api_name == '/api_req_kaisou/powerup') {
 		// 近代化改修.
-		var dest = decode_postdata_params(request.request.postData.params).api_slot_dest_flag;
-		var ids = decode_postdata_params(request.request.postData.params).api_id_items;
+		let params  = decode_postdata_params(request.request.postData.params);
+		let dest = params.api_slot_dest_flag;
+		let ids =  params.api_id_items;
 		if (ids) ship_delete(/,/.test(ids) ? ids.split(',') : [ids], dest==0);		// 素材として使った艦娘が持つ装備を、リストから抜く.
 		func = function(json) {
 			var d = json.api_data;
