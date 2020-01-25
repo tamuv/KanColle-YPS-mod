@@ -182,13 +182,13 @@ Ship.prototype.will_kaizou = function() {
 };
 
 Ship.prototype.can_convert = function() {
-	for (var current = $mst_ship[this.ship_id]; current.api_aftershipid; current = after) {
-		var after = $mst_ship[current.api_aftershipid];
-		if (!after || current.api_afterlv > this.lv || after.api_afterlv > this.lv) {
-			return false;
-		}
-		if (after.api_aftershipid == this.ship_id) {
-			return true;
+	if (this.can_kaizou()) {
+		let checked = {}; // 通過記録.
+		const current = $mst_ship[this.ship_id];
+		for (let after = $mst_ship[current.api_aftershipid]; after != null; after = $mst_ship[after.api_aftershipid]) {
+			if (after == current) return true;
+			if (checked[after.api_id]) break;
+			checked[after.api_id] = true;
 		}
 	}
 	return false;
