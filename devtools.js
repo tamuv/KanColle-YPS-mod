@@ -561,6 +561,37 @@ function weekly_name() {
 		+ ')';
 }
 
+function key_array(obj) {
+	let a = [];
+	for(let key in obj) {
+		a.push(key + ':' + obj[key]);
+	}
+	return a;
+}
+
+
+function key_join(obj, separator) {
+	return key_array.join(separator);
+}
+
+
+function to_number(a) {		///< NaN,undefined,null,"","非数値文字列"に対して0を返し、常にnumberを返す.
+	// isNaN(NaN)       => true
+	// isNaN(undefined) => true
+	// isNaN("str")     => true
+	// isNaN("123")     => false
+	// isNaN("")        => false
+	// isNaN(null)      => false
+	// isNaN(123)       => false
+	// +""              => 0
+	// +null            => 0
+	return isNaN(a) ? 0 : +a;	// 数値文字列はnumber化する.
+}
+
+function inc_number(obj, key, value) {
+	obj[key] = to_number(obj[key]) + value;
+}
+
 function to_string(id,nullstr) {	///< id == null に対して代理文字列を返し、例外落ちしない.
 	if (id == null) return nullstr ? nullstr : '';
 	return id.toString();
@@ -2745,8 +2776,7 @@ function calc_kouku_damage(result, title, kouku, fhp, ehp) {
 		var st = kouku.api_stage1;
 		result.seiku = st.api_disp_seiku;
 		result.touch = st.api_touch_plane;
-		result.f_air_lostcount[title] = 0;
-		result.f_air_lostcount[title] += st.api_f_lostcount;
+		inc_number(result.f_air_lostcount, title, st.api_f_lostcount);
 		if (st.api_touch_plane) {
 			var t0 = st.api_touch_plane[0]; if (t0 != -1) result.detail.push({ty:'触接',  si:[t0]});
 			var t1 = st.api_touch_plane[1]; if (t1 != -1) result.detail.push({ty:'被触接', si:[t1]});
@@ -2759,7 +2789,7 @@ function calc_kouku_damage(result, title, kouku, fhp, ehp) {
 	}
 	if (kouku.api_stage2) {	// 防空戦.
 		var st = kouku.api_stage2;
-		result.f_air_lostcount[title] += st.api_f_lostcount;
+		inc_number(result.f_air_lostcount, title, st.api_f_lostcount);
 		if (st.api_air_fire) {
 			result.detail.push({
 				ty: '対空カットイン(' + st.api_air_fire.api_kind + ')',
@@ -3141,11 +3171,7 @@ function on_battle(json, battle_api_name) {
 	if ($combined_flag) {
 		push_fdeck_status(req, $fdeck_list[2], f_maxhps, f_nowhps, f_beginhps, f_nowhps.idx2nd, f_nowhps.length); // 連合第二艦隊は二番固定です.
 	}
-	var f_air_lostcount_detail = '';
-	for(var key in result.f_air_lostcount) {
-		f_air_lostcount_detail += (key + ':' + result.f_air_lostcount[key] + ' ');
-	}
-	req.push('被撃墜数: ' + f_air_lostcount_detail);
+	req.push('被撃墜数: ' + key_join(result.f_air_lostcount, ' '));
 	req.push('## enemy damage');
 	$enemy_ship_names = [];
 	let ship_ke = concat_2nd_at6(d.api_ship_ke, d.api_ship_ke_combined, -1);
