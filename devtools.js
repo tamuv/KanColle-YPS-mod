@@ -571,7 +571,7 @@ function key_array(obj) {
 
 
 function key_join(obj, separator) {
-	return key_array.join(separator);
+	return key_array(obj).join(separator);
 }
 
 
