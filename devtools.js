@@ -2116,7 +2116,7 @@ function push_quests(req) {
 			clear.push('* ' + yps_clear.toLocaleString() + ':' + q_type + quest.api_title);
 		}
 	}
-	if (quests != $quest_count) req.push("### @!!任務リスト(全All)を先頭から最終ページまでめくって、内容を更新してください!!@");
+	if (quests != $quest_count) req.push("### @!!任務リスト(全All)を開き、内容を更新してください!!@");
 	if (msg.length > 1) {
 		req.push('任務遂行数:' + $quest_exec_count + '/' + $quest_count
 			+ '(日:'  + p_count.daily   + '/' + q_count.daily
@@ -2290,7 +2290,7 @@ function on_mission_check(category) {
 			req.push('\t' + progress + '\t' + id + ':' + q_type + quest.api_title);
 		}
 	}
-	if (quests != $quest_count) req.unshift("### @!!任務リスト(全All)を先頭から最終ページまでめくって、内容を更新してください!!@");
+	if (quests != $quest_count) req.unshift("### @!!任務リスト(全All)を開き、内容を更新してください!!@");
 	if (pending_category > 0) req.unshift('# @!!【警告】 未チェックの任務があります.!!@');
 	if (done_category > 0)    req.unshift('# @!!【警告】 達成済みの任務があります. クリアして追加の任務をチェックしましょう!!@');
 	if (req.length > 1) {
