@@ -79,6 +79,20 @@ var $enemy_ship_names = [];
 var $log_daily = 0;
 var $kaizou_list_orig = null;
 var $convert_list_orig = null;
+$quest_complete_daily = {
+	210 : 10, // (日)敵艦隊を10回邀撃せよ！
+	303 : 3,  // (日)演習3回実施.
+	304 : 5,  // (日)演習5回勝利.
+	402 : 3,  // (日)遠征3回成功.
+	403 : 10, // (日)遠征10回成功.
+	503 : 5,  // (日)艦隊大整備！5回.
+	504 : 15  // (日)艦隊酒保祭り！15回.
+};
+$quest_complete_weekly = {
+	302 : 20, // (週)大規模演習20回.
+	404 : 30, // (週)大規模遠征30回.
+	703 : 15  // (週)近代化改修15回.
+};
 
 //-------------------------------------------------------------------------
 // Ship クラス.
@@ -482,6 +496,16 @@ function update_mst_maparea(list) {
 	save_storage('mst_maparea', $mst_maparea);
 }
 
+function inc_quest_progress(w, quest) {
+	let id = quest.api_no;
+	let complete = $quest_complete_daily[id] || $quest_complete_weekly[id];
+	if (complete == null) return;
+	if (w.quest_progress[id] == null) w.quest_progress[id] = 0; // dirty hack.
+	if (++w.quest_progress[id] >= complete) {
+		quest.api_state = 3;
+	}
+}
+
 function get_weekly() {
 	const now = Date.now();
 	const ms = now - Date.UTC(2013, 4-1, 22, 5-9, 0); // 2013-4-22 05:00 JST からの経過ミリ秒数.
@@ -490,35 +514,53 @@ function get_weekly() {
 	var hn = Math.floor((ms + 2*60*60*1000) / (12*60*60*1000)); // 演習更新数(03:00JST起点の半日周期)に変換する.
 	if ($weekly == null || $weekly.week != wn) {
 		$weekly = {
-			quest_state : 0, // あ号任務状況(1:未遂行, 2:遂行中, 3:達成)
-			sortie    : 0,
-			boss_cell : 0,
-			win_boss  : 0,
-			win_S     : 0,
+			quest_progress : {
+				214 : // あ号.
+				{
+					sortie    : 0,
+					boss_cell : 0,
+					win_boss  : 0,
+					win_S     : 0
+				}
+			},
 			monday_material : null,
-			week      : wn,
+			week : wn,
 			savetime : 0
 		};
+		for (let id in $quest_complete_weekly) {
+			// 任務カウンタのリセットと同時に、任務遂行状態をリセットする.
+			$weekly.quest_progress[id] = 0;
+			if ($quest_list[id] != null) $quest_list[id].api_state = -1;
+		}
+		if ($quest_list[214] != null) $quest_list[214].api_state = -1;
+	}
+	if ($weekly.quest_progress == null) {
+		// backward before v2.1.8: 任務カウンタの構造を変更したので、旧データ構造の移行を行う.
+		$weekly.quest_progress = {
+			214 : {
+				sortie    : $weekly.sortie,
+				boss_cell : $weekly.boss_cell,
+				win_boss  : $weekly.win_boss,
+				win_S     : $weekly.win_S
+			},
+			303 : $weekly.quest303,
+			304 : $weekly.quest304,
+			402 : $weekly.quest402,
+			403 : $weekly.quest403
+		};
+		$weekly.savetime = 0;
 	}
 	if ($weekly.daily != dn) {
 		const date = new Date(now + 9*60*60*1000);
 		$weekly.month = date.getUTCMonth();	// 実行環境のタイムゾーンに関係なくJSTの月番号が必要なので, タイムゾーン分ずらした世界時で月番号を得る.
 		$weekly.daily = dn;
 		$weekly.savetime = 0;
-		$weekly.quest303 = 0;	// 演習3回実施任務(1-3:演習実施回数).
-		$weekly.quest304 = 0;	// 演習5回勝利任務(1-5:演習勝利回数).
-		$weekly.quest402 = 0;	// 遠征3回任務(1-3:遠征成功回数).
-		$weekly.quest403 = 0;	// 遠征10回任務(1-10:遠征成功回数).
-		for (let id in $quest_list) {
-			switch (parseInt(id, 10)) {
-			case 303:
-			case 304:
-			case 402:
-			case 403:
-				$quest_list[id].api_state = -1; break; // $weekly.quest* カウンタのリセットと同時に、任務遂行状態をリセットする.
-			}
-		}
 		$quest_count = -1; // 日替わりで任務リストが更新されるので、任務のリセットを予約する.
+		for (let id in $quest_complete_daily) {
+			// 任務カウンタのリセットと同時に、任務遂行状態をリセットする.
+			$weekly.quest_progress[id] = 0;
+			if ($quest_list[id] != null) $quest_list[id].api_state = -1;
+		}
 	}
 	if ($weekly.halfdaily != hn) {
 		$weekly.halfdaily = hn;
@@ -552,8 +594,13 @@ function fraction_name(num, denom) {
 		return num + '/' + denom;
 }
 
-function weekly_name() {
-	var w = get_weekly();
+function quest_progress_name(w, id) {
+	let num = w.quest_progress[id];
+	let denom = $quest_complete_daily[id] || $quest_complete_weekly[id];
+	return (num == null || denom == null) ? '' : '(' + fraction_name(num, denom) + ')';
+}
+
+function quest214_progress_name(w) {
 	return '(出撃数:'  + fraction_name(w.sortie, 36)
 		+ ', ボス勝利:' + fraction_name(w.win_boss, 12)
 		+ ', ボス到達:' + fraction_name(w.boss_cell, 24)
@@ -568,7 +615,6 @@ function key_array(obj) {
 	}
 	return a;
 }
-
 
 function key_join(obj, separator) {
 	return key_array(obj).join(separator);
@@ -2107,7 +2153,12 @@ function push_quests(req) {
 				: (quest.api_progress_flag == 1) ? '* 遂行50%'
 				: '* 遂行中';
 			var title = quest.api_title;
-			if (quest.api_no == 214) title += weekly_name();
+			switch (quest.api_no) {
+			default:
+				title += quest_progress_name(w, quest.api_no); break;
+			case 214:
+				title += quest214_progress_name(w.quest_progress[214]); break;
+			}
 			msg.push(progress + ':' + q_type + title);
 			msg.push(['tooltip'].concat(quest.api_detail.split('<br>')));
 		}
@@ -3337,6 +3388,19 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			var d = json.api_data;
 			if (d.api_ship) delta_update_ship_list([d.api_ship]);
 			if (d.api_deck) update_fdeck_list(d.api_deck);
+			if (d.api_powerup_flag == 1) {
+				let quest = $quest_list[702];
+				if (quest && quest.api_state == 2) {
+					// (日)近代化改修成功.
+					quest.api_state == 3;
+				}
+				quest = $quest_list[703];
+				if (quest && quest.api_state == 2) {
+					// (週)近代化改修成功15回.
+					inc_quest_progress(get_weekly(), quest);
+					save_weekly();
+				}
+			}
 			print_port();
 		}
 	}
@@ -3510,10 +3574,8 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 					data.yps_daily = w.daily;
 					data.yps_week  = w.week;
 					data.yps_month = w.month;
-					$quest_list[data.api_no] = data;
-					if (data.api_no == 214) {
-						w.quest_state = data.api_state; // あ号任務ならば、遂行状態を記録する(1:未遂行, 2:遂行中, 3:達成)
-					}
+					let id = parseInt(data.api_no, 10);
+					$quest_list[id] = data;
 				}
 			}
 			save_storage('quest_list', $quest_list);
@@ -3539,6 +3601,12 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			var now_baux = d.api_material[3];
 			if (d.api_use_bou) $material.charge[3] -= $material.now[3] - now_baux;
 			update_material(d.api_material);
+			let quest = $quest_list[504];
+			if (quest && quest.api_state == 2) {
+				// 艦隊酒保祭り！任務中: 15回なら任務状態を達成(3)に変更する.
+				inc_quest_progress(get_weekly(), quest);
+				save_weekly();
+			}
 			print_port();
 		};
 	}
@@ -3620,6 +3688,12 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		now[2] -= ship.ndock_item[1];	// 鋼材.
 		now[5] -= params.api_highspeed;	// 高速修復材(バケツ). "0" or "1".
 		update_material(now, $material.ndock);
+		let quest = $quest_list[503];
+		if (quest && quest.api_state == 2) {
+			// 艦隊大整備！任務中: ５回なら任務状態を達成(3)に変更する.
+			inc_quest_progress(get_weekly(), quest);
+			save_weekly();
+		}
 		if (params.api_highspeed != 0) {
 			ship.highspeed_repair();	// 母港パケットで一斉更新されるまで対象艦の修復完了が反映されないので、自前で反映する.
 			print_port();	// 高速修復を使った場合は /api_get_member/ndock パケットが来ないので、ここで print_port() を行う.
@@ -3769,18 +3843,14 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			add_mission_item(d.api_useitem_flag[0], d.api_get_item1);
 			add_mission_item(d.api_useitem_flag[1], d.api_get_item2);
 			const w = get_weekly();
-			var quest = $quest_list[402];
-			if (quest && quest.api_state == 2 && d.api_clear_result > 0) {
-				// 遠征３回任務中:遠征成功３回なら任務状態を達成(3)に変更する.
-				if (++w.quest402 >= 3) quest.api_state = 3;
-				save_weekly();
+			for (let id in [402, 403, 404]) {
+				let quest = $quest_list[id];
+				if (quest && quest.api_state == 2 && d.api_clear_result > 0) {
+					inc_quest_progress(w, quest);
+					w.savetime = 0;
+				}
 			}
-			var quest = $quest_list[403];
-			if (quest && quest.api_state == 2 && d.api_clear_result > 0) {
-				// 遠征10回任務中:遠征成功10回なら任務状態を達成(3)に変更する.
-				if (++w.quest403 >= 10) quest.api_state = 3;
-				save_weekly();
-			}
+			if (w.savetime == 0) save_weekly();
 			// 直後に /api_port/port パケットが来るので print_port() は不要.
 		};
 	}
@@ -3973,21 +4043,43 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		// 戦闘結果.
 		func = function(json) {
 			on_battle_result(json);
-			var r = json.api_data.api_win_rank;
-			var w = get_weekly();
-			if (w.quest_state != 2) return; // 遂行中以外は更新しない.
-			if ($battle_count == 1) { // 出撃数.
-				w.sortie++;
+			const r = json.api_data.api_win_rank;
+			const is_win = (r == 'S' || r == 'A' || r == 'B');
+			let w = get_weekly();
+			// 敵艦隊を撃破せよ: 勝利ならば、任務状態を達成(3)に変更する.
+			var quest = $quest_list[201];
+			if (quest && quest.api_state == 2 && is_win) {
+				quest.api_state = 3;
+				// w.savetime = 0; -- weeklyの変更がないので保存不要.
+			}
+			// 敵艦隊主力を撃滅せよ: 交戦あり勝敗問わず、任務状態を達成(3)に変更する.
+			var quest = $quest_list[216];
+			if (quest && quest.api_state == 2) {
+				quest.api_state = 3;
+				// w.savetime = 0; -- weeklyの変更がないので保存不要.
+			}
+			// 敵艦隊を10回邀撃せよ！: 交戦10回目ならば、任務状態を達成(3)に変更する.
+			var quest = $quest_list[210];
+			if (quest && quest.api_state == 2) {
+				inc_quest_progress(w, quest);
 				w.savetime = 0;
 			}
-			if (r == 'S') { // S勝利数.
-				w.win_S++;
-				w.savetime = 0;
-			}
-			if ($is_boss) { // ボス到達数、ボス勝利数.
-				w.boss_cell++;
-				if (r == 'S' || r == 'A' || r == 'B') w.win_boss++;
-				w.savetime = 0;
+			// あ号任務: 出撃数、S勝利数、ボス到達数、ボス勝利数をカウントする.
+			var quest = $quest_list[214];
+			if (quest && quest.api_state == 2) {
+				if ($battle_count == 1) { // 出撃数.
+					w.quest_progress[214].sortie++;
+					w.savetime = 0;
+				}
+				if (r == 'S') { // S勝利数.
+					w.quest_progress[214].win_S++;
+					w.savetime = 0;
+				}
+				if ($is_boss) { // ボス到達数、ボス勝利数.
+					w.quest_progress[214].boss_cell++;
+					if (is_win) w.quest_progress[214].win_boss++;
+					w.savetime = 0;
+				}
 			}
 			if (w.savetime == 0) { save_weekly(); } // 更新があれば再保存する.
 		};
@@ -3997,17 +4089,14 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		func = function(json) {
 			on_battle_result(json);
 			const r = json.api_data.api_win_rank;
+			const is_win = (r == 'S' || r == 'A' || r == 'B');
 			const w = get_weekly();
 			w.practice_done++; // 演習実施回数を更新する.
-			var quest = $quest_list[303];
-			if (quest && quest.api_state == 2) {
-				// 演習3回任務中:演習実施回数を更新する. 3回目なら任務状態を達成(3)に変更する.
-				if (++w.quest303 >= 3) quest.api_state = 3;
-			}
-			var quest = $quest_list[304];
-			if (quest && quest.api_state == 2 && (r == 'S' || r == 'A' || r == 'B')) {
-				// 演習5回勝利任務中:演習勝利回数を更新する. 5回目なら任務状態を達成(3)に変更する.
-				if (++w.quest304 >= 5) quest.api_state = 3;
+			for (let id in [302, 303, 304]) {
+				var quest = $quest_list[id];
+				if (quest && quest.api_state == 2 && (id == 303 || is_win)) {
+					inc_quest_progress(w, quest);
+				}
 			}
 			save_weekly();
 		}
