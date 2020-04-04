@@ -86,7 +86,9 @@ $quest_complete_daily = {
 	402 : 3,  // (日)遠征3回成功.
 	403 : 10, // (日)遠征10回成功.
 	503 : 5,  // (日)艦隊大整備！5回.
-	504 : 15  // (日)艦隊酒保祭り！15回.
+	504 : 15, // (日)艦隊酒保祭り！15回.
+	607 : 3,  // (日)装備「開発」集中強化！
+	608 : 3   // (日)艦娘「建造」艦隊強化！
 };
 $quest_complete_weekly = {
 	302 : 20, // (週)大規模演習20回.
@@ -3332,6 +3334,17 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		if (params.api_highspeed) now[4] -= params.api_large_flag ? 20 : 1;
 		update_material(now, $material.createship);
 		// 直後に /api_get_member/kdock パケットが来るので print_port() は不要.
+		let quest = $quest_list[606];
+		if (quest && quest.api_state == 2) {
+			// (日)新造艦「建造」指令.
+			quest.api_state = 3;
+		}
+		quest = $quest_list[608];
+		if (quest && quest.api_state == 2) {
+			// (日)艦娘「建造」艦隊強化！
+			inc_quest_progress(get_weekly(), quest);
+			save_weekly();
+		}
 	}
 	else if (api_name == '/api_req_kaisou/remodeling') {
 		// 艦娘改造.
@@ -3348,6 +3361,23 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			update_material(d.api_material, $material.createitem);
 			print_port();
 		};
+		let quest = $quest_list[605];
+		if (quest && quest.api_state == 2) {
+			// (日)新装備「開発」指令.
+			quest.api_state = 3;
+		}
+		quest = $quest_list[607];
+		if (quest && quest.api_state == 2) {
+			// (日)装備「開発」集中強化！
+			let w = get_weekly();
+			let params = decode_postdata_params(request.request.postData.params);
+			inc_quest_progress(w, quest);
+			if (params.api_multiple_flag == 1) {
+				inc_quest_progress(w, quest);
+				inc_quest_progress(w, quest);
+			}
+			save_weekly();
+		}
 	}
 	else if (api_name == '/api_req_kousyou/getship') {
 		// 新艦建造成功.
