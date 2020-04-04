@@ -3843,7 +3843,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			add_mission_item(d.api_useitem_flag[0], d.api_get_item1);
 			add_mission_item(d.api_useitem_flag[1], d.api_get_item2);
 			const w = get_weekly();
-			for (let id in [402, 403, 404]) {
+			for (let id of [402, 403, 404]) {
 				let quest = $quest_list[id];
 				if (quest && quest.api_state == 2 && d.api_clear_result > 0) {
 					inc_quest_progress(w, quest);
