@@ -3392,7 +3392,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 				let quest = $quest_list[702];
 				if (quest && quest.api_state == 2) {
 					// (日)近代化改修成功.
-					quest.api_state == 3;
+					quest.api_state = 3;
 				}
 				quest = $quest_list[703];
 				if (quest && quest.api_state == 2) {
