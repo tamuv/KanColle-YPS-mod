@@ -4092,7 +4092,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			const is_win = (r == 'S' || r == 'A' || r == 'B');
 			const w = get_weekly();
 			w.practice_done++; // 演習実施回数を更新する.
-			for (let id in [302, 303, 304]) {
+			for (let id of [302, 303, 304]) {
 				var quest = $quest_list[id];
 				if (quest && quest.api_state == 2 && (id == 303 || is_win)) {
 					inc_quest_progress(w, quest);
