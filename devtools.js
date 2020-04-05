@@ -88,7 +88,8 @@ $quest_complete_daily = {
 	503 : 5,  // (日)艦隊大整備！5回.
 	504 : 15, // (日)艦隊酒保祭り！15回.
 	607 : 3,  // (日)装備「開発」集中強化！
-	608 : 3   // (日)艦娘「建造」艦隊強化！
+	608 : 3,  // (日)艦娘「建造」艦隊強化！
+	702 : 2   // (日)近代化改修成功2回.
 };
 $quest_complete_weekly = {
 	302 : 20, // (週)大規模演習20回.
@@ -3419,15 +3420,17 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			if (d.api_ship) delta_update_ship_list([d.api_ship]);
 			if (d.api_deck) update_fdeck_list(d.api_deck);
 			if (d.api_powerup_flag == 1) {
+				let w = get_weekly();
 				let quest = $quest_list[702];
 				if (quest && quest.api_state == 2) {
-					// (日)近代化改修成功.
-					quest.api_state = 3;
+					// (日)近代化改修成功2回.
+					inc_quest_progress(w, quest);
+					save_weekly();
 				}
 				quest = $quest_list[703];
 				if (quest && quest.api_state == 2) {
 					// (週)近代化改修成功15回.
-					inc_quest_progress(get_weekly(), quest);
+					inc_quest_progress(w, quest);
 					save_weekly();
 				}
 			}
