@@ -2,8 +2,8 @@
 	"manifest_version": 2,
 	"name": "KanColle-YPS",
 	"short_name": "KanColle-YPS",
-	"version": "2.1.18.1",
-	"version_name": "v2.1.18 あ号任務、デイリー撃破任務カウンタ改善",
+	"version": "2.1.18.2",
+	"version_name": "v2.1.18.2 あ号任務、デイリー撃破任務カウンタ改善fix2",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"icons": {
