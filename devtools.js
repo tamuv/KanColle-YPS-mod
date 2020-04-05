@@ -94,6 +94,7 @@ $quest_complete_daily = {
 $quest_complete_weekly = {
 	302 : 20, // (週)大規模演習20回.
 	404 : 30, // (週)大規模遠征30回.
+	613 : 24, // (週)資源の再利用24回.
 	703 : 15  // (週)近代化改修15回.
 };
 
@@ -3397,6 +3398,13 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			diff_update_material(json.api_data.api_get_material, $material.destroyitem);	// 装備破棄による資材増加を記録する.
 			print_port();
 		};
+		let w = get_weekly();
+		let quest = $quest_list[613];
+		if (quest && quest.api_state == 2) {
+			// (週)資源の再利用24回.
+			inc_quest_progress(w, quest);
+			save_weekly();
+		}
 	}
 	else if (api_name == '/api_req_kousyou/destroyship') {
 		// 艦娘解体.
