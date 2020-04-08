@@ -89,13 +89,15 @@ $quest_complete_daily = {
 	504 : 15, // (日)艦隊酒保祭り！15回.
 	607 : 3,  // (日)装備「開発」集中強化！
 	608 : 3,  // (日)艦娘「建造」艦隊強化！
-	702 : 2   // (日)近代化改修成功2回.
+	702 : 2,  // (日)近代化改修成功2回.
+	9999: null // dummy
 };
 $quest_complete_weekly = {
 	302 : 20, // (週)大規模演習20回.
 	404 : 30, // (週)大規模遠征30回.
 	613 : 24, // (週)資源の再利用24回.
-	703 : 15  // (週)近代化改修15回.
+	703 : 15, // (週)近代化改修15回.
+	9999: null // dummy
 };
 
 //-------------------------------------------------------------------------
@@ -533,6 +535,7 @@ function get_weekly() {
 		};
 		for (let id in $quest_complete_weekly) {
 			// 任務カウンタのリセットと同時に、任務遂行状態をリセットする.
+			if ($quest_complete_weekly[id] == null) continue;
 			$weekly.quest_progress[id] = 0;
 			if ($quest_list[id] != null) $quest_list[id].api_state = -1;
 		}
@@ -562,6 +565,7 @@ function get_weekly() {
 		$quest_count = -1; // 日替わりで任務リストが更新されるので、任務のリセットを予約する.
 		for (let id in $quest_complete_daily) {
 			// 任務カウンタのリセットと同時に、任務遂行状態をリセットする.
+			if ($quest_complete_daily[id] == null) continue;
 			$weekly.quest_progress[id] = 0;
 			if ($quest_list[id] != null) $quest_list[id].api_state = -1;
 		}
