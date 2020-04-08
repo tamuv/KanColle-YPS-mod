@@ -510,6 +510,7 @@ function inc_quest_progress(w, quest) {
 	if (++w.quest_progress[id] >= complete) {
 		quest.api_state = 3;
 	}
+	w.savetime = 0; // calling save_weekly()
 }
 
 function get_weekly() {
@@ -3349,7 +3350,6 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		if (quest && quest.api_state == 2) {
 			// (日)艦娘「建造」艦隊強化！
 			inc_quest_progress(get_weekly(), quest);
-			save_weekly();
 		}
 	}
 	else if (api_name == '/api_req_kaisou/remodeling') {
@@ -3382,7 +3382,6 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 				inc_quest_progress(w, quest);
 				inc_quest_progress(w, quest);
 			}
-			save_weekly();
 		}
 	}
 	else if (api_name == '/api_req_kousyou/getship') {
@@ -3407,7 +3406,6 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		if (quest && quest.api_state == 2) {
 			// (週)資源の再利用24回.
 			inc_quest_progress(w, quest);
-			save_weekly();
 		}
 	}
 	else if (api_name == '/api_req_kousyou/destroyship') {
@@ -3437,13 +3435,11 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 				if (quest && quest.api_state == 2) {
 					// (日)近代化改修成功2回.
 					inc_quest_progress(w, quest);
-					save_weekly();
 				}
 				quest = $quest_list[703];
 				if (quest && quest.api_state == 2) {
 					// (週)近代化改修成功15回.
 					inc_quest_progress(w, quest);
-					save_weekly();
 				}
 			}
 			print_port();
@@ -3650,7 +3646,6 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			if (quest && quest.api_state == 2) {
 				// 艦隊酒保祭り！任務中: 15回なら任務状態を達成(3)に変更する.
 				inc_quest_progress(get_weekly(), quest);
-				save_weekly();
 			}
 			print_port();
 		};
@@ -3737,7 +3732,6 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		if (quest && quest.api_state == 2) {
 			// 艦隊大整備！任務中: ５回なら任務状態を達成(3)に変更する.
 			inc_quest_progress(get_weekly(), quest);
-			save_weekly();
 		}
 		if (params.api_highspeed != 0) {
 			ship.highspeed_repair();	// 母港パケットで一斉更新されるまで対象艦の修復完了が反映されないので、自前で反映する.
@@ -3892,10 +3886,8 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 				let quest = $quest_list[id];
 				if (quest && quest.api_state == 2 && d.api_clear_result > 0) {
 					inc_quest_progress(w, quest);
-					w.savetime = 0;
 				}
 			}
-			if (w.savetime == 0) save_weekly();
 			// 直後に /api_port/port パケットが来るので print_port() は不要.
 		};
 	}
@@ -4126,7 +4118,6 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 					w.savetime = 0;
 				}
 			}
-			if (w.savetime == 0) { save_weekly(); } // 更新があれば再保存する.
 		};
 	}
 	else if (api_name == '/api_req_practice/battle_result') {
@@ -4137,13 +4128,13 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			const is_win = (r == 'S' || r == 'A' || r == 'B');
 			const w = get_weekly();
 			w.practice_done++; // 演習実施回数を更新する.
+			w.savetime = 0;
 			for (let id of [302, 303, 304]) {
 				var quest = $quest_list[id];
 				if (quest && quest.api_state == 2 && (id == 303 || is_win)) {
 					inc_quest_progress(w, quest);
 				}
 			}
-			save_weekly();
 		}
 	}
 	else if (api_name == '/api_req_combined_battle/goback_port'
@@ -4151,6 +4142,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		// 護衛退避.
 		on_goback_port();
 	}
+	if ($weekly.savetime == 0) save_weekly();
 	if (!func) return;
 	request.getContent(function (content) {
 		if (!content) return;
