@@ -124,6 +124,7 @@ function Ship(data, ship) {
 	this.taisen = data.api_taisen;
 	this.sakuteki = data.api_sakuteki;
 	this.nextlv	= data.api_exp[1];
+	this.exp	= data.api_exp;
 	if (data.api_slot_ex > 0) {		// api_slot_ex:: 0:増設スロットなし, -1:増設スロット空,　1以上:増設スロット装備ID.
 		this.slot.push(data.api_slot_ex);
 	}
@@ -1661,6 +1662,8 @@ function print_port() {
 	var owned_ship_idset = {};
 	$locked_ship_idset = {};
 	$locked_ship_double = {};
+	let ship_export_info = []; // 艦隊分析用の艦娘データ.
+	let slot_export_info = []; // 艦隊分析用の装備データ.
 	var newship = 0;
 	var cond85 = 0;
 	var cond53 = 0;
@@ -1694,6 +1697,11 @@ function print_port() {
 				lockeditem_list[i][lv] = {count:0, shiplist:[]};
 			lockeditem_list[i][lv].count++;
 			lockeditem_count++;
+			// 艦隊分析用.
+			slot_export_info.push({
+				api_slotitem_id : value.item_id,
+				api_level       : value.level
+			});
 		}
 		if (value && value.level) {
 			if (value.level >= 10)
@@ -1745,6 +1753,13 @@ function print_port() {
 			if      (days <= 10) array_push(lock_standby, days, ship);
 			else if (days <= 90) array_push(lock_standby, Math.ceil(days/10)*10, ship);
 			else                 array_push(lock_standby, '不明(90日以上)', ship);
+			// 艦隊分析用.
+			ship_export_info.push({
+				api_ship_id : ship.ship_id,
+				api_lv      : ship.lv,
+				api_kyouka  : ship.kyouka,
+				api_exp     : ship.exp
+			});
 		}
 		if (ship.slot) {
 			ship.slot.forEach(function(id) {
@@ -2024,6 +2039,11 @@ function print_port() {
 	// 各艦隊の情報を一覧表示する.
 	push_all_fleets(req);
 	chrome.runtime.sendMessage(req);
+	// 艦隊分析データを送信する.
+	chrome.runtime.sendMessage({
+		ship_export_json : JSON.stringify(ship_export_info),
+		slot_export_json : JSON.stringify(slot_export_info)
+	});
 }
 
 //------------------------------------------------------------------------

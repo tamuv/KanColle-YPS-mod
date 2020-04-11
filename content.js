@@ -23,8 +23,15 @@ var navi = document.createElement('div');
 navi.classList.add('yps-body');
 navi.classList.add('yps-navi');
 
+var ship_textarea = document.createElement('textarea');
+var slot_textarea = document.createElement('textarea');
+ship_textarea.classList.add('yps-cliptext');
+slot_textarea.classList.add('yps-cliptext');
+
 document.body.appendChild(navi);
 document.body.appendChild(div);
+document.body.appendChild(ship_textarea);
+document.body.appendChild(slot_textarea);
 
 //------------------------------------------------------------------------
 // ゲーム画面の配置調整.
@@ -243,6 +250,21 @@ function history_buttons() {
 		;
 }
 
+function copy_button() {
+	$button_onclick["YPS_ship"] = function() {
+		ship_textarea.select();
+		document.execCommand('copy');
+	};
+	$button_onclick["YPS_slot"] = function() {
+		slot_textarea.select();
+		document.execCommand('copy');
+	};
+	return ' <a href ="https://kancolle-fleetanalysis.web.app/#" target="KanColle-YPS-to-fleetanalysis">艦隊分析</a>:'
+		+ ' <input id="YPS_ship" type="button" value="艦娘情報Copy"/>'
+		+ ' <input id="YPS_slot" type="button" value="装備情報Copy"/>'
+		;
+}
+
 function version_banner() {
 	var ver_name = chrome.runtime.getManifest().version_name;
 	return ' <a href="http://hkuno9000.github.io/KanColle-YPS/" target="KanColle-YPS-website">KanColle-YPS ' + ver_name + '</a>';
@@ -255,11 +277,15 @@ chrome.runtime.onMessage.addListener(function (req) {
 	if (!div.parentNode) document.body.replaceChild(div, hst); // 履歴表示を中断する.
 	if (req instanceof Array) {
 		div.innerHTML = parse_markdown(req);
-		navi.innerHTML = all_close_button() + history_buttons() + version_banner();
+		navi.innerHTML = all_close_button() + history_buttons() + version_banner() + "<br/>" + copy_button();
 	}
 	else if (req.appendData) {
 		pop_history();
 		div.innerHTML += parse_markdown(req.appendData);
+	}
+	else if (req.ship_export_json) {
+		ship_textarea.innerText = req.ship_export_json;
+		slot_textarea.innerText = req.slot_export_json;
 	}
 	else { // may be String
 		pop_history();

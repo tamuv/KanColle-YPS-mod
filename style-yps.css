@@ -12,9 +12,12 @@
 }
 .yps-navi {
 	white-space: nowrap;
-	top: 50px; /* NaviBar 39px + margin 20px - 9px */
+	top: 25px; /* NaviBar 39px + margin 20px - 9px - 25px */
 }
-
+.yps-cliptext {
+	position: fixed;
+	left: 100vw;
+}
 /* == ul === */
 ul.markdown {
 	/* 箇条書き頭文字円盤. */
