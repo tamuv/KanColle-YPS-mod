@@ -28,7 +28,8 @@ var $fdeck_list = {};
 var $ship_fdeck = {};
 var $ship_escape = {};	// 護衛退避したshipidのマップ.
 var $mapinfo_rank = {};	// 海域難易度 undefined:なし, 1:丁, 2:丙, 3:乙, 4:甲.
-var	$locked_ship_idset = {};	// ロック艦の艦種IDセット.
+var $locked_ship_idset = {};	// ロック艦の艦種IDセット.
+var $locked_ship_double = {};	// ロック艦のダブリ順番号マップ. [艦固有ID] := 1:一隻目, 2:二隻目, 3:三隻目...
 var $next_mapinfo = null;
 var $next_enemy = null;
 var $is_boss = false;
@@ -132,7 +133,10 @@ function Ship(data, ship) {
 }
 
 Ship.prototype.name_lv = function() {
-	return ship_name(this.ship_id) + 'Lv' + this.lv;
+	let name = ship_name(this.ship_id);
+	let dup = $locked_ship_double[this.id];
+	if (dup > 1) name += '#' + dup; // ダブリ番号を追加する.
+	return name + 'Lv' + this.lv;
 };
 
 Ship.prototype.fleet_name_lv = function() {
@@ -1656,6 +1660,7 @@ function print_port() {
 	var unowned_names = [];
 	var owned_ship_idset = {};
 	$locked_ship_idset = {};
+	$locked_ship_double = {};
 	var newship = 0;
 	var cond85 = 0;
 	var cond53 = 0;
@@ -1770,7 +1775,13 @@ function print_port() {
 	var double_count = 0;
 	for (var id in lock_beginlist) {
 		var a = lock_beginlist[id];
-		if (a.length > 1) double_count += a.length - 1; // ダブリ艦数を集計する.
+		if (a.length > 1) {
+			double_count += a.length - 1; // ダブリ艦数を集計する.
+			//@todo: a[] の並びを艦Lvでソートしたほうが良いか??
+			for (let i = 0; i < a.length; ++i) {
+				$locked_ship_double[a[i].id] = i + 1; // ダブリ何隻目かを記録する.
+			}
+		}
 	}
 	for (var id in $mst_ship) {
 		var mst = $mst_ship[id];
