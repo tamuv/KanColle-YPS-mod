@@ -93,8 +93,8 @@ $quest_complete_daily = {
 	9999: null // dummy
 };
 $quest_complete_weekly = {
-	302 : 20, // (週)大規模演習20回.
-	404 : 30, // (週)大規模遠征30回.
+	302 : 20, // (週)大規模演習20回勝利.
+	404 : 30, // (週)大規模遠征30回成功.
 	613 : 24, // (週)資源の再利用24回.
 	703 : 15, // (週)近代化改修15回.
 	9999: null // dummy
@@ -502,15 +502,25 @@ function update_mst_maparea(list) {
 	save_storage('mst_maparea', $mst_maparea);
 }
 
-function inc_quest_progress(w, quest) {
-	let id = quest.api_no;
-	let complete = $quest_complete_daily[id] || $quest_complete_weekly[id];
-	if (complete == null) return;
-	if (w.quest_progress[id] == null) w.quest_progress[id] = 0; // dirty hack.
-	if (++w.quest_progress[id] >= complete) {
+function clear_quest_progress(id)
+{
+	const quest = $quest_list[id];
+	if (quest && quest.api_state == 2) {
 		quest.api_state = 3;
 	}
-	w.savetime = 0; // calling save_weekly()
+}
+
+function inc_quest_progress(id, w) {
+	const quest = $quest_list[id];
+	const complete = $quest_complete_daily[id] || $quest_complete_weekly[id];
+	if (complete && quest && quest.api_state == 2) {
+		w = w || get_weekly();
+		if (w.quest_progress[id] == null) w.quest_progress[id] = 0; // dirty hack.
+		if (++w.quest_progress[id] >= complete) {
+			quest.api_state = 3;
+		}
+		w.savetime = 0; // calling save_weekly()
+	}
 }
 
 function get_weekly() {
@@ -3341,16 +3351,8 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		if (params.api_highspeed) now[4] -= params.api_large_flag ? 20 : 1;
 		update_material(now, $material.createship);
 		// 直後に /api_get_member/kdock パケットが来るので print_port() は不要.
-		let quest = $quest_list[606];
-		if (quest && quest.api_state == 2) {
-			// (日)新造艦「建造」指令.
-			quest.api_state = 3;
-		}
-		quest = $quest_list[608];
-		if (quest && quest.api_state == 2) {
-			// (日)艦娘「建造」艦隊強化！
-			inc_quest_progress(get_weekly(), quest);
-		}
+		clear_quest_progress(606); // (日)新造艦「建造」指令.
+		inc_quest_progress(608);   // (日)艦娘「建造」艦隊強化！
 	}
 	else if (api_name == '/api_req_kaisou/remodeling') {
 		// 艦娘改造.
@@ -3367,21 +3369,13 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			update_material(d.api_material, $material.createitem);
 			print_port();
 		};
-		let quest = $quest_list[605];
-		if (quest && quest.api_state == 2) {
-			// (日)新装備「開発」指令.
-			quest.api_state = 3;
-		}
-		quest = $quest_list[607];
-		if (quest && quest.api_state == 2) {
-			// (日)装備「開発」集中強化！
-			let w = get_weekly();
-			let params = decode_postdata_params(request.request.postData.params);
-			inc_quest_progress(w, quest);
-			if (params.api_multiple_flag == 1) {
-				inc_quest_progress(w, quest);
-				inc_quest_progress(w, quest);
-			}
+		clear_quest_progress(605); // (日)新装備「開発」指令.
+		const w = get_weekly();
+		const params = decode_postdata_params(request.request.postData.params);
+		inc_quest_progress(607, w); // (日)装備「開発」集中強化！
+		if (params.api_multiple_flag == 1) {
+			inc_quest_progress(607, w);
+			inc_quest_progress(607, w);
 		}
 	}
 	else if (api_name == '/api_req_kousyou/getship') {
@@ -3401,12 +3395,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			diff_update_material(json.api_data.api_get_material, $material.destroyitem);	// 装備破棄による資材増加を記録する.
 			print_port();
 		};
-		let w = get_weekly();
-		let quest = $quest_list[613];
-		if (quest && quest.api_state == 2) {
-			// (週)資源の再利用24回.
-			inc_quest_progress(w, quest);
-		}
+		inc_quest_progress(613); // (週)資源の再利用24回.
 	}
 	else if (api_name == '/api_req_kousyou/destroyship') {
 		// 艦娘解体.
@@ -3430,17 +3419,9 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			if (d.api_ship) delta_update_ship_list([d.api_ship]);
 			if (d.api_deck) update_fdeck_list(d.api_deck);
 			if (d.api_powerup_flag == 1) {
-				let w = get_weekly();
-				let quest = $quest_list[702];
-				if (quest && quest.api_state == 2) {
-					// (日)近代化改修成功2回.
-					inc_quest_progress(w, quest);
-				}
-				quest = $quest_list[703];
-				if (quest && quest.api_state == 2) {
-					// (週)近代化改修成功15回.
-					inc_quest_progress(w, quest);
-				}
+				const w = get_weekly();
+				inc_quest_progress(702, w); // (日)近代化改修成功2回.
+				inc_quest_progress(703, w); // (週)近代化改修成功15回.
 			}
 			print_port();
 		}
@@ -3642,11 +3623,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			var now_baux = d.api_material[3];
 			if (d.api_use_bou) $material.charge[3] -= $material.now[3] - now_baux;
 			update_material(d.api_material);
-			let quest = $quest_list[504];
-			if (quest && quest.api_state == 2) {
-				// 艦隊酒保祭り！任務中: 15回なら任務状態を達成(3)に変更する.
-				inc_quest_progress(get_weekly(), quest);
-			}
+			inc_quest_progress(504); // 艦隊酒保祭り！任務中: 15回なら任務状態を達成(3)に変更する.
 			print_port();
 		};
 	}
@@ -3728,11 +3705,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 		now[2] -= ship.ndock_item[1];	// 鋼材.
 		now[5] -= params.api_highspeed;	// 高速修復材(バケツ). "0" or "1".
 		update_material(now, $material.ndock);
-		let quest = $quest_list[503];
-		if (quest && quest.api_state == 2) {
-			// 艦隊大整備！任務中: ５回なら任務状態を達成(3)に変更する.
-			inc_quest_progress(get_weekly(), quest);
-		}
+		inc_quest_progress(503); // 艦隊大整備！任務中: ５回なら任務状態を達成(3)に変更する.
 		if (params.api_highspeed != 0) {
 			ship.highspeed_repair();	// 母港パケットで一斉更新されるまで対象艦の修復完了が反映されないので、自前で反映する.
 			print_port();	// 高速修復を使った場合は /api_get_member/ndock パケットが来ないので、ここで print_port() を行う.
@@ -3881,12 +3854,11 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			};
 			add_mission_item(d.api_useitem_flag[0], d.api_get_item1);
 			add_mission_item(d.api_useitem_flag[1], d.api_get_item2);
-			const w = get_weekly();
-			for (let id of [402, 403, 404]) {
-				let quest = $quest_list[id];
-				if (quest && quest.api_state == 2 && d.api_clear_result > 0) {
-					inc_quest_progress(w, quest);
-				}
+			if (d.api_clear_result > 0) {
+				const w = get_weekly();
+				inc_quest_progress(402, w); // (日)遠征3回成功.
+				inc_quest_progress(403, w); // (日)遠征10回成功.
+				inc_quest_progress(404, w); // (週)大規模遠征30回成功.
 			}
 			// 直後に /api_port/port パケットが来るので print_port() は不要.
 		};
@@ -4082,27 +4054,15 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			on_battle_result(json);
 			const r = json.api_data.api_win_rank;
 			const is_win = (r == 'S' || r == 'A' || r == 'B');
-			let w = get_weekly();
+			const w = get_weekly();
 			// 敵艦隊を撃破せよ: 勝利ならば、任務状態を達成(3)に変更する.
-			var quest = $quest_list[201];
-			if (quest && quest.api_state == 2 && is_win) {
-				quest.api_state = 3;
-				// w.savetime = 0; -- weeklyの変更がないので保存不要.
-			}
+			if (is_win) clear_quest_progress(201);
 			// 敵艦隊主力を撃滅せよ: 交戦あり勝敗問わず、任務状態を達成(3)に変更する.
-			var quest = $quest_list[216];
-			if (quest && quest.api_state == 2) {
-				quest.api_state = 3;
-				// w.savetime = 0; -- weeklyの変更がないので保存不要.
-			}
+			clear_quest_progress(216);
 			// 敵艦隊を10回邀撃せよ！: 交戦10回目ならば、任務状態を達成(3)に変更する.
-			var quest = $quest_list[210];
-			if (quest && quest.api_state == 2) {
-				inc_quest_progress(w, quest);
-				w.savetime = 0;
-			}
+			inc_quest_progress(210, w);
 			// あ号任務: 出撃数、S勝利数、ボス到達数、ボス勝利数をカウントする.
-			var quest = $quest_list[214];
+			const quest = $quest_list[214];
 			if (quest && quest.api_state == 2) {
 				if ($battle_count == 1) { // 出撃数.
 					w.quest_progress[214].sortie++;
@@ -4129,11 +4089,10 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			const w = get_weekly();
 			w.practice_done++; // 演習実施回数を更新する.
 			w.savetime = 0;
-			for (let id of [302, 303, 304]) {
-				var quest = $quest_list[id];
-				if (quest && quest.api_state == 2 && (id == 303 || is_win)) {
-					inc_quest_progress(w, quest);
-				}
+			inc_quest_progress(303, w); // 演習３回実施.
+			if (is_win) {
+				inc_quest_progress(302, w); // 演習20回勝利.
+				inc_quest_progress(304, w); // 演習５回勝利.
 			}
 		}
 	}
