@@ -619,6 +619,9 @@ function fraction_name(num, denom) {
 }
 
 function quest_progress_name(w, id) {
+	if (id == 214) {
+		return quest214_progress_name(w.quest_progress[214]); // あ号任務.
+	}
 	let num = w.quest_progress[id];
 	let denom = $quest_complete_daily[id] || $quest_complete_weekly[id];
 	return (num == null || denom == null) ? '' : '(' + fraction_name(num, denom) + ')';
@@ -2203,13 +2206,7 @@ function push_quests(req) {
 				: (quest.api_progress_flag == 1) ? '* 遂行50%'
 				: '* 遂行中';
 			var title = quest.api_title;
-			switch (quest.api_no) {
-			default:
-				title += quest_progress_name(w, quest.api_no); break;
-			case 214:
-				title += quest214_progress_name(w.quest_progress[214]); break;
-			}
-			msg.push(progress + ':' + q_type + title);
+			msg.push(progress + ':' + q_type + title + quest_progress_name(w, quest.api_no));
 			msg.push(['tooltip'].concat(quest.api_detail.split('<br>')));
 		}
 		else if (quest.api_state < 0 && $quest_clear[id]) {
