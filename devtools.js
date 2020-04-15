@@ -557,22 +557,6 @@ function get_weekly() {
 		}
 		if ($quest_list[214] != null) $quest_list[214].api_state = -1;
 	}
-	if ($weekly.quest_progress == null) {
-		// backward before v2.1.8: 任務カウンタの構造を変更したので、旧データ構造の移行を行う.
-		$weekly.quest_progress = {
-			214 : {
-				sortie    : $weekly.sortie,
-				boss_cell : $weekly.boss_cell,
-				win_boss  : $weekly.win_boss,
-				win_S     : $weekly.win_S
-			},
-			303 : $weekly.quest303,
-			304 : $weekly.quest304,
-			402 : $weekly.quest402,
-			403 : $weekly.quest403
-		};
-		$weekly.savetime = 0;
-	}
 	if ($weekly.daily != dn) {
 		const date = new Date(now + 9*60*60*1000);
 		$weekly.month = date.getUTCMonth();	// 実行環境のタイムゾーンに関係なくJSTの月番号が必要なので, タイムゾーン分ずらした世界時で月番号を得る.
