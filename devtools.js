@@ -257,6 +257,25 @@ Ship.prototype.slot_names = function() {
 	return a.join(', ');
 };
 
+Ship.prototype.deckbuilder_slot = function() {	///< デッキビルダー用装備情報.
+	const slot = this.slot;
+	const slotnum = $mst_ship[this.ship_id].api_slot_num; // 通常スロット数.
+	const a = {};
+	for (let i = 0; i < slot.length; ++i) {
+		const value = $slotitem_list[slot[i]];
+		if (value) {
+			const item = {
+				id: value.item_id,
+				rf: value.level
+			};
+			if (value.alv >= 1) item.mas = value.alv;
+			const name = 'i' + (i < slotnum ? i+1 : 'x'); // i1, i2, i3, i4, ix
+			a[name] = item;
+		}
+	}
+	return a;
+};
+
 Ship.prototype.slot_seiku = function() {	///< 制空値.
 	var slot = this.slot;
 	var onslot = this.onslot;
@@ -2029,7 +2048,8 @@ function print_port() {
 	// 艦隊分析データを送信する.
 	chrome.runtime.sendMessage({
 		ship_export_json : JSON.stringify(ship_export_info),
-		slot_export_json : JSON.stringify(slot_export_info)
+		slot_export_json : JSON.stringify(slot_export_info),
+		deck_export_json : JSON.stringify(deckbuilder_info())
 	});
 }
 
@@ -2274,6 +2294,29 @@ function push_ndock_list(req) {
 		req.push(msg);
 		msg.push('---');
 	}
+}
+
+function deckbuilder_info() {
+	const info = { version: 4, hqlv: $command_lv };
+	for (let f_id in $fdeck_list) {
+		let si = 0;
+		const deck = $fdeck_list[f_id];
+		const f = info['f'+f_id] = {};
+		for (let s_id of deck.api_ship) {
+			++si;
+			const ship = $ship_list[s_id];
+			if (!ship) continue;
+			const mst = $mst_ship[ship.ship_id];
+			const luck = ship.kyouka[4];
+			f['s'+si] = {
+				id: ship.ship_id,
+				lv: ship.lv,
+				luck : (luck > mst.api_luck[0] ? luck : -1),
+				items : ship.deckbuilder_slot()
+			};
+		}
+	}
+	return info;
 }
 
 function push_all_fleets(req) {

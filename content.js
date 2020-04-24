@@ -25,13 +25,16 @@ navi.classList.add('yps-navi');
 
 var ship_textarea = document.createElement('textarea');
 var slot_textarea = document.createElement('textarea');
+var deck_textarea = document.createElement('textarea');
 ship_textarea.classList.add('yps-cliptext');
 slot_textarea.classList.add('yps-cliptext');
+deck_textarea.classList.add('yps-cliptext');
 
 document.body.appendChild(navi);
 document.body.appendChild(div);
 document.body.appendChild(ship_textarea);
 document.body.appendChild(slot_textarea);
+document.body.appendChild(deck_textarea);
 
 //------------------------------------------------------------------------
 // ゲーム画面の配置調整.
@@ -250,6 +253,8 @@ function history_buttons() {
 		;
 }
 
+var predeck = "";
+
 function copy_button() {
 	$button_onclick["YPS_ship"] = function() {
 		ship_textarea.select();
@@ -259,9 +264,15 @@ function copy_button() {
 		slot_textarea.select();
 		document.execCommand('copy');
 	};
+	$button_onclick["YPS_deck"] = function() {
+		deck_textarea.select();
+		document.execCommand('copy');
+	};
 	return ' <a href ="https://kancolle-fleetanalysis.web.app/#" target="KanColle-YPS-to-fleetanalysis">艦隊分析</a>:'
 		+ ' <input id="YPS_ship" type="button" value="艦娘情報Copy"/>'
 		+ ' <input id="YPS_slot" type="button" value="装備情報Copy"/>'
+		+ ' <a href ="http://kancolle-calc.net/deckbuilder.html?predeck=' + predeck + '" target="KanColle-YPS-to-deckbuilder">デッキビルダー</a>:'
+		+ ' <input id="YPS_deck" type="button" value="艦隊情報Copy"/>'
 		;
 }
 
@@ -286,6 +297,8 @@ chrome.runtime.onMessage.addListener(function (req) {
 	else if (req.ship_export_json) {
 		ship_textarea.innerText = req.ship_export_json;
 		slot_textarea.innerText = req.slot_export_json;
+		deck_textarea.innerText = req.deck_export_json;
+		predeck = encodeURIComponent(req.deck_export_json);
 	}
 	else { // may be String
 		pop_history();
