@@ -2793,7 +2793,7 @@ function calc_damage(result, title, battle, fhp, ehp, active_deck, ff) {
 					result.flagship_at_type = ty;
 				}
 				else if (/^僚艦夜戦/.test(ty)) {
-					if (j == 2) at += 1; // change to 2nd ship
+					if (j == 1) at += 1; // change to 2nd ship
 					result.flagship_at_type = ty;
 				}
 				result.detail.push({ty: ty, at: at, target: target, ae: ae[i], ff: ff, si: si2, cl: battle_cl_name(cl[j]), damage: damage, hp: target_hp});
