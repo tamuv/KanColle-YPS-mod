@@ -2044,13 +2044,14 @@ function print_port() {
 	//
 	// 各艦隊の情報を一覧表示する.
 	push_all_fleets(req);
-	chrome.runtime.sendMessage(req);
 	// 艦隊分析データを送信する.
 	chrome.runtime.sendMessage({
 		ship_export_json : JSON.stringify(ship_export_info),
 		slot_export_json : JSON.stringify(slot_export_info),
 		deck_export_json : JSON.stringify(deckbuilder_info())
 	});
+	// 母港画面を送信する.
+	chrome.runtime.sendMessage(req);
 }
 
 //------------------------------------------------------------------------
