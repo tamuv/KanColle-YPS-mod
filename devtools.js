@@ -457,8 +457,11 @@ function update_mst_ship(list) {
 	var before = {};
 	list.forEach(function(data) {
 		$mst_ship[data.api_id] = data;
-		if (data.api_aftershipid && before[data.api_aftershipid] == null)
-			before[data.api_aftershipid] = data.api_id;
+		if (data.api_aftershipid) {
+			let b = before[data.api_aftershipid];
+			if (b == null || $mst_ship[b].api_afterlv > data.api_afterlv)
+				before[data.api_aftershipid] = data.api_id;
+		}
 	});
 	for (var id in $mst_ship) {
 		var b = before[id];
