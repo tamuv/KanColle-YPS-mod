@@ -120,6 +120,7 @@ function Ship(data, ship) {
 	this.ndock_item	= data.api_ndock_item; // 入渠消費量[燃料,鋼材].
 	this.ship_id	= data.api_ship_id;
 	this.kyouka	= data.api_kyouka;	// 近代化改修による強化値[火力,雷装,対空,装甲,運].
+	this.karyoku = data.api_karyoku;
 	this.taiku = data.api_taiku;
 	this.taisen = data.api_taisen;
 	this.sakuteki = data.api_sakuteki;
@@ -1547,6 +1548,7 @@ function fleet_brief_status(deck, deck2) {
 
 function push_fleet_status(msg, deck) {
 	var lv_sum = 0;
+	let karyoku_sum = 0;
 	var sakuteki_sum = 0;
 	var taiku_sum = 0;
 	var taisen_sum = 0;
@@ -1556,6 +1558,7 @@ function push_fleet_status(msg, deck) {
 		if (!ship) continue;
 		fleet_ships++;
 		lv_sum += ship.lv;
+		karyoku_sum += ship.karyoku[0];
 		sakuteki_sum += ship.sakuteki[0];
 		taiku_sum += ship.taiku[0];
 		taisen_sum += ship.taisen[0];
@@ -1583,7 +1586,12 @@ function push_fleet_status(msg, deck) {
 			+ '\t' + ship.next_level()
 			);
 	}
-	msg.push('\t合計' + fleet_ships +'隻:\tLv' + lv_sum + '\t索敵:' + sakuteki_sum + '\t対空:' + taiku_sum + '\t対潜:' + taisen_sum);
+	msg.push('\t合計' + fleet_ships +'隻:'
+			+ '\t~~Lv' + lv_sum
+			+ ', 索敵:' + sakuteki_sum
+			+ ', 対空:' + taiku_sum
+			+ ', 火力:' + karyoku_sum
+			+ ', 対潜:' + taisen_sum);
 }
 
 function update_material(material, sum) {
