@@ -2,8 +2,8 @@
 	"manifest_version": 2,
 	"name": "KanColle-YPS",
 	"short_name": "KanColle-YPS",
-	"version": "2.1.21",
-	"version_name": "v2.1.21 Fletcherコンバート改装艦種ID対応",
+	"version": "2.1.22",
+	"version_name": "v2.1.22 艦隊合計火力,対空,対潜,索敵の表示をwiki準拠",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"icons": {
