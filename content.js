@@ -176,6 +176,7 @@ function parse_markdown(a) {
 										return '<td>' + p1.replace(/[,:] /g, '$&<wbr>');
 									  });
 									  t = t.replace(/<td>  /g, '<td style="text-align:right;">'); // "\t  " は右寄せする.
+									  t = t.replace(/<td>~~/g, '<td colspan="99">'); // "\t~~" は以後のセルを結合する.
 									  t = t.replace(/<td>==/g, '<th>'); // "\t==" はヘッダセル.
 									}
 		// リストを<ul>で括る.
