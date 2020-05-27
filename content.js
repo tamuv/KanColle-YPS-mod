@@ -153,7 +153,7 @@ function parse_markdown(a) {
 		s = s.replace(/:(中破)/g, ':<span style="text-shadow:0 0 0.5em orange">$1</span>');
 		s = s.replace(/:(小破)/g, ':<span style="text-shadow:0 0 0.5em yellow">$1</span>');
 		s = s.replace(/^出撃中:/g, '<span style="text-shadow:0 0 1em lime">$&</span>');
-		s = s.replace(/^遠征\d+/g, '<span style="text-shadow:0 0 1em cyan">$&</span>');
+		s = s.replace(/^遠征[A-Z]?\d+/g, '<span style="text-shadow:0 0 1em cyan">$&</span>');
 		s = s.replace(/遂行中/g,   '<span style="text-shadow:0 0 1em yellow">$&</span>');
 		s = s.replace(/遂行.0%/g,  '<span style="text-shadow:0 0 1em orange">$&</span>');
 		s = s.replace(/達成!!/g,   '<span style="text-shadow:0 0 1em cyan">$&</span>');
