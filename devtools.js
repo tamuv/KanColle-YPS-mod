@@ -3986,7 +3986,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 				if (!data.api_cleared) {
 					// 2017.11: イベント海域の初回攻略時はnow_maphps,max_maphpsともに9999固定であり、正しい値ではない. 二回目以後は正しい値なのでこの問題は放置する.
 					var now = evm ? evm.api_now_maphp : data.api_defeat_count;
-					var max = evm ? evm.api_max_maphp : mst.api_required_defeat_count;
+					var max = evm ? evm.api_max_maphp : data.api_required_defeat_count;
 					mst.yps_opt_name = (evm ? (evm.api_gauge_type == 3 ? 'TP' : 'HP') : '') + fraction_percent_name(now, max);
 					uncleared.push('* ' + map_name(mst));
 				}
