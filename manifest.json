@@ -2,8 +2,8 @@
 	"manifest_version": 2,
 	"name": "KanColle-YPS",
 	"short_name": "KanColle-YPS",
-	"version": "2.1.24",
-	"version_name": "v2.1.24 梅雨イベント2020前段作戦",
+	"version": "2.1.25",
+	"version_name": "v2.1.25 梅雨&夏イベント2020後段作戦",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"icons": {
