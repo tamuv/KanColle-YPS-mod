@@ -323,11 +323,15 @@ function sync_cloud() {
 		let w = try_json_parse(a.weekly);
 		let savetime = ($weekly.savetime || 0);
 		if (savetime < w.savetime) $weekly = w;
+		let saveDate = to_date($weekly.savetime);
+		chrome.runtime.sendMessage({appendData: ['## 任務、演習進捗データのデバイス間同期完了', saveDate.toLocaleString() ]});
 	});
 	chrome.storage.sync.get({quest_clear: $quest_clear}, function(a) {
 		let w = try_json_parse(a.quest_clear);
 		let savetime = ($quest_clear.savetime || 0);
 		if (savetime < w.savetime) $quest_clear = w;
+		let saveDate = to_date($weekly.savetime);
+		chrome.runtime.sendMessage({appendData: ['## 任務クリア済データのデバイス間同期完了', saveDate.toLocaleString() ]});
 	});
 }
 
