@@ -2191,6 +2191,7 @@ function push_quests(req) {
 	let clear = ['YPS_quest_clear'];
 	let q_count = { daily:0, weekly:0, monthly:0, others:0 };
 	let p_count = { daily:0, weekly:0, monthly:0, others:0 };
+	let done_count = 0;
 	const w = get_weekly();	// 5:00JSTをまたぐと、get_weekly()内で $quest_count が -1 にリセットされる.
 	for (var id in $quest_list) {
 		var quest = $quest_list[id];
@@ -2224,6 +2225,7 @@ function push_quests(req) {
 		}
 		if (quest.api_state > 0) quests++;
 		if (quest.api_state > 1) {
+			if (quest.api_state == 3) done_count++; // 達成済の任務数を数える.
 			var progress = (quest.api_state == 3) ? '* 達成!!'
 				: (quest.api_progress_flag == 2) ? '* 遂行80%'
 				: (quest.api_progress_flag == 1) ? '* 遂行50%'
@@ -2239,6 +2241,7 @@ function push_quests(req) {
 	}
 	if (quests != $quest_count) req.push("### @!!任務リスト(全All)を開き、内容を更新してください!!@");
 	if (msg.length > 1) {
+		if (done_count > 0) req.push('### @!!達成済みの任務があります.!!@');
 		req.push('任務遂行数:' + $quest_exec_count + '/' + $quest_count
 			+ '(日:'  + p_count.daily   + '/' + q_count.daily
 			+ ', 週:' + p_count.weekly  + '/' + q_count.weekly
