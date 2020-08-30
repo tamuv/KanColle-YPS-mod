@@ -3991,7 +3991,7 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 				mst.yps_opt_name = null;
 				if (evm)
 					$mapinfo_rank[data.api_id] = evm.api_selected_rank;
-				if (!data.api_cleared) {
+				if (!data.api_cleared || data.api_required_defeat_count) {
 					// 2017.11: イベント海域の初回攻略時はnow_maphps,max_maphpsともに9999固定であり、正しい値ではない. 二回目以後は正しい値なのでこの問題は放置する.
 					var now = evm ? evm.api_now_maphp : data.api_defeat_count;
 					var max = evm ? evm.api_max_maphp : data.api_required_defeat_count;
