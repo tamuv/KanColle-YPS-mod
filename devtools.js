@@ -3993,9 +3993,10 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 					$mapinfo_rank[data.api_id] = evm.api_selected_rank;
 				if (!data.api_cleared || data.api_required_defeat_count) {
 					// 2017.11: イベント海域の初回攻略時はnow_maphps,max_maphpsともに9999固定であり、正しい値ではない. 二回目以後は正しい値なのでこの問題は放置する.
+					var ty = (evm && evm.api_gauge_type) ? evm.api_gauge_type : data.api_gauge_type;
 					var now = evm ? evm.api_now_maphp : data.api_defeat_count;
 					var max = evm ? evm.api_max_maphp : data.api_required_defeat_count;
-					mst.yps_opt_name = (evm ? (evm.api_gauge_type == 3 ? 'TP' : 'HP') : '') + fraction_percent_name(now, max);
+					mst.yps_opt_name = (ty == 3 ? 'TP' : ty == 2 ? 'HP' : '') + fraction_percent_name(now, max);
 					uncleared.push('* ' + map_name(mst));
 				}
 			});
@@ -4057,9 +4058,10 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			var evm = json.api_data.api_maphp;
 			var mst = $mst_mapinfo[params.api_maparea_id * 10 + params.api_map_no];
 			if (evm) {
+				var ty = evm.api_gauge_type;
 				var now = evm.api_now_maphp;
 				var max = evm.api_max_maphp;
-				mst.yps_opt_name = (evm.api_gauge_type == 3 ? 'TP' : 'HP') + fraction_percent_name(now, max);
+				mst.yps_opt_name = (ty == 3 ? 'TP' : ty == 2 ? 'HP' : '') + fraction_percent_name(now, max);
 			}
 		};
 	}
