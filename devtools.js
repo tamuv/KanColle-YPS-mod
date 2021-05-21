@@ -1666,9 +1666,10 @@ function debug_print_newship_slots() {
 	var newship_slots = $newship_slots ? $newship_slots : load_storage('newship_slots');
 	for (var id in $mst_ship) {
 		var mst = $mst_ship[id];
-		if (mst.yps_begin_shipid) continue; // 改造型を除外する.
 		if (!mst.api_afterlv) continue; // 改造不能型（季節艦、深海棲艦）を除外する.
-		msg.push('\t' + id + ':\t' + newship_slots[id] + ',\t// ' + ship_name(id) + '.');
+		if (!mst.yps_begin_shipid || mst.yps_begin_shipid == mst.api_id) { // 改造型以外 || 宗谷
+			msg.push('\t' + id + ':\t' + newship_slots[id] + ',\t// ' + ship_name(id) + '.');
+		}
 	}
 	var req = [];
 	req.push('### newship_slots');
