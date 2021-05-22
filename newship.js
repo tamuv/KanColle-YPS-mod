@@ -233,6 +233,7 @@ $init_newship_slots = {
 595:	1,	// Houston.
 596:	2,	// Fletcher.
 597:	1,	// Atlanta.
+598:	1,	// Honolulu.
 601:	2,	// Colorado.
 602:	2,	// South Dakota.
 603:	4,	// Hornet.
@@ -251,7 +252,13 @@ $init_newship_slots = {
 637:	1,	// 第四号海防艦.
 641:	1,	// 松.
 642:	1,	// 竹.
+644:	1,	// 桃.
 653:	1,	// Scirocco.
 654:	2,	// Washington.
+655:	1,	// Northampton.
+671:	2,	// 巻波.
+675:	undefined,	// 涼波.
+699:	undefined,	// 宗谷.
+882:	0,	// 伊203.
 9999:	null	// dummy
 };
