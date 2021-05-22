@@ -458,26 +458,38 @@ function update_slotitem_list(list) {
 	save_storage('slotitem_list', $slotitem_list);
 }
 
+/// $mst_ship を list の内容で一新する.
+/// さらに改装情報として yps_before_shipid, yps_begin_shipid を設定する.
 function update_mst_ship(list) {
 	if (!list) return;
 	$mst_ship = {};
-	var before = {};
+	let before = {}; // before[艦種ID] ::= 改装前の艦種ID. コンバートで改装前が複数ある場合はLvの低い方.
+	let begin = {}; // begin[艦種ID] ::= 未改装の艦種ID なら true.
 	list.forEach(function(data) {
 		$mst_ship[data.api_id] = data;
-		if (data.api_aftershipid) {
-			let b = before[data.api_aftershipid];
+		const a = data.api_aftershipid;
+		if (a > 0) {
+			const b = before[a];
 			if (b == null || $mst_ship[b].api_afterlv > data.api_afterlv)
-				before[data.api_aftershipid] = data.api_id;
+				before[a] = data.api_id;
 		}
+		const getmes = to_string(data.api_getmes);
+		if (getmes.replace('<br>', '').length > 0) // 未改装の艦種IDにのみ、取得時挨拶文があると想定した判定条件である.
+			begin[data.api_id] = true;
 	});
-	for (var id in $mst_ship) {
-		var b = before[id];
-		if (b) {
-			$mst_ship[id].yps_before_shipid = b; // 改装前の艦種ID.
-			do {
-				$mst_ship[id].yps_begin_shipid = b; // 未改装の艦種ID.
-				if (b == 699) break; // 宗谷.
-			} while (b = before[b]);
+	for (let id in $mst_ship) {
+		let b = before[id];
+		if (b > 0) {
+			$mst_ship[id].yps_before_shipid = b; // 改装前の艦種ID. コンバートで改装前が複数ある場合はLvの低い方.
+			let checked = {}; // 通過記録.
+			while (before[b] > 0) {
+				if (begin[b]) break; // 未改装の艦種IDに到達した.
+				if (checked[b]) break; // コンバート改装で同じ艦種IDに戻ってきたらループを打ち切る.
+				checked[b] = true;
+				b = before[b];
+			}
+			if (id != b)
+				$mst_ship[id].yps_begin_shipid = b; // 改装の出発点となる未改装の艦種ID. 自身が出発点なら設定しない.
 		}
 	}
 	save_storage('mst_ship', $mst_ship);
@@ -1666,10 +1678,9 @@ function debug_print_newship_slots() {
 	var newship_slots = $newship_slots ? $newship_slots : load_storage('newship_slots');
 	for (var id in $mst_ship) {
 		var mst = $mst_ship[id];
+		if (mst.yps_begin_shipid) continue; // 改造型を除外する.
 		if (!mst.api_afterlv) continue; // 改造不能型（季節艦、深海棲艦）を除外する.
-		if (!mst.yps_begin_shipid || mst.yps_begin_shipid == mst.api_id) { // 改造型以外 || 宗谷
-			msg.push('\t' + id + ':\t' + newship_slots[id] + ',\t// ' + ship_name(id) + '.');
-		}
+		msg.push('\t' + id + ':\t' + newship_slots[id] + ',\t// ' + ship_name(id) + '.');
 	}
 	var req = [];
 	req.push('### newship_slots');
@@ -1840,10 +1851,9 @@ function print_port() {
 	}
 	for (var id in $mst_ship) {
 		var mst = $mst_ship[id];
+		if (mst.yps_begin_shipid) continue; // 改造型を除外する.
 		if (!mst.api_afterlv) continue; // 改造不能型（季節艦、深海棲艦）を除外する.
-		if (!mst.yps_begin_shipid || mst.yps_begin_shipid == mst.api_id) { // 改造型以外 || 宗谷
-			if (!owned_ship_idset[id]) unowned_names.push(ship_name(id)); // 未所有艦名をリストに加える.
-		}
+		if (!owned_ship_idset[id]) unowned_names.push(ship_name(id)); // 未所有艦名をリストに加える.
 	}
 	//
 	// 資材変化を表示する.
