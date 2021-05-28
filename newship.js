@@ -257,8 +257,8 @@ $init_newship_slots = {
 654:	2,	// Washington.
 655:	1,	// Northampton.
 671:	2,	// 巻波.
-675:	undefined,	// 涼波.
-699:	undefined,	// 宗谷.
+675:	2,	// 涼波.
+699:	1,	// 宗谷.
 882:	0,	// 伊203.
 9999:	null	// dummy
 };
