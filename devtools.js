@@ -1177,6 +1177,12 @@ function battle_sp_name(a, si) {
 	case 6: return '空母夜襲カットイン';
 	case 7: return '主魚電カットイン';
 	case 8: return '魚見電カットイン';
+	case 9: return '魚魚水カットイン';
+	case 10: return '魚ド水カットイン';
+	case 11: return '主魚電カットイン2';
+	case 12: return '魚見電カットイン2';
+	case 13: return '魚魚水カットイン2';
+	case 14: return '魚ド水カットイン2';
 	case 100: return 'Nelson Touch';
 	case 101: return '長門一斉射';
 	case 102: return '陸奥一斉射';
