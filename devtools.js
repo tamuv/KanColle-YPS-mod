@@ -1475,13 +1475,14 @@ function Sakuteki33(name, ships, fleet_max) {
 	var c = 1;
 	var score = 0;
 	var m = null;
+	// 分岐点係数 更新：2021/09/18
 	if      (/^1-6/.test(name)) { c = 3; }
 	else if (/^2-5/.test(name)) { c = 1; }
 	else if (/^3-5/.test(name)) { c = 4; }
 	else if (/^4-5/.test(name)) { c = 2; }
 	else if (/^5-2/.test(name)) { c = 2; }
-	else if (/^5-4/.test(name)) { c = 1; }
-	else if (/^5-5/.test(name)) { c = 1; }
+	else if (/^5-4/.test(name)) { c = 2; }
+	else if (/^5-5/.test(name)) { c = 2; }
 	else if (/^6-1/.test(name)) { c = 4; }
 	else if (/^6-2/.test(name)) { c = 3; }
 	else if (/^6-3/.test(name)) { c = 3; }
