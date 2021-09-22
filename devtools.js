@@ -3237,7 +3237,7 @@ function on_battle(json, battle_api_name) {
 	calc_kouku_damage(result, "噴式強襲",             d.api_injection_kouku,    f_nowhps, e_nowhps);
 	if (d.api_air_base_attack) {
 		d.api_air_base_attack.forEach(function(kouku) {
-			calc_kouku_damage(result, "基地航空隊支援", kouku, f_nowhps, e_nowhps);　// 2016.5
+			calc_kouku_damage(result, "基地航空隊支援", kouku, f_nowhps, e_nowhps); // 2016.5
 		});
 	}
 	calc_kouku_damage(result, "航空戦",  d.api_kouku,  f_nowhps, e_nowhps);
