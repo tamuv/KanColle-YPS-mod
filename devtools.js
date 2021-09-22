@@ -2936,7 +2936,7 @@ function calc_damage(result, title, battle, fhp, ehp, active_deck, ff) {
 			if (battle.api_frai_flag[i] || battle.api_fbak_flag[i]) {
 				var target = i + fidx;
 				var target_hp = (fhp_save[target] -= Math.floor(damage));
-				result.detail.push({ty:"空爆", target: target, ae: 1, cl: battle_cl_name(damage ? battle.api_fcl_flag[i]+1 : 0), damage: damage, hp: target_hp});
+				result.detail.push({ty:"空爆", target: target, ae: 1, ff: ff, cl: battle_cl_name(damage ? battle.api_fcl_flag[i]+1 : 0), damage: damage, hp: target_hp});
 			}
 		}
 	}
@@ -2971,7 +2971,7 @@ function calc_damage(result, title, battle, fhp, ehp, active_deck, ff) {
 	}
 }
 
-function calc_kouku_damage(result, title, kouku, fhp, ehp) {
+function calc_kouku_damage(result, title, kouku, fhp, ehp, active_deck, ff) {
 	if (!kouku) return;
 	result.detail.push({ title: '\t==' + title + '\t==攻撃艦\t==防御艦\t==敵撃墜\t==被撃墜\t==使用装備'});
 	if (kouku.api_stage1) {	// 制空戦.
@@ -3010,7 +3010,7 @@ function calc_kouku_damage(result, title, kouku, fhp, ehp) {
 			});
 		}
 	}
-	calc_damage(result, title, kouku.api_stage3, fhp, ehp);				// 航空爆撃雷撃戦.
+	calc_damage(result, title, kouku.api_stage3, fhp, ehp, active_deck, ff); // 航空爆撃雷撃戦.
 	calc_damage(result, title, kouku.api_stage3_combined, fhp, ehp, [2,2]);	// 連合第二艦隊：航空爆撃雷撃戦.
 }
 
@@ -3239,6 +3239,11 @@ function on_battle(json, battle_api_name) {
 		d.api_air_base_attack.forEach(function(kouku) {
 			calc_kouku_damage(result, "基地航空隊支援", kouku, f_nowhps, e_nowhps); // 2016.5
 		});
+	}
+	// 航空友軍 2021夏イベ後段 本格友軍実装と共に実装 https://twitter.com/KanColle_STAFF/status/1438781672267272195
+	var fk = d.api_friendly_kouku;
+	if (fk && fi) {
+		calc_kouku_damage(result, "航空戦(友軍)", fk, fi.api_nowhps.concat(), e_nowhps, null, 1);
 	}
 	calc_kouku_damage(result, "航空戦",  d.api_kouku,  f_nowhps, e_nowhps);
 	calc_kouku_damage(result, "航空戦2", d.api_kouku2, f_nowhps, e_nowhps);
