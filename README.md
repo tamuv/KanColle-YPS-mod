@@ -1,5 +1,5 @@
 # 艦これ余所見プレイ支援 KanColleYPS
-* v2.1.31 夏イベント2021前段作戦対応: 2021-08-21
+* v2.1.32 夏イベント2021航空友軍対応(仮)、分岐係数訂正: 2021-09-23
 * 公開サイト: https://hkuno9000.github.io/KanColle-YPS
 * 不具合報告先: https://github.com/hkuno9000/KanColle-YPS/issues
 * リリース履歴: https://github.com/hkuno9000/KanColle-YPS/releases
