@@ -1455,6 +1455,16 @@ Daihatu.prototype.count_up = function(value) {
 		this.sum++;
 		break;
 	}
+	case 436:	// 大発動艇(II号戦車/北アフリカ仕様).
+		this.up += 2;
+		this.level += value.level;
+		this.sum++;
+		break;
+	case 449:	// 特大発動艇+一式砲戦車
+		this.up += 2;
+		this.level += value.level;
+		this.sum++;
+		break;
 	if (value.ship_id == 487) { // 鬼怒改二.
 		this.up += 5;
 	}
