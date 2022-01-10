@@ -71,6 +71,7 @@ var $e_prevhps = null;
 var $f_damage = 0;
 var $e_lost_count = 0;
 var $e_leader_lost = false;
+var $e_combined = null;
 var $guess_win_rank = '?';
 var $guess_info_str = '';
 var $pcDateTime = null;
@@ -2727,6 +2728,9 @@ function on_battle_result(json) {
 		var e_leader_lost = (d.api_destsf != null) ? d.api_destsf : $e_leader_lost;
 		if (d.api_ship_id) {
 			var total = count_unless(d.api_ship_id, -1);
+			if ($e_combined) {
+				total += $e_combined.length;
+			}
 			msg += '(' + e_lost_count + '/' + total + ')';
 			if (rank == 'S' && $f_damage == 0) rank = '完S';
 		}
@@ -3202,6 +3206,10 @@ function on_battle(json, battle_api_name) {
 		d.api_escape_idx_combined.forEach(function(idx) {
 			f_maxhps[idx-1+f_maxhps.idx2nd] = -1;	// 護衛退避した艦を第二艦隊リストから抜く. idx=1..6
 		});
+	}
+	$e_combined = null;
+	if (d.api_e_maxhps_combined) {
+		$e_combined = d.api_e_maxhps_combined;
 	}
 	// 友軍艦隊(NPC). @since 2018.Feb WinterEvent
 	var ff = d.api_friendly_battle;
