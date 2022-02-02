@@ -1443,6 +1443,9 @@ Daihatu.prototype.count_up = function(value) {
 		this.sum++;
 		break;
 	case 166:	// 大発動艇(八九式中戦車＆陸戦隊).
+	case 408:	// 装甲艇(AB艇).
+	case 436:	// 大発動艇(II号戦車/北アフリカ仕様).
+	case 449:	// 特大発動艇+一式砲戦車
 		this.up += 2;
 		this.level += value.level;
 		this.sum++;
@@ -1458,23 +1461,8 @@ Daihatu.prototype.count_up = function(value) {
 		this.level += value.level;
 		this.sum++;
 		break;
-	case 408:	// 装甲艇(AB艇).
-		this.up += 2;
-		this.level += value.level;
-		this.sum++;
-		break;
 	case 409:	// 武装大発.
 		this.up += 3;
-		this.level += value.level;
-		this.sum++;
-		break;
-	case 436:	// 大発動艇(II号戦車/北アフリカ仕様).
-		this.up += 2;
-		this.level += value.level;
-		this.sum++;
-		break;
-	case 449:	// 特大発動艇+一式砲戦車
-		this.up += 2;
 		this.level += value.level;
 		this.sum++;
 		break;
