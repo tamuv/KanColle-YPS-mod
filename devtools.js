@@ -988,14 +988,14 @@ function slotitem_seiku(id, lv, alv, n, airbase) {
 	return Math.floor(seiku);
 }
 
-// 装備運用枠上限で保持数が制限されるアイテムか?
-function slotitem_has_maxcount(id) {
+// 装備運用枠(上限 $max_slotitem)として数えるアイテムか?
+function is_total_slotitem(id) {
 	let item = $mst_slotitem[id];
 	switch (item.api_type[2]) {
 	case 23: // 応急修理要員：ダメコン、女神.
 	case 43: // 戦闘糧食：おにぎり、特別なおにぎり.
 	case 44: // 補給物資：洋上補給.
-		return false; // 上限か保持数が制限されないアイテムである.
+		return false; // 上限で保持数が制限されないアイテムである.
 	default:
 		return true; // 上限で保持数が制限されるアイテムである.
 	}
@@ -1744,7 +1744,7 @@ function print_port() {
 	var afterlv_list = [];
 	var lockeditem_list = {};
 	var lockeditem_count = 0;
-	var totalitem_count = 0;
+	var total_slotitem = 0;
 	var $unlock_slotitem = 0;
 	var $levelmax_slotitem = 0;
 	var $leveling_slotitem = 0;
@@ -1780,8 +1780,8 @@ function print_port() {
 			else
 				$leveling_slotitem++;
 		}
-		if (value && slotitem_has_maxcount(value.item_id)) {
-			totalitem_count++;
+		if (value && is_total_slotitem(value.item_id)) {
+			total_slotitem++;
 		}
 	}
 	//
@@ -1971,10 +1971,10 @@ function print_port() {
 	//
 	// 装備数、ロック装備一覧を表示する.
 	var items = Object.keys($slotitem_list).length;
-	var space = $max_slotitem - totalitem_count;
+	var space = $max_slotitem - total_slotitem;
 	if (space <= 0)       req.push('### @!!装備保有数が満杯です!!@'); // 警告表示.
 	else if (space <= 20) req.push('### @!!装備保有数の上限まで残り' + space + '!!@'); // 警告表示.
-	req.push('装備保有数:' + totalitem_count + '/' + $max_slotitem
+	req.push('装備保有数:' + total_slotitem + '/' + $max_slotitem
 		+ '(未ロック:' + (items - lockeditem_count)
 		+ ', ロック:' + lockeditem_count
 		+ ', 改修中:' + $leveling_slotitem
