@@ -2,8 +2,8 @@
 	"manifest_version": 3,
 	"name": "KanColle-YPS",
 	"short_name": "KanColle-YPS",
-	"version": "2.1.35",
-	"version_name": "v2.1.35 冬イベント2022対応",
+	"version": "2.1.36",
+	"version_name": "v2.1.36 manifest v3対応(仮)",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"icons": {
