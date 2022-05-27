@@ -1,18 +1,16 @@
 $event_sally_tag_names = {
 // id: tagname.
-// http://*/kcs2/img/common/common_event.png?version=5.3.7.2
-// http://*/kcs2/img/common/common_event.json?version=5.3.7.2
+// http://*/kcs2/img/common/common_event.png?version=5.4.0.0
+// http://*/kcs2/img/common/common_event.json?version=5.4.0.0
 // jsonのcommon_event_番号並びと、札ID番号並びは一致している.
-// 冬イベント2022: 発令！「捷三号作戦警戒」前段作戦
-//1: '南西方面艦隊',   // E-1, E-2, E-4.
-//2: '第三十一戦隊',   // E-2.
-//3: '輸送部隊',       // E-3.
-//4: '連合艦隊',       // E-3, E-5.
-// 冬イベント2022: 発令！「捷三号作戦警戒」後段作戦
-//5: '第十六戦隊',     // E-4.
-//6: 'シマ船団護衛',   // E-4.
-//7: '遊撃部隊',       // E-5.
-//8: '決戦艦隊',       // E-5.
+// 下記コードにて番号並び順に画像切り取り座標を抜き出し、その位置描かれている札名を列記する.
+// v = {}; for (i in common_event.frames) { v[i] = common_event.frames[i].frame; }; console.table(v)
+// 春イベント2022: 前段作戦【激闘！R方面作戦】
+1: 'R方面防備部隊',
+2: '進出第一陣',
+3: '進出第二陣',
+4: '機動部隊',
+5: '方面護衛隊',
 9999: null
 };
 
