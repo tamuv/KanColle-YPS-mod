@@ -260,8 +260,14 @@ function history_buttons() {
 }
 
 var predeck = "";
+var sim_info = "";
 
 function copy_button() {
+	$button_onclick["YPS_sim"] = function() {
+		window.open(
+			'https://noro6.github.io/kc-web#import:' + sim_info,
+			'YPS_sim');
+	};
 	$button_onclick["YPS_ship"] = function() {
 		ship_textarea.select();
 		document.execCommand('copy');
@@ -274,7 +280,7 @@ function copy_button() {
 		deck_textarea.select();
 		document.execCommand('copy');
 	};
-	return ' <a href ="https://kancolle-fleetanalysis.web.app/#" target="KanColle-YPS-to-fleetanalysis">艦隊分析</a>:'
+	return ' <input id="YPS_sim" type="button" value="制空権シミュ"/>'
 		+ ' <input id="YPS_ship" type="button" value="艦娘情報Copy"/>'
 		+ ' <input id="YPS_slot" type="button" value="装備情報Copy"/>'
 		+ ' <a href ="http://kancolle-calc.net/deckbuilder.html?predeck=' + predeck + '" target="KanColle-YPS-to-deckbuilder">デッキビルダー</a>:'
@@ -305,6 +311,10 @@ chrome.runtime.onMessage.addListener(function (req) {
 		slot_textarea.innerText = req.slot_export_json;
 		deck_textarea.innerText = req.deck_export_json;
 		predeck = encodeURIComponent(req.deck_export_json);
+		sim_info = '{"ships": '  + req.ship_export_json
+				+ ',"items": '   + req.slot_export_json
+				+ ',"predeck": ' + req.deck_export_json
+				+ '}';
 	}
 	else { // may be String
 		pop_history();

@@ -16,6 +16,7 @@ var $weekly			= load_storage('weekly');
 var $quest_clear	= load_storage('quest_clear');
 var $logbook		= load_storage('logbook', []);
 var $quest_list		= load_storage('quest_list');
+var $air_base		= load_storage('air_base', []); // for noro6/kc-web
 var $debug_battle_json = null;
 var $debug_ship_names = [];
 var $debug_api_name = '';
@@ -128,6 +129,7 @@ function Ship(data, ship) {
 	this.sakuteki = data.api_sakuteki;
 	this.nextlv	= data.api_exp[1];
 	this.exp	= data.api_exp;
+	this.slot_ex = data.api_slot_ex; // for noro6/kc-web
 	if (data.api_slot_ex > 0) {		// api_slot_ex:: 0:増設スロットなし, -1:増設スロット空,　1以上:増設スロット装備ID.
 		this.slot.push(data.api_slot_ex);
 	}
@@ -1732,8 +1734,8 @@ function print_port() {
 	var owned_ship_idset = {};
 	$locked_ship_idset = {};
 	$locked_ship_double = {};
-	let ship_export_info = []; // 艦隊分析用の艦娘データ.
-	let slot_export_info = []; // 艦隊分析用の装備データ.
+	let ship_export_info = []; // 制空権シミュレータ/艦隊分析用の艦娘データ.
+	let slot_export_info = []; // 制空権シミュレータ/艦隊分析用の装備データ.
 	var newship = 0;
 	var cond85 = 0;
 	var cond53 = 0;
@@ -1768,12 +1770,12 @@ function print_port() {
 				lockeditem_list[i][lv] = {count:0, shiplist:[]};
 			lockeditem_list[i][lv].count++;
 			lockeditem_count++;
-			// 艦隊分析用.
-			slot_export_info.push({
-				api_slotitem_id : value.item_id,
-				api_level       : value.level
-			});
 		}
+		// 制空権シミュレータ/艦隊分析用.
+		slot_export_info.push({
+			api_slotitem_id : value.item_id,
+			api_level       : value.level
+		});
 		if (value && value.level) {
 			if (value.level >= 10)
 				$levelmax_slotitem++;
@@ -1827,14 +1829,16 @@ function print_port() {
 			if      (days <= 10) array_push(lock_standby, days, ship);
 			else if (days <= 90) array_push(lock_standby, Math.ceil(days/10)*10, ship);
 			else                 array_push(lock_standby, '不明(90日以上)', ship);
-			// 艦隊分析用.
-			ship_export_info.push({
-				api_ship_id : ship.ship_id,
-				api_lv      : ship.lv,
-				api_kyouka  : ship.kyouka,
-				api_exp     : ship.exp
-			});
 		}
+		// 制空権シミューレータ/艦隊分析用.
+		ship_export_info.push({
+			api_ship_id : ship.ship_id,
+			api_lv      : ship.lv,
+			api_kyouka  : ship.kyouka,
+			api_slot_ex : ship.slot_ex, // for noro6/kc-web
+			api_sally_area : ship.sally_area, // for noro6/kc-web
+			api_exp     : ship.exp
+		});
 		if (ship.slot) {
 			ship.slot.forEach(function(id) {
 				var value = $slotitem_list[id];
@@ -2401,9 +2405,29 @@ function deckbuilder_info() {
 			f['s'+si] = {
 				id: ship.ship_id,
 				lv: ship.lv,
+				hp: ship.maxhp,		// for noro6/kc-web
+				asw: ship.taisen[0],	// for noro6/kc-web
 				luck : (luck > mst.api_luck[0] ? luck : -1),
 				items : ship.deckbuilder_slot()
 			};
+		}
+	}
+	for (let data of $air_base) { // for noro6/kc-web
+		const a = info['a' + data.api_rid] = {
+			mode: data.api_action_kind, // 0:待機, 1:出撃, 2:防空, 3:退避, 4:休息.
+			items: {}
+		};
+		for (let pi of data.api_plane_info) {
+			if (pi.api_state > 0) {
+				const value = $slotitem_list[pi.api_slotid];
+				if (value) {
+					const item = a.items['i' + pi.api_squadron_id] = {
+						id: value.item_id,
+						rf: value.level
+					};
+					if (value.alv >= 1) item.mas = value.alv;
+				}
+			}
 		}
 	}
 	return info;
@@ -4068,6 +4092,8 @@ chrome.devtools.network.onRequestFinished.addListener(function (request) {
 			var air_base = [];
 			// 基地航空隊の開放前は json.api_data.api_air_base は存在しない
 			if (json.api_data.api_air_base) {
+				$air_base = json.api_data.api_air_base; // for noro6/kc-web
+				save_storage('air_base', $air_base);
 				air_base.push('YPS_air_base_mapinfo');
 				let area_id = -1;
 				json.api_data.api_air_base.forEach(function(data) {
