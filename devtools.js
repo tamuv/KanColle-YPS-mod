@@ -1178,6 +1178,8 @@ function battle_type_name(a, si) {
 	case 103: return 'Colorado斉射';
 	case 200: return '瑞雲立体攻撃';
 	case 201: return '海空立体攻撃';
+	case 400: return '大和突撃(3隻)';
+	case 401: return '大和突撃(2隻)';
 	default: return a; // 不明.
 	}
 }
@@ -1204,6 +1206,8 @@ function battle_sp_name(a, si) {
 	case 102: return '陸奥一斉射';
 	case 103: return 'Colorado斉射';
 	case 104: return '僚艦夜戦突撃';
+	case 400: return '大和突撃(3隻)';
+	case 401: return '大和突撃(2隻)';
 	default: return a; // 不明.
 	}
 }
@@ -2898,12 +2902,12 @@ function calc_damage(result, title, battle, fhp, ehp, active_deck, ff) {
 					if (j == 2) at += 4; // change to 5th ship
 					result.flagship_at_type = ty;
 				}
-				else if (/^Colorado/.test(ty)) {
+				else if (/^Colorado/.test(ty) || /^大和突撃\(3隻\)/.test(ty)) {
 					if (j == 1) at += 1; // change to 2nd ship
 					if (j == 2) at += 2; // change to 3rd ship
 					result.flagship_at_type = ty;
 				}
-				else if (/^(長門|陸奥)/.test(ty)) {
+				else if (/^(長門|陸奥)/.test(ty) || /^大和突撃\(2隻\)/.test(ty)) {
 					if (j == 2) at += 1; // change to 2nd ship
 					result.flagship_at_type = ty;
 				}
