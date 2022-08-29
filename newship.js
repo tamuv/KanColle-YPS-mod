@@ -273,10 +273,14 @@ $init_newship_slots = {
 885:	2,	// Victorious.
 886:	2,	// 早潮.
 895:	2,	// 昭南.
+896:	1,	// Brooklyn.
 900:	2,	// 山汐丸.
 905:	0,	// 倉橋.
 913:	2,	// Maryland.
 921:	2,	// 鵜来.
 925:	2,	// Langley.
+931:	3,	// Ranger.
+933:	2,	// Massachusetts.
+935:	1,	// Jean Bart.
 9999:	null	// dummy
 };
