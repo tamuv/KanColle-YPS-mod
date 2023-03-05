@@ -3113,6 +3113,7 @@ function guess_win_rank(f_nowhps, f_maxhps, f_beginhps, e_nowhps, e_maxhps, e_be
 	for (var i = 0; i < e_maxhps.length; ++i) {
 		// 敵艦被害集計.
 		if (e_maxhps[i] == -1) continue;
+		if (e_maxhps[i] == 'N/A') continue; // 航空支援つき潜水艦マスの軽空母. 攻撃不能. 勝敗判定に無関係.
 		var n = e_nowhps[i];
 		++e_count;
 		e_damage_total += e_beginhps[i] - Math.max(0, n);
