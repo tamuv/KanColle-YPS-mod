@@ -6,14 +6,14 @@ div.classList.add('yps-body');
 div.innerHTML = "艦これ余所見プレイ支援"
 	+ version_banner()
 	+ "<h3>使い方</h3>"
-	+ "<ol style='list-style: decimal;'><li>艦これゲーム画面の「GAME START」をクリックする前に、"
+	+ "<ol style='list-style: decimal;'><li>艦これにログインする.<li>艦これゲーム画面の「GAME START」をクリックする直前に、"
 	+ "F12キー(MacOSでは⌘+Option+I)を押して Chormeブラウザのデベロッパーツールを開いておく.</li>"
 	+ "<li>デベロッパーツールがゲーム画面を圧迫しないように、"
 	+ "ツールウィンドウ右上肩の三本線＞Dock side＞画面下を選び、ウィンドウ境界をドラッグして最少サイズにする.</li>"
 	+ "</ol>"
 	+ "<h3>動作しないときは</h3>"
 	+ "<ul style='list-style: disc;'><li>ゲーム画面が母港に移行してもこの表示が出ている場合は、"
-	+ "Chromeブラウザをすべて閉じて、上記の使い方1からやり直してください.</li>"
+	+ "Chromeブラウザをすべて閉じて、上記の使い方1からやり直してください.（ログイン前にF12キーを押してはいけません）</li>"
 	+ "<li>それでも動作しない場合は、このKanColle-YPSをChromeブラウザから一旦削除し、Chromeウェブストアから再追加してください.</li>"
 	+ "</ul>"
 	;
