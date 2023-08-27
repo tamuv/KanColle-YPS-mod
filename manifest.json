@@ -2,8 +2,8 @@
 	"manifest_version": 3,
 	"name": "KanColle-YPS",
 	"short_name": "KanColle-YPS",
-	"version": "2.1.47.1",
-	"version_name": "v2.1.47.1 夏イベント2023前段作戦対応",
+	"version": "2.1.48",
+	"version_name": "v2.1.48 夏イベント2023後段作戦対応(仮)",
 	"description": "艦これの余所見プレイを支援する(cond_checker改造版)",
 	"homepage_url": "http://hkuno9000.github.io/KanColle-YPS/",
 	"icons": {
