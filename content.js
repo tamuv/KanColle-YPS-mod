@@ -44,8 +44,8 @@ document.body.appendChild(deck_textarea);
 //------------------------------------------------------------------------
 // ゲーム画面の配置調整.
 //
-document.getElementById('w').style.textAlign = 'left';
-document.getElementById('w').style.width = '1230px';
+document.getElementById('root').style.textAlign = 'left';
+document.getElementById('root').style.width = '1230px';
 //document.getElementById('area-game').style.textAlign = 'left';
 //document.getElementById('game_frame').width = '820px';
 //document.getElementById('ntg-recommend').style.display = 'none';
