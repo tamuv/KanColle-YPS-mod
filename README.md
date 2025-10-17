@@ -1,3 +1,8 @@
+# KanColleYPS-mod
+* 艦これhttps化への対応を実施。それ以外はオリジナルのまま。
+  以下コメントは全てオリジナルのまま。
+---
+
 # 艦これ余所見プレイ支援 KanColleYPS
 * v2.1.49 早春イベント2024: 2024-03-09
 * 公開サイト: https://hkuno9000.github.io/KanColle-YPS
